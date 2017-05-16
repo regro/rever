@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+import os
 import sys
 import ast
 try:
     from setuptools import setup
+    HAVE_SETUPTOOLS = True
 except ImportError:
     from distutils.core import setup
+    HAVE_SETUPTOOLS = False
 
 
 def find_version(filename):
@@ -42,6 +45,7 @@ def main():
         package_dir={'rever': 'rever'},
         package_data={'rever': ['*.xsh']},
         scripts=scripts,
+        zip_safe=False,
         )
     # WARNING!!! Do not use setuptools 'console_scripts'
     # It validates the depenendcies (of which we have none) everytime the

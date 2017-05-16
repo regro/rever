@@ -24,10 +24,12 @@ def find_path(dag, ends, path=None):
     todo = ends - sofar
     if len(todo) == 0:
         return path
-    for end in todo:
+    for end in sorted(todo):
         deps = set(dag[end].deps)
-        need = sofar - deps
+        need = deps - sofar
         if len(need) > 0:
             find_path(dag, need, path)
-        path.append(end)
+            sofar.update(path)
+        if end not in sofar:
+            path.append(end)
     return path

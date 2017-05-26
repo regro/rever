@@ -1,6 +1,6 @@
 """Some version control utilities for rever"""
 
-def make_vsc_dispatcher(vcsfuncs, name='vsc_dispatcher',
+def make_vcs_dispatcher(vcsfuncs, name='vcs_dispatcher',
                         doc='dispatches to a version control function',
                         err='no func for handling the version contol system !{r}'):
     """Creates a function that dispatches to different version control systems,
@@ -21,16 +21,16 @@ def make_vsc_dispatcher(vcsfuncs, name='vsc_dispatcher',
 
     Returns
     -------
-    vsc_dispatcher : function
+    vcs_dispatcher : function
     """
-    def vsc_dispatcher(*args, **kwargs):
+    def vcs_dispatcher(*args, **kwargs):
         func = vcsfuncs.get($REVER_VCS, None)
         if func is None:
             raise RuntimeError(err.format($REVER_VCS))
         return func(*args, **kwargs)
-    vsc_dispatcher.__name__ = name
-    vsc_dispatcher.__doc__ = doc
-    return vsc_dispatcher
+    vcs_dispatcher.__name__ = name
+    vcs_dispatcher.__doc__ = doc
+    return vcs_dispatcher
 
 
 def git_current_branch():
@@ -39,7 +39,7 @@ def git_current_branch():
 
 
 CURRENT_BRANCH = {'git': git_current_branch}
-current_branch = make_vsc_dispatcher(CURRENT_BRANCH, name='current_branch',
+current_branch = make_vcs_dispatcher(CURRENT_BRANCH, name='current_branch',
     doc="Returns the current branch for the user's version control system.",
     err = 'no way to get the branch for version control system {!r}')
 
@@ -50,7 +50,7 @@ def git_current_rev():
 
 
 CURRENT_REV = {'git': git_current_rev}
-current_rev = make_vsc_dispatcher(CURRENT_REV, name='current_rev',
+current_rev = make_vcs_dispatcher(CURRENT_REV, name='current_rev',
     doc="Returns the current revision for the user's version control system.",
     err = 'no way to get the revision for version control system {!r}')
 
@@ -61,7 +61,7 @@ def git_reset_hard(rev):
 
 
 REWIND = {'git': git_reset_hard}
-rewind = make_vsc_dispatcher(REWIND, name='rewind',
+rewind = make_vcs_dispatcher(REWIND, name='rewind',
     doc="Returns the version control system to a previous state.",
     err = 'no way to rewind the version control system {!r}')
 
@@ -77,7 +77,7 @@ def git_merge(src, into):
 
 
 MERGE = {'git': git_merge}
-merge = make_vsc_dispatcher(MERGE, name='merge',
+merge = make_vcs_dispatcher(MERGE, name='merge',
     doc="Merges one revision into another.",
     err = 'no way to merge for {!r}')
 
@@ -88,7 +88,7 @@ def git_checkout(rev):
 
 
 CHECKOUT = {'git': git_checkout}
-checkout = make_vsc_dispatcher(CHECKOUT, name='checkout',
+checkout = make_vcs_dispatcher(CHECKOUT, name='checkout',
     doc="Checks out a revision.",
     err = 'no way to checkout for {!r}')
 
@@ -98,6 +98,6 @@ def git_tag(tag):
     git tag -f @(tag)
 
 TAG = {'git': git_tag}
-tag = make_vsc_dispatcher(TAG, name='tag',
+tag = make_vcs_dispatcher(TAG, name='tag',
     doc="Tags the current head.",
     err = 'no way to tag for {!r}')

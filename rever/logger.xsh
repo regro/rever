@@ -50,8 +50,10 @@ class Logger:
         return self._argparser
 
 
-def log(args):
+def log(args, stdin=None):
     """Command line interface for logging a message"""
+    if stdin is not None:
+        args = args + [stdin.read()]
     ns = $LOGGER.argparser(args)
     message = ' '.join(ns.message)
     $LOGGER.log(message, activity=ns.activity)

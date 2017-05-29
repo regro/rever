@@ -1,4 +1,5 @@
 """Logging tools for rever"""
+import os
 import json
 import time
 import argparse
@@ -16,10 +17,11 @@ class Logger:
         Parameters
         ----------
         filename : str
-            Path to logfile.
+            Path to logfile, if a realtive pathname is given it is relative to $REVER_DIR.
         """
-        self.filename = filename
+        self._filename = None
         self._argparser = None
+        self.filename = filename
 
     def log(self, message, activity=None, category='misc'):
         """Logs a message, teh associated activity (optional), the timestamp, and the
@@ -37,6 +39,20 @@ class Logger:
         with open(self.filename) as f:
             entries = [json.loads(line) for line in f]
         return entries
+
+    @property
+    def filename(self):
+        value = self._filename
+        if not os.path.isabs(value):
+            value = os.path.join($REVER_DIR, value)
+        dname = os.path.dirname(value)
+        if not os.path.isdir(dname):
+            mkdir -p @(dname)
+        return value
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
 
     @property
     def argparser(self):

@@ -31,16 +31,19 @@ def detype_logger(x):
 ENVVARS = {
     'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
                   "system to use, such as 'git' or 'hg'"),
-    'LOGGER': (Logger('/tmp/rever.log'), always_false, to_logger, detype_logger,
+    'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
+                  'used for storing rever temporary files.'),
+    'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,
                "Rever logger object. Setting this variable to a string will "
-               "change the filename of the logger.")
+               "change the filename of the logger."),
     }
 
 
 def setup():
     for key, (default, validate, convert, detype, docstr) in ENVVARS.items():
         ${...}._defaults[key] = default
-        ${...}._ensurers[key] = Ensurer(validate=validate, convert, detype)
+        ${...}._ensurers[key] = Ensurer(validate=validate, convert=convert,
+                                        detype=detype)
         ${...}._docs[key] = VarDocs(docstr=docstr)
 
 

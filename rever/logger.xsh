@@ -21,12 +21,12 @@ class Logger:
         self.filename = filename
         self._argparser = None
 
-    def log(self, message, activity=None):
+    def log(self, message, activity=None, category='misc'):
         """Logs a message, teh associated activity (optional), the timestamp, and the
         current revision to the log file.
         """
         entry = {'message': message, 'timestamp': time.time(),
-                 'rev': current_rev()}
+                 'rev': current_rev(), 'category': category}
         if activity is not None:
             entry['activity'] = activity
         with open(self.filename, 'a+') as f:
@@ -45,6 +45,7 @@ class Logger:
             return self._argparser
         p = argparse.ArgumentParser('log')
         p.add_argument('-a', '--activity', dest='activity', default=None)
+        p.add_argument('-c', '--category', dest='category', default='misc')
         p.add_argument('message', nargs=argparse.REMAINDER)
         self._argparser = p
         return self._argparser
@@ -56,7 +57,7 @@ def log(args, stdin=None):
         args = args + [stdin.read()]
     ns = $LOGGER.argparser(args)
     message = ' '.join(ns.message)
-    $LOGGER.log(message, activity=ns.activity)
+    $LOGGER.log(message, activity=ns.activity, category=ns.category)
 
 
 aliases['log'] = log

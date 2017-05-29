@@ -33,6 +33,7 @@ class Logger:
             entry['activity'] = activity
         with open(self.filename, 'a+') as f:
             json.dump(entry, f, sort_keys=True, separators=(',', ':'))
+            f.write('\n')
 
     def load(self):
         """Loads all of the records from the logfile and returns a list of dicts."""

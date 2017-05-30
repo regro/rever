@@ -24,6 +24,8 @@ class Logger:
         self._filename = None
         self._argparser = None
         self.filename = filename
+        self._mtime = -1.0
+        self._cached_entries = ()
 
     def log(self, message, activity=None, category='misc', data=None):
         """Logs a message, the associated activity (optional), the timestamp, and the
@@ -52,8 +54,13 @@ class Logger:
         """
         if not os.path.isfile(self.filename):
             return []
+        mtime = os.stat(self.filename).st_mtime
+        if mtime == self._mtime:
+            return self._cached_entries
         with open(self.filename) as f:
             entries = [json.loads(line) for line in f]
+        self._mtime = mtime
+        self._cached_entries = entries
         return entries
 
     @property

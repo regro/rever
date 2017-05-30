@@ -3,7 +3,7 @@ import argparse
 from collections import defaultdict
 
 from lazyasd import lazyobject
-from xonsh.tools import print_color
+from xonsh.tools import csv_to_set, print_color
 
 from rever import environ
 from rever.dag import find_path
@@ -15,8 +15,11 @@ def PARSER():
     p.add_argument('--rc', default='rever.xsh', dest='rc',
                    help='Rever run control file.')
     p.add_argument('-a', '--activities', default=None, dest='activities',
-                   help='comma-separated list of activities to execute. '
-                        'This overrides the list in the rc file.')
+                   help='comma-separated set of activities to execute. '
+                        'This overrides the set in the rc file.')
+    p.add_argument('-u', '--undo', default=frozenset(), dest='undo', type=csv_to_set,
+                   help='comma-separated set of activities to undo, in reverse '
+                        'chronological order.')
     return p
 
 
@@ -56,6 +59,37 @@ def compute_activities_to_run(activities=None):
     return path, already_done
 
 
+def run_activities(ns):
+    """Actually run activities."""
+    need, done = compute_activities_to_run()
+    for name in done:
+        print_color("{GREEN}Activity '" + name + "' has already been "
+                    "completed!{NO_COLOR}")
+    for name in need:
+        act = $ACTIVITY_DAG[name]
+        act()
+
+
+def undo_activities(ns):
+    """Run undoer for specified activities."""
+    done = compute_activities_completed()
+    undo = ns.undo & done  # can only undo completed activities
+    # compute reverse chronological order of completed activities
+    latest_acts = {}
+    for entry in $LOGGER.load():
+        if 'activity' not in entry:
+            continue
+        act = entry['activity']
+        if act in undo and entry['category'] == 'activity-end':
+            last_time = latest_acts.get(act, -1.0)
+            if last_time < entry['timestamp']:
+                latest_acts[act] = entry['timestamp']
+    order = sorted(latest_acts, reverse=True, key=latest_acts.get)
+    for name in order:
+        act = $ACTIVITY_DAG[name]
+        act.undo()
+
+
 def env_main(args=None):
     """The main function that must be called with the rever environment already
     started up.
@@ -64,13 +98,11 @@ def env_main(args=None):
     source @(ns.rc)
     if ns.activities is not None:
         $ACTIVITIES = ns.activities
-    need, done = compute_activities_to_run()
-    for name in done:
-        print_color("{GREEN}Activity '" + name + "' has already been "
-                    "completed!{NO_COLOR}")
-    for name in need:
-        act = $ACTIVITY_DAG[name]
-        act()
+    # run the command
+    if ns.undo:
+        undo_activities(ns)
+    else:
+        run_activities(ns)
 
 
 def main(args=None):

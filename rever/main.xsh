@@ -30,11 +30,11 @@ def compute_activities_completed():
         act = entry['activity']
         if entry['category'] == 'activity-end':
             if act not in acts_done:
-                acts_done[acts] = defaultdict(int)
+                acts_done[act] = defaultdict(int)
             acts_done[act][entry['data']['start_rev']] += 1
         elif entry['category'] == 'activity-undo':
             if act not in acts_done:
-                acts_done[acts] = defaultdict(int)
+                acts_done[act] = defaultdict(int)
             acts_done[act][entry['rev']] -= 1
     done = set()
     for act, revcount in acts_done.items():
@@ -45,13 +45,14 @@ def compute_activities_completed():
     return done
 
 
-def compute_activities_to_run():
+def compute_activities_to_run(activities=None):
     """Computes which activities to execute based on the DAG, which activities
     the user requested, and which activites the log file says are already done.
     Returns the list of needed activities and the list of completed ones.
     """
+    activities = $ACTIVITIES if activities is None else activities
     done = compute_activities_completed()
-    path, already_done = find_path($ACTIVITY_DAG, $ACTIVITIES, done)
+    path, already_done = find_path($ACTIVITY_DAG, activities, done)
     return path, already_done
 
 

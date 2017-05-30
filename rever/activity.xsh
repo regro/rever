@@ -66,7 +66,7 @@ class Activity:
         return undo
 
 
-def activity(name=None, deps=None, undo=None, desc=None):
+def activity(name=None, deps=frozenset(), undo=None, desc=None):
     """A decorator that turns the function into an activity. The arguments here have the
     same meaning as they do in the Activity class constructor. This decorator also
     registers the activity in the $ACTIVITY_DAG.

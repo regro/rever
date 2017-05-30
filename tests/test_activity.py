@@ -60,3 +60,18 @@ def test_decorator_just_func(gitrepo):
     def undo_collapse():
         pass
     assert act._undo is undo_collapse
+
+
+def test_decorator_with_args(gitrepo):
+    @activity(name='realname', deps={'sleep'}, desc='Here we go!')
+    def wakeup():
+        """Morning time!"""
+        pass
+    env = builtins.__xonsh_env__
+    dag = env['ACTIVITY_DAG']
+    assert 'realname' in dag
+    assert 'wakeup' not in dag
+    act = dag['realname']
+    assert act is wakeup
+    assert act.deps == {'sleep'}
+    assert act.desc == 'Here we go!'

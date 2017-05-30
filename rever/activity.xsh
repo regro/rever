@@ -63,6 +63,7 @@ class Activity:
     def undoer(self, undo):
         """Decorator that sets the undo function for this activity."""
         self._undo = undo
+        return undo
 
 
 def activity(name=None, deps=None, undo=None, desc=None):
@@ -73,10 +74,10 @@ def activity(name=None, deps=None, undo=None, desc=None):
     # handle the @activity case
     def dec(f):
         members = dict(inspect.getmembers(f))
-        name = name or members['__name__']
-        act = Activity(name=name, deps=deps, func=f,
+        true_name = name or members['__name__']
+        act = Activity(name=true_name, deps=deps, func=f,
                        undo=undo, desc=desc or members['__doc__'])
-        $ACTIVITY_DAG[name] = act
+        $ACTIVITY_DAG[true_name] = act
         return act
     if callable(name):
         f, name = name, None

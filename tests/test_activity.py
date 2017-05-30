@@ -1,8 +1,9 @@
 """Tests the activity class and its operations."""
+import os
 import builtins
 
 from rever import  vcsutils
-from rever.activity import Activity
+from rever.activity import Activity, activity
 
 
 def do_tryptophan():
@@ -27,6 +28,9 @@ def test_do_undo(gitrepo):
     assert entries[1]['category'] == 'activity-end'
     assert entries[0]['rev'] != entries[1]['rev']
     assert entries[1]['rev'] == vcsutils.current_rev()
+    with open('tryptophan.txt') as f:
+        value = f.read()
+    assert value == '5-HTP\n'
     # undo the activity
     act.undo()
     entries = logger.load()
@@ -36,4 +40,23 @@ def test_do_undo(gitrepo):
     assert entries[2]['rev'] != entries[1]['rev']
     assert entries[2]['rev'] == entries[0]['rev']
     assert entries[2]['rev'] == vcsutils.current_rev()
+    assert not os.path.isfile('tryptophan.txt')
 
+
+def test_decorator_just_func(gitrepo):
+    @activity
+    def collapse():
+        """The grade of this collapse"""
+        pass
+    env = builtins.__xonsh_env__
+    dag = env['ACTIVITY_DAG']
+    assert 'collapse' in dag
+    act = dag['collapse']
+    assert act is collapse
+    assert act.name == 'collapse'
+    assert act.desc == 'The grade of this collapse'
+    # test undoer
+    @collapse.undoer
+    def undo_collapse():
+        pass
+    assert act._undo is undo_collapse

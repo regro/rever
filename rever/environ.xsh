@@ -29,13 +29,16 @@ def detype_logger(x):
 # key = name
 # value = (default, validate, convert, detype, docstr)
 ENVVARS = {
-    'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
-                  "system to use, such as 'git' or 'hg'"),
-    'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
-                  'used for storing rever temporary files.'),
+    'ACTIVITY_DAG': ({}, always_true, None, str, 'Directed acyclic graph of '
+                     'activities as represented by a dict with str keys and '
+                     'Activity objects as values.'),
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,
                "Rever logger object. Setting this variable to a string will "
                "change the filename of the logger."),
+    'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
+                  'used for storing rever temporary files.'),
+    'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
+                  "system to use, such as 'git' or 'hg'"),
     }
 
 

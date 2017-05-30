@@ -103,5 +103,3 @@ def test_redo_deps_if_reverted(gitrepo):
     b_ends = [e for e in entries if e['activity'] == 'b' and
                                     e['category'] == 'activity-end']
     assert len(b_ends) == 1
-
-

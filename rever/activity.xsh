@@ -51,7 +51,7 @@ class Activity:
             return
         for entry in $LOGGER.load()[::-1]:
             if entry['activity'] == self.name and entry['category'] == 'activity-start':
-                rev = entry['activity']
+                rev = entry['rev']
                 break
         else:
             raise RuntimeError(self.name + ' activity can not be undone, no starting '

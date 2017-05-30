@@ -101,3 +101,25 @@ TAG = {'git': git_tag}
 tag = make_vcs_dispatcher(TAG, name='tag',
     doc="Tags the current head.",
     err = 'no way to tag for {!r}')
+
+
+def git_track(files):
+    """Adds a list of files to the repo."""
+    git add @(files)
+
+
+TRACK = {'git': git_track}
+track = make_vcs_dispatcher(TRACK, name='track',
+    doc="Specify files to track in the repo.",
+    err = 'no way to track files for {!r}')
+
+
+def git_commit(message="Rever commit"):
+    """Commits to the repo."""
+    git commit -am @(message)
+
+
+COMMIT = {'git': git_commit}
+commit = make_vcs_dispatcher(COMMIT, name='commit',
+    doc="Commits a revision to the repo.",
+    err = 'no way to commit for {!r}')

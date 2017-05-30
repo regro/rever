@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 
 from xonsh.environ import Ensurer, VarDocs
-from xonsh.tools import is_string, ensure_string, always_false
+from xonsh.tools import is_string, ensure_string, always_false, always_true
 
 from rever.logger import Logger
 

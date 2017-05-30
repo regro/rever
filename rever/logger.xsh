@@ -72,7 +72,7 @@ def log(args, stdin=None):
     """Command line interface for logging a message"""
     if stdin is not None:
         args = args + [stdin.read()]
-    ns = $LOGGER.argparser(args)
+    ns = $LOGGER.argparser.parse_args(args)
     message = ' '.join(ns.message)
     $LOGGER.log(message, activity=ns.activity, category=ns.category)
 

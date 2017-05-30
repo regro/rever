@@ -4,6 +4,8 @@ import json
 import time
 import argparse
 
+from xonsh.tools import print_color
+
 from rever.vcsutils import current_rev
 
 
@@ -23,20 +25,33 @@ class Logger:
         self._argparser = None
         self.filename = filename
 
-    def log(self, message, activity=None, category='misc'):
-        """Logs a message, teh associated activity (optional), the timestamp, and the
+    def log(self, message, activity=None, category='misc', data=None):
+        """Logs a message, the associated activity (optional), the timestamp, and the
         current revision to the log file.
         """
         entry = {'message': message, 'timestamp': time.time(),
                  'rev': current_rev(), 'category': category}
         if activity is not None:
             entry['activity'] = activity
+        if data is not None:
+            entry['data'] = data
+        # write to log file
         with open(self.filename, 'a+') as f:
             json.dump(entry, f, sort_keys=True, separators=(',', ':'))
             f.write('\n')
+        # write to stdout
+        msg = '{INTENSE_CYAN}' + category + '{PURPLE}:'
+        if activity is not None:
+            msg += '{RED}' + activity + '{PURPLE}:'
+        msg += '{INTENSE_WHITE}' + message + '{NO_COLOR}'
+        print_color(msg)
 
     def load(self):
-        """Loads all of the records from the logfile and returns a list of dicts."""
+        """Loads all of the records from the logfile and returns a list of dicts.
+        If the log file does not yet exist, this returns an empty list.
+        """
+        if not os.path.isfile(self.filename):
+            return []
         with open(self.filename) as f:
             entries = [json.loads(line) for line in f]
         return entries
@@ -63,6 +78,7 @@ class Logger:
         p = argparse.ArgumentParser('log')
         p.add_argument('-a', '--activity', dest='activity', default=None)
         p.add_argument('-c', '--category', dest='category', default='misc')
+        p.add_argument('-d', '--data', dest='data', default=None)
         p.add_argument('message', nargs=argparse.REMAINDER)
         self._argparser = p
         return self._argparser
@@ -74,7 +90,8 @@ def log(args, stdin=None):
         args = args + [stdin.read()]
     ns = $LOGGER.argparser.parse_args(args)
     message = ' '.join(ns.message)
-    $LOGGER.log(message, activity=ns.activity, category=ns.category)
+    $LOGGER.log(message, activity=ns.activity, category=ns.category,
+                data=ns.data)
 
 
 aliases['log'] = log

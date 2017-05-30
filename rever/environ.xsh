@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 from xonsh.environ import Ensurer, VarDocs
 from xonsh.tools import (is_string, ensure_string, always_false, always_true,
-                         is_nonstring_seq_of_strings)
+                         is_string_set, csv_to_set, set_to_csv)
 
 from rever.logger import Logger
 
@@ -27,22 +27,12 @@ def detype_logger(x):
     return  x.filename
 
 
-def csv_split(x):
-    """Splits a string by commas."""
-    return x.split(',')
-
-
-def csv_join(x):
-    """Joins a sequence into a single str by commas."""
-    return ','.join(x)
-
-
 # key = name
 # value = (default, validate, convert, detype, docstr)
 ENVVARS = {
-    'ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_split, csv_join,
-                   'A list of activities for rever to execute, if they have not '
-                   'already been executed.'),
+    'ACTIVITIES': (set(), is_string_set, csv_to_set, set_to_csv,
+                   'A set of activity names for rever to execute, if they have '
+                   'not already been executed.'),
     'ACTIVITY_DAG': ({}, always_true, None, str, 'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),

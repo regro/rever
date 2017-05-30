@@ -1,6 +1,7 @@
 """Provides basic activity funtionality."""
 import sys
 import inspect
+import traceback
 
 from rever import vcsutils
 
@@ -34,12 +35,24 @@ class Activity:
         s = '{}: {}'.format(self.name, self.desc)
 
     def __call__(self):
+        start_rev = vcsutils.current_rev()
         log -a @(self.name) -c activity-start @("starting activity " + self.name)
         if self.func is None:
-            print('Activity {!r} has no function to call!', file=sys.stderr)
+            print('Activity {!r} has no function to call!'.format(self.name),
+                  file=sys.stderr)
         else:
-            self.func()
-        log -a @(self.name) -c activity-end @("activity " + self.name + " complete")
+            try:
+                self.func()
+            except Exception:
+                msg = 'activity failed with execption:\n' + traceback.format_exc()
+                msg += 'rewinding to ' + start_rev
+                log -a @(self.name) -c activity-error @(msg)
+                vcsutils.rewind(start_rev)
+                return False
+        $LOGGER.log(activity=self.name, category="activity-end",
+                    message="activity " + self.name + " complete",
+                    data={"start_rev": start_rev})
+        return True
 
     def undo(self):
         """Reverts to the last instance of this activity. This default implementation
@@ -50,8 +63,8 @@ class Activity:
             self._undo()
             return
         for entry in $LOGGER.load()[::-1]:
-            if entry['activity'] == self.name and entry['category'] == 'activity-start':
-                rev = entry['rev']
+            if entry['activity'] == self.name and entry['category'] == 'activity-end':
+                rev = entry['data']['start_rev']
                 break
         else:
             raise RuntimeError(self.name + ' activity can not be undone, no starting '

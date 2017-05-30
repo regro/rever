@@ -4,6 +4,10 @@ import builtins
 builtins.__xonsh_ctx__ = {}
 from xonsh.execer import Execer
 builtins.__xonsh_execer__ = Execer(xonsh_ctx=builtins.__xonsh_ctx__)
+from xonsh.shell import Shell
+builtins.__xonsh_shell__ = Shell(builtins.__xonsh_execer__,
+                                 ctx=builtins.__xonsh_ctx__,
+                                 shell_type='none')
 
 # setup import hooks
 import xonsh.imphooks

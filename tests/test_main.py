@@ -1,7 +1,9 @@
 """Test main utilities"""
+from collections import defaultdict
 import builtins
 
 from rever.main import env_main
+from rever.activity import Activity
 
 
 def test_source_rc(gitrepo):
@@ -22,15 +24,17 @@ def test_alt_source_rc(gitrepo):
 
 def test_activities_from_rc(gitrepo):
     with open('rever.xsh', 'w') as f:
-        f.write('$ACTIVITIES = ["a", "b", "c"]\n')
+        f.write('$ACTIVITIES = {"a", "b", "c"}\n')
     env = builtins.__xonsh_env__
+    env['ACTIVITY_DAG'] = defaultdict(Activity)
     env_main(args=[])
-    assert env['ACTIVITIES'] == ["a", "b", "c"]
+    assert env['ACTIVITIES'] == {"a", "b", "c"}
 
 
 def test_activities_from_cli(gitrepo):
     with open('rever.xsh', 'w') as f:
-        f.write('$ACTIVITIES = ["a", "b", "c"]\n')
+        f.write('$ACTIVITIES = {"a", "b", "c"}\n')
     env = builtins.__xonsh_env__
+    env['ACTIVITY_DAG'] = defaultdict(Activity)
     env_main(args=['-a', 'e,f,g'])
-    assert env['ACTIVITIES'] == ["e", "f", "g"]
+    assert env['ACTIVITIES'] == {"e", "f", "g"}

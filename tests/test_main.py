@@ -10,7 +10,7 @@ from rever.main import (env_main, compute_activities_completed,
 def test_source_rc(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$YOU_DONT = "always"\n')
-    env_main(args=[])
+    env_main(args=['x.y.z'])
     assert builtins.__xonsh_env__['YOU_DONT'] == 'always'
     del builtins.__xonsh_env__['YOU_DONT']
 
@@ -18,7 +18,7 @@ def test_source_rc(gitrepo):
 def test_alt_source_rc(gitrepo):
     with open('rc.xsh', 'w') as f:
         f.write('$YOU_DO = "never"\n')
-    env_main(args=['--rc=rc.xsh'])
+    env_main(args=['--rc=rc.xsh', 'x.y.z'])
     assert builtins.__xonsh_env__['YOU_DO'] == 'never'
     del builtins.__xonsh_env__['YOU_DO']
 
@@ -28,7 +28,7 @@ def test_activities_from_rc(gitrepo):
         f.write('$ACTIVITIES = {"a", "b", "c"}\n')
     env = builtins.__xonsh_env__
     env['ACTIVITY_DAG'] = defaultdict(Activity)
-    env_main(args=[])
+    env_main(args=['x.y.z'])
     assert env['ACTIVITIES'] == {"a", "b", "c"}
 
 
@@ -37,7 +37,7 @@ def test_activities_from_cli(gitrepo):
         f.write('$ACTIVITIES = {"a", "b", "c"}\n')
     env = builtins.__xonsh_env__
     env['ACTIVITY_DAG'] = defaultdict(Activity)
-    env_main(args=['-a', 'e,f,g'])
+    env_main(args=['-a', 'e,f,g', 'x.y.z'])
     assert env['ACTIVITIES'] == {"e", "f", "g"}
 
 
@@ -50,7 +50,7 @@ def test_dont_redo_deps(gitrepo):
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
     # run the first time
-    env_main(args=['--activities', 'a'])
+    env_main(args=['--activities', 'a', 'x.y.z'])
     done = compute_activities_completed()
     assert done == {'a'}
     # test what we we need to run if we wanted to run b
@@ -58,7 +58,7 @@ def test_dont_redo_deps(gitrepo):
     assert path == ['b']
     assert already_done == ['a']
     # run for the second time
-    env_main(args=['--activities', 'b'])
+    env_main(args=['--activities', 'b', 'x.y.z'])
     done = compute_activities_completed()
     assert done == {'a', 'b'}
     # make sure a and b were each run exactly once
@@ -80,11 +80,11 @@ def test_redo_deps_if_reverted(gitrepo):
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
     # run the first time
-    env_main(args=['--activities', 'a'])
+    env_main(args=['--activities', 'a', 'x.y.z'])
     done = compute_activities_completed()
     assert done == {'a'}
     # undo a
-    env_main(args=['--undo', 'a'])
+    env_main(args=['--undo', 'a', 'x.y.z'])
     done = compute_activities_completed()
     assert done == set()
     # test what we we need to run if we wanted to run b
@@ -92,7 +92,7 @@ def test_redo_deps_if_reverted(gitrepo):
     assert path == ['a', 'b']
     assert already_done == []
     # run for the second time
-    env_main(args=['--activities', 'b'])
+    env_main(args=['--activities', 'b', 'x.y.z'])
     done = compute_activities_completed()
     assert done == {'a', 'b'}
     # make sure a and b were each run exactly once

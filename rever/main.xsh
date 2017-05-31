@@ -20,6 +20,7 @@ def PARSER():
     p.add_argument('-u', '--undo', default=frozenset(), dest='undo', type=csv_to_set,
                    help='comma-separated set of activities to undo, in reverse '
                         'chronological order.')
+    p.add_argument('version', help='version to release')
     return p
 
 
@@ -96,6 +97,7 @@ def env_main(args=None):
     """
     ns = PARSER.parse_args(args)
     source @(ns.rc)
+    $VERSION = ns.version
     if ns.activities is not None:
         $ACTIVITIES = ns.activities
     # run the command

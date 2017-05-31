@@ -9,7 +9,8 @@ from rever import vcsutils
 class Activity:
     """Activity representing a node in DAG of release tasks."""
 
-    def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None, desc=None):
+    def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None,
+                 args=None, kwargs=None, desc=None):
         """
         Parameters
         ----------
@@ -22,6 +23,10 @@ class Activity:
             Function to perform as activity when this activities is executed (called).
         undo : callable, optional
             Function to undo this activities behaviour and reset the repo state.
+        args : tuple, optional
+            Arguments to be supplied to the func(*args), if needed.
+        kwargs : mapping, optional
+            Keyword arguments to be supplied to the func(**kwargs), if needed.
         desc : str, optional
             A short description of this activity
         """
@@ -29,6 +34,8 @@ class Activity:
         self.deps = deps
         self.func = func
         self._undo = undo
+        self.args = args
+        self.kwargs = kwargs
         self.desc = desc
 
     def __str__(self):
@@ -41,8 +48,10 @@ class Activity:
             print('Activity {!r} has no function to call!'.format(self.name),
                   file=sys.stderr)
         else:
+            args = self.args or ()
+            kwargs = self.kwargs or {}
             try:
-                self.func()
+                self.func(*args, **kwargs)
             except Exception:
                 msg = 'activity failed with execption:\n' + traceback.format_exc()
                 msg += 'rewinding to ' + start_rev

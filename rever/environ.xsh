@@ -43,6 +43,8 @@ ENVVARS = {
                   'used for storing rever temporary files.'),
     'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
                   "system to use, such as 'git' or 'hg'"),
+    'VERSION': ('x.y.z', is_string, str, ensure_string, 'Version string of new '
+                'version that is being released.'),
     }
 
 

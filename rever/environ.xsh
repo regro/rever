@@ -27,13 +27,22 @@ def detype_logger(x):
     return  x.filename
 
 
+def default_dag():
+    """Creates a default activity DAG."""
+    from rever.version_bump import VersionBump
+    dag = {
+        'version_bump': VersionBump(),
+    }
+    return dag
+
 # key = name
 # value = (default, validate, convert, detype, docstr)
 ENVVARS = {
     'ACTIVITIES': (set(), is_string_set, csv_to_set, set_to_csv,
                    'A set of activity names for rever to execute, if they have '
                    'not already been executed.'),
-    'ACTIVITY_DAG': ({}, always_true, None, str, 'Directed acyclic graph of '
+    'ACTIVITY_DAG': (default_dag(), always_true, None, str,
+                     'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,

@@ -101,4 +101,9 @@ def log(args, stdin=None):
                 data=ns.data)
 
 
+def current_logger():
+    """Retuns the current logger instance."""
+    return $LOGGER
+
+
 aliases['log'] = log

@@ -51,11 +51,11 @@ class Changelog(Activity):
               header='.. current developments\n\nv$VERSION\n'
                      '====================\n\n',
               news='news', ignore=('TEMPLATE',)):
-        if callable(n):
-            new_header = new_header($VERSION)
+        if callable(header):
+            header = header($VERSION)
         else:
-            new_header = expand_path(new_header)
-        n = new_header + self.merge_news(news=news, ignore=ignore)
+            header = expand_path(header)
+        n = header + self.merge_news(news=news, ignore=ignore)
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)
 

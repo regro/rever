@@ -30,8 +30,10 @@ def detype_logger(x):
 def default_dag():
     """Creates a default activity DAG."""
     from rever.version_bump import VersionBump
+    from rever.changelog import Changelog
     dag = {
         'version_bump': VersionBump(),
+        'changelog': Changelog(),
     }
     return dag
 
@@ -59,6 +61,8 @@ ENVVARS = {
 
 def setup():
     for key, (default, validate, convert, detype, docstr) in ENVVARS.items():
+        if key in ${...}:
+            del ${...}[key]
         ${...}._defaults[key] = default
         ${...}._ensurers[key] = Ensurer(validate=validate, convert=convert,
                                         detype=detype)
@@ -70,6 +74,8 @@ def teardown():
         ${...}._defaults.pop(key)
         ${...}._ensurers.pop(key)
         ${...}._docs.pop(key)
+        if key in ${...}:
+            del ${...}[key]
 
 
 @contextmanager

@@ -28,7 +28,7 @@ def test_version_bump(gitrepo):
     # now see if this worked
     with open('init.py') as f:
         init = f.read()
-    assert init == "__version__ = '42.1.1'\n"
+    assert "__version__ = '42.1.1'\n" == init
     with open('appveyor.yml') as f:
         appveyor = f.read()
     assert appveyor == "version: 42.1.1.{build}\n"

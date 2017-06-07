@@ -29,11 +29,13 @@ def detype_logger(x):
 
 def default_dag():
     """Creates a default activity DAG."""
-    from rever.version_bump import VersionBump
     from rever.changelog import Changelog
+    from rever.tag_activity import Tag
+    from rever.version_bump import VersionBump
     dag = {
-        'version_bump': VersionBump(),
         'changelog': Changelog(),
+        'tag': Tag(),
+        'version_bump': VersionBump(),
     }
     return dag
 

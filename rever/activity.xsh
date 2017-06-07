@@ -94,9 +94,10 @@ class Activity:
         prefix = self.name.upper() + '_'
         params = inspect.signature(self.func).parameters
         kwargs = {}
-        for param in parameters:
-            key = prefix + param.name.upper()
-            kwargs[key] = ${...}[key]
+        for name in params:
+            key = prefix + name.upper()
+            if key in ${...}:
+                kwargs[name] = ${...}[key]
         return kwargs
 
     def all_kwargs(self):

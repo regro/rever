@@ -168,3 +168,15 @@ del_remote_tag = make_vcs_dispatcher({'git': git_del_remote_tag},
     name='del_remote_tag',
     doc="Deletes a tag from the remote repository.",
     err = 'no way to remove a remote tag for {!r}')
+
+
+def git_latest_tag():
+    """Returns the most recent tag in the repo."""
+    tag = $(git describe --abbrev=0 --tags)
+    return tag.strip()
+
+
+latest_tag = make_vcs_dispatcher({'git': git_latest_tag},
+    name='latest_tag',
+    doc="Retruns the most recent tag in the repo.",
+    err = 'no way to find the most recent tag for {!r}')

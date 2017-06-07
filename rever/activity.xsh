@@ -49,7 +49,7 @@ class Activity:
                   file=sys.stderr)
         else:
             args = self.args or ()
-            kwargs = self.kwargs or {}
+            kwargs = self.all_kwargs()
             try:
                 self.func(*args, **kwargs)
             except Exception:
@@ -86,6 +86,26 @@ class Activity:
         """Decorator that sets the undo function for this activity."""
         self._undo = undo
         return undo
+
+    def kwargs_from_env(self):
+        """Obtains possible func() kwarg from the environment."""
+        if self.func is None:
+            return {}
+        prefix = self.name.upper() + '_'
+        params = inspect.signature(self.func).parameters
+        kwargs = {}
+        for param in parameters:
+            key = prefix + param.name.upper()
+            kwargs[key] = ${...}[key]
+        return kwargs
+
+    def all_kwargs(self):
+        """Returns all kwargs for this activity."""
+        kwargs = self.kwargs_from_env()
+        kwargs.update(self.kwargs or {})
+        return kwargs
+
+
 
 
 def activity(name=None, deps=frozenset(), undo=None, desc=None):

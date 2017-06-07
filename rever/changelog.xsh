@@ -2,12 +2,10 @@
 import os
 import re
 
-from xonsh.tools import expand_path
-
 from rever import vcsutils
 from rever.activity import Activity
+from rever.tools import eval_version
 from rever.version_bump import replace_in_file
-
 
 
 NEWS_CATEGORIES = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
@@ -51,10 +49,7 @@ class Changelog(Activity):
               header='.. current developments\n\nv$VERSION\n'
                      '====================\n\n',
               news='news', ignore=('TEMPLATE',)):
-        if callable(header):
-            header = header($VERSION)
-        else:
-            header = expand_path(header)
+        header = eval_version(header)
         n = header + self.merge_news(news=news, ignore=ignore)
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)

@@ -123,3 +123,48 @@ COMMIT = {'git': git_commit}
 commit = make_vcs_dispatcher(COMMIT, name='commit',
     doc="Commits a revision to the repo.",
     err = 'no way to commit for {!r}')
+
+
+def git_push(remote, target):
+    """Pushes up to a remote and target branch"""
+    git push @(remote) @(target)
+
+
+push = make_vcs_dispatcher({'git': git_push},
+    name='push',
+    doc="Pushes up to a remote URL a target branch or revision.",
+    err = 'no way to push for {!r}')
+
+
+def git_push_tags(remote):
+    """Pushes up tags to a remote"""
+    git push --tags @(remote)
+
+
+push_tags = make_vcs_dispatcher({'git': git_push_tags},
+    name='push_tags',
+    doc="Pushes up tags to a remote URL.",
+    err = 'no way to push tags for {!r}')
+
+
+def git_del_tag(tag):
+    """Deletes a tag from the local repo"""
+    git tag -d @(tag)
+
+
+del_tag = make_vcs_dispatcher({'git': git_del_tag},
+    name='del_tag',
+    doc="Deletes a tag from the local repository.",
+    err = 'no way to remove a tag for {!r}')
+
+
+def git_del_remote_tag(tag, remote):
+    """Deletes a tag from a remote repo"""
+    refspec = ':refs/tags/' + tag
+    git push @(remote) @(refspec)
+
+
+del_remote_tag = make_vcs_dispatcher({'git': git_del_remote_tag},
+    name='del_remote_tag',
+    doc="Deletes a tag from the remote repository.",
+    err = 'no way to remove a remote tag for {!r}')

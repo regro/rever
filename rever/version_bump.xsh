@@ -1,10 +1,9 @@
-"""Activity for bumpimg version."""
+"""Activity for bumping version."""
 import re
-
-from xonsh.tools import expand_path
 
 from rever import vcsutils
 from rever.activity import Activity
+from rever.tools import eval_version
 
 
 def replace_in_file(pattern, new, fname):
@@ -54,9 +53,6 @@ class VersionBump(Activity):
 
     def _func(self, patterns=()):
         for f, p, n in patterns:
-            if callable(n):
-                n = n($VERSION)
-            else:
-                n = expand_path(n)
+            n = eval_version(n)
             replace_in_file(p, n, f)
         vcsutils.commit('bumped version to ' + $VERSION)

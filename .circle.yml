@@ -8,4 +8,4 @@ dependencies:
 
 test:
   pre:
-    - "pytest-3 -vv ./tests/"
+    - "pytest -v ./tests/"

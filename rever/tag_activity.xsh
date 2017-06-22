@@ -22,7 +22,7 @@ class Tag(Activity):
              is None, which uses the current branch.
     """
 
-    def __init__(self, *, deps=frozenset()):
+    def __init__(self, *, deps=frozenset(('version_bump', 'changelog'))):
         super().__init__(name='tag', deps=deps, func=self._func,
                          desc="Tags the current version.")
 

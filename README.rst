@@ -9,7 +9,7 @@ source repository,
 
 .. code-block:: xonsh
 
-    $ACTIVITIES = {'tag'}
+    $ACTIVITIES = ['tag']
     $TAG_PUSH = False
 
 Then, run rever from this directory to execute the release actions you specified.

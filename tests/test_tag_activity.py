@@ -5,7 +5,7 @@ from rever.main import env_main
 
 
 REVER_XSH = """
-$ACTIVITIES = {'tag'}
+$ACTIVITIES = ['tag']
 $TAG_PUSH = False
 """
 

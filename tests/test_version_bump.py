@@ -5,7 +5,7 @@ from rever.main import env_main
 
 
 REVER_XSH = """
-$ACTIVITIES = {'version_bump'}
+$ACTIVITIES = ['version_bump']
 
 $ACTIVITY_DAG['version_bump'].args = [[
     ('init.py', '__version__\s*=.*', "__version__ = '$VERSION'"),

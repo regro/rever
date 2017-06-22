@@ -20,8 +20,28 @@ def PARSER():
     p.add_argument('-u', '--undo', default=frozenset(), dest='undo', type=csv_to_set,
                    help='comma-separated set of activities to undo, in reverse '
                         'chronological order.')
+    p.add_argument('-e', '--entrypoint', default=None, dest='entrypoint',
+                   help='the entry point target, this determines the activities '
+                        'to execute.')
     p.add_argument('version', help='version to release')
     return p
+
+
+def running_activities(ns):
+    """Sets the $RUNNING_ACTIVITIES environment variable."""
+    if ns.activities is not None:
+        $ACTIVITIES = $RUNNING_ACTIVITIES = ns.activities
+        return
+    if ns.entrypoint is None:
+        $RUNNING_ACTIVITIES = $ACTIVITIES
+        return
+    acts = {}
+    for key, value in ${...}._d.items():
+        if key.startswith('ACTIVITIES_'):
+            _, _, k = key.partition('_')
+            acts[k.lower()] = value
+    entry = ns.entrypoint.lower()
+    $RUNNING_ACTIVITIES = acts[entry]
 
 
 def compute_activities_completed():
@@ -54,9 +74,25 @@ def compute_activities_to_run(activities=None):
     the user requested, and which activites the log file says are already done.
     Returns the list of needed activities and the list of completed ones.
     """
-    activities = $ACTIVITIES if activities is None else activities
+    activities = $RUNNING_ACTIVITIES if activities is None else activities
     done = compute_activities_completed()
-    path, already_done = find_path($ACTIVITY_DAG, activities, done)
+    order, already_done = find_path($ACTIVITY_DAG, set(activities), done)
+    path = []
+    for a in activities:
+        if a not in already_done:
+            path.append(a)
+        else:
+            continue
+        i = activities.index(a)
+        act = $ACTIVITY_DAG[a]
+        for d in act.deps:
+            if d in activities:
+                j = activities.index(d)
+            else:
+                continue
+            if j >= i:
+                raise ValueError(d + ' is a dependency of ' + a + ' and must come before ' +
+                                 a + ' in the $ACTIVITIES list.')
     return path, already_done
 
 
@@ -98,8 +134,7 @@ def env_main(args=None):
     ns = PARSER.parse_args(args)
     source @(ns.rc)
     $VERSION = ns.version
-    if ns.activities is not None:
-        $ACTIVITIES = ns.activities
+    running_activities(ns)
     # run the command
     if ns.undo:
         undo_activities(ns)

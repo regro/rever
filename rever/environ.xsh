@@ -1,9 +1,10 @@
 """Custom environment handling tools for rever."""
+import re
 from contextlib import contextmanager
 
 from xonsh.environ import Ensurer, VarDocs
 from xonsh.tools import (is_string, ensure_string, always_false, always_true,
-                         is_string_set, csv_to_set, set_to_csv)
+                         is_string_set, csv_to_set, set_to_csv, is_nonstring_seq_of_strings)
 
 from rever.logger import Logger
 
@@ -39,12 +40,28 @@ def default_dag():
     }
     return dag
 
+
+def csv_to_list(x):
+    """Converts a comma separated string to a list of strings."""
+    return x.split(',')
+
+
+def list_to_csv(x):
+    """Converts a list of str to a comma-separated string."""
+    return ','.join(x)
+
+
 # key = name
 # value = (default, validate, convert, detype, docstr)
 ENVVARS = {
-    'ACTIVITIES': (set(), is_string_set, csv_to_set, set_to_csv,
-                   'A set of activity names for rever to execute, if they have '
+    'ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                   'Default list of activity names for rever to execute, if they have '
                    'not already been executed.'),
+    re.compile('ACTIVITIES_\w*'): ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                                   'A list of activity names for rever to execute for the entry '
+                                   'point named after the first underscore.'),
+    'RUNNING_ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                           'List of activity names that rever is actually executing.'),
     'ACTIVITY_DAG': (default_dag(), always_true, None, str,
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '

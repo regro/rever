@@ -25,20 +25,33 @@ def test_alt_source_rc(gitrepo):
 
 def test_activities_from_rc(gitrepo):
     with open('rever.xsh', 'w') as f:
-        f.write('$ACTIVITIES = {"a", "b", "c"}\n')
+        f.write('$ACTIVITIES = ["a", "b", "c"]\n')
     env = builtins.__xonsh_env__
     env['ACTIVITY_DAG'] = defaultdict(Activity)
     env_main(args=['x.y.z'])
-    assert env['ACTIVITIES'] == {"a", "b", "c"}
+    assert env['ACTIVITIES'] == ["a", "b", "c"]
+    assert env['RUNNING_ACTIVITIES'] == ["a", "b", "c"]
 
 
 def test_activities_from_cli(gitrepo):
     with open('rever.xsh', 'w') as f:
-        f.write('$ACTIVITIES = {"a", "b", "c"}\n')
+        f.write('$ACTIVITIES = ["a", "b", "c"]\n')
     env = builtins.__xonsh_env__
     env['ACTIVITY_DAG'] = defaultdict(Activity)
     env_main(args=['-a', 'e,f,g', 'x.y.z'])
-    assert env['ACTIVITIES'] == {"e", "f", "g"}
+    assert env['ACTIVITIES'] == ["e", "f", "g"]
+    assert env['RUNNING_ACTIVITIES'] == ["e", "f", "g"]
+
+
+def test_activities_from_entrypoint(gitrepo):
+    with open('rever.xsh', 'w') as f:
+        f.write('$ACTIVITIES = ["a", "b", "c"]\n'
+                '$ACTIVITIES_ALT = ["e", "f", "g"]\n')
+    env = builtins.__xonsh_env__
+    env['ACTIVITY_DAG'] = defaultdict(Activity)
+    env_main(args=['-e', 'alt', 'x.y.z'])
+    assert env['ACTIVITIES'] == ["a", "b", "c"]
+    assert env['RUNNING_ACTIVITIES'] == ["e", "f", "g"]
 
 
 def test_dont_redo_deps(gitrepo):
@@ -54,7 +67,7 @@ def test_dont_redo_deps(gitrepo):
     done = compute_activities_completed()
     assert done == {'a'}
     # test what we we need to run if we wanted to run b
-    path, already_done = compute_activities_to_run(activities={'b'})
+    path, already_done = compute_activities_to_run(activities=['b'])
     assert path == ['b']
     assert already_done == ['a']
     # run for the second time
@@ -88,11 +101,11 @@ def test_redo_deps_if_reverted(gitrepo):
     done = compute_activities_completed()
     assert done == set()
     # test what we we need to run if we wanted to run b
-    path, already_done = compute_activities_to_run(activities={'b'})
+    path, already_done = compute_activities_to_run(activities=['a', 'b'])
     assert path == ['a', 'b']
     assert already_done == []
     # run for the second time
-    env_main(args=['--activities', 'b', 'x.y.z'])
+    env_main(args=['--activities', 'a,b', 'x.y.z'])
     done = compute_activities_completed()
     assert done == {'a', 'b'}
     # make sure a and b were each run exactly once

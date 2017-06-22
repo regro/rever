@@ -49,7 +49,7 @@ def test_decorator_just_func(gitrepo):
         """The grade of this collapse"""
         pass
     env = builtins.__xonsh_env__
-    dag = env['ACTIVITY_DAG']
+    dag = env['DAG']
     assert 'collapse' in dag
     act = dag['collapse']
     assert act is collapse
@@ -68,7 +68,7 @@ def test_decorator_with_args(gitrepo):
         """Morning time!"""
         pass
     env = builtins.__xonsh_env__
-    dag = env['ACTIVITY_DAG']
+    dag = env['DAG']
     assert 'realname' in dag
     assert 'wakeup' not in dag
     act = dag['realname']

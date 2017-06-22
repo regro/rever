@@ -27,7 +27,7 @@ def test_activities_from_rc(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$ACTIVITIES = ["a", "b", "c"]\n')
     env = builtins.__xonsh_env__
-    env['ACTIVITY_DAG'] = defaultdict(Activity)
+    env['DAG'] = defaultdict(Activity)
     env_main(args=['x.y.z'])
     assert env['ACTIVITIES'] == ["a", "b", "c"]
     assert env['RUNNING_ACTIVITIES'] == ["a", "b", "c"]
@@ -37,7 +37,7 @@ def test_activities_from_cli(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$ACTIVITIES = ["a", "b", "c"]\n')
     env = builtins.__xonsh_env__
-    env['ACTIVITY_DAG'] = defaultdict(Activity)
+    env['DAG'] = defaultdict(Activity)
     env_main(args=['-a', 'e,f,g', 'x.y.z'])
     assert env['ACTIVITIES'] == ["e", "f", "g"]
     assert env['RUNNING_ACTIVITIES'] == ["e", "f", "g"]
@@ -48,7 +48,7 @@ def test_activities_from_entrypoint(gitrepo):
         f.write('$ACTIVITIES = ["a", "b", "c"]\n'
                 '$ACTIVITIES_ALT = ["e", "f", "g"]\n')
     env = builtins.__xonsh_env__
-    env['ACTIVITY_DAG'] = defaultdict(Activity)
+    env['DAG'] = defaultdict(Activity)
     env_main(args=['-e', 'alt', 'x.y.z'])
     assert env['ACTIVITIES'] == ["a", "b", "c"]
     assert env['RUNNING_ACTIVITIES'] == ["e", "f", "g"]
@@ -59,7 +59,7 @@ def test_dont_redo_deps(gitrepo):
     # During the second run, a should not be rerun since it was already
     # run the first time.
     env = builtins.__xonsh_env__
-    dag = env['ACTIVITY_DAG']
+    dag = env['DAG']
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
     # run the first time
@@ -89,7 +89,7 @@ def test_redo_deps_if_reverted(gitrepo):
     # During the last run, a should not be rerun since it was already
     # run the first time.
     env = builtins.__xonsh_env__
-    dag = env['ACTIVITY_DAG']
+    dag = env['DAG']
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
     # run the first time

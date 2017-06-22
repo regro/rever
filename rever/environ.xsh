@@ -60,9 +60,7 @@ ENVVARS = {
     re.compile('ACTIVITIES_\w*'): ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                                    'A list of activity names for rever to execute for the entry '
                                    'point named after the first underscore.'),
-    'RUNNING_ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
-                           'List of activity names that rever is actually executing.'),
-    'ACTIVITY_DAG': (default_dag(), always_true, None, str,
+    'DAG': (default_dag(), always_true, None, str,
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
@@ -73,6 +71,8 @@ ENVVARS = {
                   'used for storing rever temporary files.'),
     'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
                   "system to use, such as 'git' or 'hg'"),
+    'RUNNING_ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                           'List of activity names that rever is actually executing.'),
     'VERSION': ('x.y.z', is_string, str, ensure_string, 'Version string of new '
                 'version that is being released.'),
     }

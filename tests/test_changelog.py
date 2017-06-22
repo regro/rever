@@ -9,7 +9,7 @@ from rever.main import env_main
 REVER_XSH = """
 $ACTIVITIES = ['changelog']
 
-$ACTIVITY_DAG['changelog'].kwargs = {
+$DAG['changelog'].kwargs = {
     'filename': 'CHANGELOG.rst',
     'ignore': ['TEMPLATE.rst'],
     'news': 'nuws',

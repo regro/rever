@@ -112,7 +112,7 @@ class Activity:
 def activity(name=None, deps=frozenset(), undo=None, desc=None):
     """A decorator that turns the function into an activity. The arguments here have the
     same meaning as they do in the Activity class constructor. This decorator also
-    registers the activity in the $ACTIVITY_DAG.
+    registers the activity in the $DAG.
     """
     # handle the @activity case
     def dec(f):
@@ -120,7 +120,7 @@ def activity(name=None, deps=frozenset(), undo=None, desc=None):
         true_name = name or members['__name__']
         act = Activity(name=true_name, deps=deps, func=f,
                        undo=undo, desc=desc or members['__doc__'])
-        $ACTIVITY_DAG[true_name] = act
+        $DAG[true_name] = act
         return act
     if callable(name):
         f, name = name, None

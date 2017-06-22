@@ -76,7 +76,7 @@ def compute_activities_to_run(activities=None):
     """
     activities = $RUNNING_ACTIVITIES if activities is None else activities
     done = compute_activities_completed()
-    order, already_done = find_path($ACTIVITY_DAG, set(activities), done)
+    order, already_done = find_path($DAG, set(activities), done)
     path = []
     for a in activities:
         if a not in already_done:
@@ -84,7 +84,7 @@ def compute_activities_to_run(activities=None):
         else:
             continue
         i = activities.index(a)
-        act = $ACTIVITY_DAG[a]
+        act = $DAG[a]
         for d in act.deps:
             if d in activities:
                 j = activities.index(d)
@@ -103,7 +103,7 @@ def run_activities(ns):
         print_color("{GREEN}Activity '" + name + "' has already been "
                     "completed!{NO_COLOR}")
     for name in need:
-        act = $ACTIVITY_DAG[name]
+        act = $DAG[name]
         act()
 
 
@@ -123,7 +123,7 @@ def undo_activities(ns):
                 latest_acts[act] = entry['timestamp']
     order = sorted(latest_acts, reverse=True, key=latest_acts.get)
     for name in order:
-        act = $ACTIVITY_DAG[name]
+        act = $DAG[name]
         act.undo()
 
 

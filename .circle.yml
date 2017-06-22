@@ -8,5 +8,5 @@ dependencies:
 
 test:
   override:
-    - "pytest -v ./tests/"
+    - "py.test -v ./tests/"
 

@@ -8,4 +8,7 @@ dependencies:
 
 test:
   pre:
-    - "pytest -v ./tests/"
+    - "pytest -v ./tests/":
+       environment:
+         PYTHONPATH: $PWD
+

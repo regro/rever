@@ -1,3 +1,11 @@
 machine:
   python:
     version: 3.6.1
+
+dependencies:
+  pre:
+    - "pip3 install -r requirements-tests.txt"
+
+test:
+  pre:
+    - "pytest-3 -vv ./tests/"

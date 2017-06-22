@@ -4,7 +4,7 @@ machine:
 
 dependencies:
   pre:
-    - "pip3 install -r requirements-tests.txt"
+    - "pip3 install -r requirements/tests.txt"
 
 test:
   override:

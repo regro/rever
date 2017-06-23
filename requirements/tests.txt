@@ -8,3 +8,4 @@ prompt-toolkit
 codecov
 flake8
 coverage
+xonda

@@ -24,9 +24,9 @@ class Activity:
         undo : callable, optional
             Function to undo this activities behaviour and reset the repo state.
         args : tuple, optional
-            Arguments to be supplied to the func(*args), if needed.
+            Arguments to be supplied to the ``func(*args)``, if needed.
         kwargs : mapping, optional
-            Keyword arguments to be supplied to the func(**kwargs), if needed.
+            Keyword arguments to be supplied to the ``func(**kwargs)``, if needed.
         desc : str, optional
             A short description of this activity
         """

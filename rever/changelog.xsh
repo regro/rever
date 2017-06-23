@@ -28,11 +28,14 @@ class Changelog(Activity):
              is the replacement that goes above the new merge entries.
              This should contain a string that matches the pattern arg
              so that the next release may be inserted automatically.
-             The default value is::
+             The default value is:
+
+             .. code-block:: rst
 
                  .. current developments
 
-                 v{0}
+                 v$VERSION
+
                  ====================
 
     :news: str, path to directory containing news files. The default is 'news'.

@@ -44,6 +44,17 @@ def command(name, command, undo_command=None, **kwargs):
     :undo_command: (optional) Command to undo the activity. Should be a valid
          xonsh command.
 
+    Examples
+    --------
+
+    .. code-block:: xonsh
+
+        from rever.activities.command import command
+
+        command('mycommand', '<command to run>', '<command to undo>')
+
+        $ACTIVITIES = ['mycommand']
+
     """
     command = Command(name, command, undo_command=undo_command, **kwargs)
     $DAG[name] = command

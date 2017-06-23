@@ -8,5 +8,8 @@ dependencies:
 
 test:
   override:
-    - "git config --gloabl user.name \"Anthony Scopatz\"; git config --gloabl user.email scopatz@gmail.com; py.test -v ./tests/"
+    - |
+        git config --global user.name "Anthony Scopatz"
+        git config --global user.email scopatz@gmail.com
+        py.test -v ./tests/
 

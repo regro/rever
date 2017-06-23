@@ -1,7 +1,7 @@
 .. _rever_command_activity:
 
 ********************************************************************************
-Command Activity (``rever.activities.ommand``)
+Command Activity (``rever.activities.command``)
 ********************************************************************************
 
 .. autofunction:: rever.activities.command.command

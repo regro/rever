@@ -55,8 +55,6 @@ class Logger:
         if not os.path.isfile(self.filename):
             return []
         mtime = os.stat(self.filename).st_mtime
-        if mtime == self._mtime:
-            return self._cached_entries
         with open(self.filename) as f:
             entries = [json.loads(line) for line in f]
         self._mtime = mtime

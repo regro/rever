@@ -15,7 +15,7 @@ import importlib
 
 os.environ['XONSH_DEBUG'] = '1'
 
-from xonsh.environ import DEFAULT_DOCS, Env
+from xonsh.environ import Env
 from xonsh.xontribs import xontrib_metadata
 from xonsh import main
 from xonsh.commands_cache import CommandsCache
@@ -31,6 +31,7 @@ else:
 sys.path.insert(0, os.path.dirname(__file__))
 
 from rever import __version__ as REVER_VERSION
+from rever import environ
 
 
 def setup(sphinx):
@@ -265,7 +266,7 @@ numpydoc_show_class_members = False
 
 def make_envvars():
     env = Env()
-    vars = sorted(DEFAULT_DOCS.keys())
+    vars = sorted([k for k in environ.ENVVARS.keys() if isinstance(k, str)])
     s = ('.. list-table::\n'
          '    :header-rows: 0\n\n')
     table = []
@@ -299,7 +300,8 @@ def make_envvars():
         f.write(s)
 
 
-make_envvars()
+with environ.context():
+    make_envvars()
 
 builtins.__xonsh_history__ = None
 builtins.__xonsh_env__ = {}

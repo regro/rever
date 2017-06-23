@@ -15,6 +15,8 @@ import importlib
 
 os.environ['XONSH_DEBUG'] = '1'
 
+sys.path.insert(0, '..')
+
 from xonsh.environ import Env
 from xonsh.xontribs import xontrib_metadata
 from xonsh import main

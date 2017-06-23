@@ -27,4 +27,4 @@ def gitrepo(request):
     with environ.context():
         yield repo
     os.chdir(cwd)
-    #shutil.rmtree(repo)
+    shutil.rmtree(repo)

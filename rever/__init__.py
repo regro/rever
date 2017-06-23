@@ -9,6 +9,8 @@ builtins.__xonsh_shell__ = Shell(builtins.__xonsh_execer__,
                                  ctx=builtins.__xonsh_ctx__,
                                  shell_type='none')
 
+builtins.__xonsh_env__['RAISE_SUBPROC_ERROR'] = True
+
 # setup import hooks
 import xonsh.imphooks
 xonsh.imphooks.install_import_hooks()

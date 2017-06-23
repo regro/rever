@@ -13,7 +13,7 @@ For those of you who want the gritty details.
     version_bump
     changelog
     tag_activity
-
+    command
 
 **Core Iterface:**
 

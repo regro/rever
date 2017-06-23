@@ -1,11 +1,10 @@
 .. _rever_tag_activity:
 
 ********************************************************************************
-Tag Activity (``rever.tag_activity``)
+Tag Activity (``rever.activities.tag``)
 ********************************************************************************
 
-.. automodule:: rever.tag_activity
+.. automodule:: rever.activities.tag
     :members:
     :undoc-members:
     :inherited-members:
-

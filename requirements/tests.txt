@@ -4,7 +4,7 @@ pytest
 pytest-flake8
 pytest-cov
 pytest-timeout
-prompt-toolkit
+prompt_toolkit
 codecov
 flake8
 coverage

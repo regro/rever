@@ -1,10 +1,17 @@
 machine:
-  python:
-    version: 3.6.1
+  environment:
+      PATH: /home/ubuntu/miniconda/bin:$PATH
 
 dependencies:
-  pre:
-    - "pip3 install -U -r requirements/tests.txt"
+  override:
+    - "rm -rf ~/virtualenvs"
+    - "wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh"
+    - "bash miniconda.sh -b -p $HOME/miniconda"
+    - "hash -r"
+    - "conda config --add channels conda-forge"
+    - "conda config --set always_yes yes --set changeps1 no"
+    - "conda install --file requirements/tests.txt"
+    - "pip install xonda"
 
 test:
   override:
@@ -12,4 +19,3 @@ test:
         git config --global user.name "Anthony Scopatz"
         git config --global user.email scopatz@gmail.com
         py.test -v ./tests/
-

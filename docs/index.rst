@@ -15,7 +15,7 @@ Contents
 **Installation:**
 
 .. toctree::
-    :titlesonly:proj
+    :titlesonly:
     :maxdepth: 1
 
     dependencies
@@ -34,12 +34,7 @@ Contents
     :titlesonly:
     :maxdepth: 1
 
-    xonshrc
-    xonshconfig
     envvars
-    aliases
-    xontribs
-    events
 
 
 **Development Spiral:**

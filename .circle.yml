@@ -18,4 +18,4 @@ test:
     - |
         git config --global user.name "Anthony Scopatz"
         git config --global user.email scopatz@gmail.com
-        py.test -v ./tests/ --capture=no
+        py.test -v ./tests/

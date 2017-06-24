@@ -1,10 +1,12 @@
 """Test main utilities"""
+import os
 from collections import defaultdict
 import builtins
 
 from rever.activity import Activity
 from rever.main import (env_main, compute_activities_completed,
                         compute_activities_to_run)
+from rever.logger import current_logger
 
 
 def test_source_rc(gitrepo):
@@ -52,6 +54,35 @@ def test_activities_from_entrypoint(gitrepo):
     env_main(args=['-e', 'alt', 'x.y.z'])
     assert env['ACTIVITIES'] == ["a", "b", "c"]
     assert env['RUNNING_ACTIVITIES'] == ["e", "f", "g"]
+
+
+BAD_GOOD = """$ACTIVITIES = ['bad', 'good']
+from rever.activity import activity
+
+@activity
+def bad():
+    raise RuntimeError
+
+@activity
+def good():
+    with open('good', 'w') as f:
+        f.write('so good')
+"""
+
+def test_bad_activities_break(gitrepo):
+    with open('rever.xsh', 'w') as f:
+        f.write(BAD_GOOD)
+    env = builtins.__xonsh_env__
+    try:
+        env_main(args=['x.y.z'])
+        completed = True
+    except SystemExit:
+        completed = False
+    assert not completed
+    assert not os.path.isfile('good')
+    logger = current_logger()
+    for entry in logger.load():
+        assert entry['activity'] != 'good'
 
 
 def test_dont_redo_deps(gitrepo):

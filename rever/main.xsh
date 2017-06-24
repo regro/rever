@@ -1,4 +1,5 @@
 """Main CLI entry point for rever"""
+import sys
 import argparse
 from collections import defaultdict
 
@@ -104,7 +105,9 @@ def run_activities(ns):
                     "completed!{NO_COLOR}")
     for name in need:
         act = $DAG[name]
-        act()
+        status = act()
+        if not status:
+            sys.exit(1)
 
 
 def undo_activities(ns):

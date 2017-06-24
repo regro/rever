@@ -2,7 +2,7 @@ $REVER_DIR = 'rever-tmp'
 $ACTIVITIES = ['version_bump', 'changelog', 'tag']
 
 $VERSION_BUMP_PATTERNS = [
-    ('src/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
+    ('rever/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
     ]
 $CHANGELOG_FILENAME = 'CHANGELOG.rst'
 $CHANGELOG_IGNORE = ['TEMPLATE.rst']

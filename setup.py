@@ -41,9 +41,9 @@ def main():
         url='https://github.com/scopatz/rever',
         platforms='Cross Platform',
         classifiers=['Programming Language :: Python :: 3'],
-        packages=['rever'],
-        package_dir={'rever': 'rever'},
-        package_data={'rever': ['*.xsh']},
+        packages=['rever', 'rever.activities'],
+        package_dir={'rever': 'rever', 'rever.activities': 'rever/activities'},
+        package_data={'rever': ['*.xsh'], 'rever.activities': ['*.xsh']},
         scripts=scripts,
         zip_safe=False,
         )

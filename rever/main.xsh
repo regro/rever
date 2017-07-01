@@ -135,8 +135,8 @@ def env_main(args=None):
     started up.
     """
     ns = PARSER.parse_args(args)
-    source @(ns.rc)
     $VERSION = ns.version
+    source @(ns.rc)
     running_activities(ns)
     # run the command
     if ns.undo:

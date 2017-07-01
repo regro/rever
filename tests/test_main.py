@@ -147,3 +147,22 @@ def test_redo_deps_if_reverted(gitrepo):
     b_ends = [e for e in entries if e['activity'] == 'b' and
                                     e['category'] == 'activity-end']
     assert len(b_ends) == 1
+
+
+VERSION_IN_CONFIG = """
+version = $VERSION
+
+with open('ver.txt', 'w') as f:
+    f.write(version)
+"""
+
+def test_version_in_config(gitrepo):
+    with open('rever.xsh', 'w') as f:
+        f.write(VERSION_IN_CONFIG)
+    env = builtins.__xonsh_env__
+    vstr = '42.43.44'
+    env_main(args=[vstr])
+    assert os.path.isfile('ver.txt')
+    with open('ver.txt') as f:
+        version = f.read()
+    assert vstr == version

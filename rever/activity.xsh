@@ -56,7 +56,6 @@ class Activity:
                 msg = 'activity failed with execption:\n' + traceback.format_exc()
                 msg += 'rewinding to ' + start_rev
                 log -a @(self.name) -c activity-error @(msg)
-                vcsutils.rewind(start_rev)
                 return False
         $LOGGER.log(activity=self.name, category="activity-end",
                     message="activity " + self.name + " complete",

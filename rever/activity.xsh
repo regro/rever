@@ -77,6 +77,7 @@ class Activity:
         else:
             raise RuntimeError(self.name + ' activity can not be undone, no starting '
                                'entry found in log.')
+        vcsutils.rewind(rev)
         msg = "Reverted {activity} from rev {rev} at {timestamp}".format(**entry)
         log -a @(self.name) -c activity-undo @(msg)
 

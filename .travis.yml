@@ -31,7 +31,7 @@ script:
   - cd docs
   - make html
   - cd ..
-  - doctr deploy . --deploy-repo ergs/rever-docs docs/_build/html
+  - doctr deploy . --deploy-repo ergs/rever-docs --built-docs ./docs/_build/html
 
 after_success:
   - codecov

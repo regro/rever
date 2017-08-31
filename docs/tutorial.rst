@@ -58,7 +58,7 @@ test specific files, but by default we want to test all of them. We could instea
 
     # by default, the environment variable $RUN_TESTS_FILES will be mapped
     # to the files kwarg of the run_tests() function.
-    $RUN_TESTS_FILES = ['test_me.py', 'test_you.py'u]
+    $RUN_TESTS_FILES = ['test_me.py', 'test_you.py']
 
 
 Also note that in the above, the docstring of the function becomes the description for the

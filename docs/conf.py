@@ -9,6 +9,7 @@
 # serve to show the default.
 import os
 import sys
+import glob
 import builtins
 import inspect
 import importlib
@@ -34,6 +35,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from rever import __version__ as REVER_VERSION
 from rever import environ
+from rever.activity import Activity
 
 
 def setup(sphinx):
@@ -298,6 +300,60 @@ def make_envvars():
                         default=vd.default, store_as_str=vd.store_as_str)
     s = s[:-9]
     fname = os.path.join(os.path.dirname(__file__), 'envvarsbody')
+    with open(fname, 'w') as f:
+        f.write(s)
+
+
+def find_activities():
+    import rever.activities as actmod
+    fname = inspect.getfile(actmod)
+    dname = os.path.dirname(fname)
+    actfiles = glob.glob(os.path.join(dname, '*.xsh'))
+    actmodnames = map(os.path.basename, actfiles)
+    actmodnames = map(os.path.splitext, actmodnames)
+    actmodnames = [x[0] for x in actmodnames if not x[0].startswith('_')]
+    acts = {}
+    for actmodname in actmodnames:
+        fullmodname = 'rever.activities.' + actmodname
+        mod = importlib.import_module(fullmodname)
+        for var, obj in vars(mod):
+            if not issubclass(obj, Activity):
+                continue
+            acts[var] = (fullmodname, obj)
+    return acts
+
+
+def make_activities():
+    acts = find_activities()
+    vars = sorted(acts.keys())
+    s = ('.. list-table::\n'
+         '    :header-rows: 0\n\n')
+    table = []
+    ncol = 3
+    row = '    {0} - :ref:`${1} <{2}>`'
+    for i, var in enumerate(vars):
+        star = '*' if i%ncol == 0 else ' '
+        table.append(row.format(star, var, var.lower()))
+    table.extend(['      -']*((ncol - len(vars)%ncol)%ncol))
+    s += '\n'.join(table) + '\n\n'
+    s += ('Listing\n'
+          '-------\n\n')
+    sec = ('.. _{low}:\n\n'
+           '{var}\n'
+           '{under}\n'
+           'Access the {var} activity via:\n\n'
+           '.. code-block:: python\n\n'
+           '    from {fullmodname} import {var}\n\n'
+           '{docstr}\n\n'
+           '-------\n\n')
+    for var in vars:
+        title = '$' + var
+        under = '.' * len(title)
+        docstr = inspect.getdoc(acts[var][1])
+        s += sec.format(var=var, low=var.lower(), under=under,
+                        docstr=docstr, fullmodname=acts[var][0])
+    s = s[:-9]
+    fname = os.path.join(os.path.dirname(__file__), 'activitiesbody')
     with open(fname, 'w') as f:
         f.write(s)
 

@@ -9,6 +9,25 @@ as easy as running a single command. Rever...
 * is easily extensible, allowing your project to execute custom release activities, and
 * allows you to undo release activities, in the event of a mistake!
 
+
+===========
+Quick Start
+===========
+To get started with rever, first put a ``rever.xsh`` file in the root directory of your
+source repository,
+
+.. code-block:: xonsh
+
+    $ACTIVITIES = ['tag']
+    $TAG_PUSH = False
+
+Then, run rever from this directory to execute the release actions you specified.
+
+.. code-block:: sh
+
+    $ rever 1.42
+
+
 =========
 Contents
 =========
@@ -114,7 +133,7 @@ Helpful Links
       content: "";
       padding: .38em 0;
       background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
-      box-shadow: 0 0.07em 0.4em 0 rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0.07em 0.4em 0 rgba(0, 0, 0, 0.3);'
       pointer-events: auto;
     }
 

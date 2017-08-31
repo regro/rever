@@ -1,3 +1,5 @@
+xonsh
+lazyasd
 cloud_sptheme
 numpydoc
 Sphinx

@@ -53,6 +53,7 @@ Contents
     :titlesonly:
     :maxdepth: 1
 
+    activities
     envvars
 
 

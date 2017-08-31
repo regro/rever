@@ -9,6 +9,7 @@
 # serve to show the default.
 import os
 import sys
+import glob
 import builtins
 import inspect
 import importlib
@@ -34,6 +35,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from rever import __version__ as REVER_VERSION
 from rever import environ
+from rever.activity import Activity
 
 
 def setup(sphinx):
@@ -302,7 +304,65 @@ def make_envvars():
         f.write(s)
 
 
+def find_activities():
+    import rever.activities as actmod
+    fname = inspect.getfile(actmod)
+    dname = os.path.dirname(fname)
+    actfiles = glob.glob(os.path.join(dname, '*.xsh'))
+    actmodnames = map(os.path.basename, actfiles)
+    actmodnames = map(os.path.splitext, actmodnames)
+    actmodnames = [x[0] for x in actmodnames if not x[0].startswith('_')]
+    acts = {}
+    for actmodname in actmodnames:
+        fullmodname = 'rever.activities.' + actmodname
+        mod = importlib.import_module(fullmodname)
+        for var, obj in vars(mod).items():
+            if not inspect.isclass(obj) or not issubclass(obj, Activity):
+                continue
+            acts[var] = (fullmodname, obj)
+    acts.pop('Activity')
+    return acts
+
+
+def make_activities():
+    acts = find_activities()
+    vars = sorted(acts.keys())
+    s = ('.. list-table::\n'
+         '    :widths: auto\n'
+         '    :header-rows: 0\n\n')
+    table = []
+    row = ('    * - :ref:`{var} <{low}>`\n'
+           '      - {short}\n')
+    for var in vars:
+        docstr = inspect.getdoc(acts[var][1])
+        short = docstr[:docstr.find('\n\n')]
+        short = short.replace('\n', ' ')
+        table.append(row.format(var=var, low=var.lower(), short=short))
+    s += '\n'.join(table) + '\n\n'
+    s += ('Listing\n'
+          '-------\n\n')
+    sec = ('.. _{low}:\n\n'
+           '{var}\n'
+           '{under}\n'
+           'Access the {var} activity via:\n\n'
+           '.. code-block:: python\n\n'
+           '    from {fullmodname} import {var}\n\n'
+           '{docstr}\n\n'
+           '-------\n\n')
+    for var in vars:
+        title = var
+        under = '.' * len(title)
+        docstr = inspect.getdoc(acts[var][1])
+        s += sec.format(var=var, low=var.lower(), under=under,
+                        docstr=docstr, fullmodname=acts[var][0])
+    s = s[:-9]
+    fname = os.path.join(os.path.dirname(__file__), 'activitiesbody')
+    with open(fname, 'w') as f:
+        f.write(s)
+
+
 with environ.context():
+    make_activities()
     make_envvars()
 
 builtins.__xonsh_history__ = None

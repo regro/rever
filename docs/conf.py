@@ -316,10 +316,11 @@ def find_activities():
     for actmodname in actmodnames:
         fullmodname = 'rever.activities.' + actmodname
         mod = importlib.import_module(fullmodname)
-        for var, obj in vars(mod):
-            if not issubclass(obj, Activity):
+        for var, obj in vars(mod).items():
+            if not inspect.isclass(obj) or not issubclass(obj, Activity):
                 continue
             acts[var] = (fullmodname, obj)
+    acts.pop('Activity')
     return acts
 
 
@@ -327,14 +328,16 @@ def make_activities():
     acts = find_activities()
     vars = sorted(acts.keys())
     s = ('.. list-table::\n'
+         '    :widths: auto\n'
          '    :header-rows: 0\n\n')
     table = []
-    ncol = 3
-    row = '    {0} - :ref:`${1} <{2}>`'
-    for i, var in enumerate(vars):
-        star = '*' if i%ncol == 0 else ' '
-        table.append(row.format(star, var, var.lower()))
-    table.extend(['      -']*((ncol - len(vars)%ncol)%ncol))
+    row = ('    * - :ref:`{var} <{low}>`\n'
+           '      - {short}\n')
+    for var in vars:
+        docstr = inspect.getdoc(acts[var][1])
+        short = docstr[:docstr.find('\n\n')]
+        short = short.replace('\n', ' ')
+        table.append(row.format(var=var, low=var.lower(), short=short))
     s += '\n'.join(table) + '\n\n'
     s += ('Listing\n'
           '-------\n\n')
@@ -347,7 +350,7 @@ def make_activities():
            '{docstr}\n\n'
            '-------\n\n')
     for var in vars:
-        title = '$' + var
+        title = var
         under = '.' * len(title)
         docstr = inspect.getdoc(acts[var][1])
         s += sec.format(var=var, low=var.lower(), under=under,
@@ -359,6 +362,7 @@ def make_activities():
 
 
 with environ.context():
+    make_activities()
     make_envvars()
 
 builtins.__xonsh_history__ = None

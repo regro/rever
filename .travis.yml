@@ -33,9 +33,6 @@ script:
   - cd ..
   - doctr deploy . --deploy-repo ergs/rever-docs --built-docs ./docs/_build/html
 
-after_success:
-  - codecov
-
 notifications:
   email: false
 

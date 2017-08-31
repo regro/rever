@@ -1,0 +1,41 @@
+sudo: False
+
+language: python
+
+env:
+  global:
+    - secure: "g7gicM5Y0VExhBKrnJ0UXzEehKyZCqYL2GROPzsgGvinEf0q+d3pc9rIb+FUFZRfz++DYo0QiMdi4k6aeMPhpHdUMwiws0Aj31fcuQhTFwRnUsqzzktYfJjBQWw+Z4JbjaFhKB9afnDLux0xW6/Nshp9lG1g2vfe3z7ygnfQcI/FtQc5qCD7xWZ12nAdvD4xh7nsDIIqj5sAwPLCNxI+rCmtdku+yZcGYmBSoRRS6E8+N4q0I8+GdIEcVmrUK5UDiEqf9LOb8uhgfoPV5PLiMy6yuCziZgvZBp0GzYf+dkb/bDAOPXVriQ3rHweOESroNVl+ZE2r2UIg3qFxjk1RZfnGRmF56ZPgJQbVextiItQhYlGNakLas3QZMztuIIcXrwNjpYp0SweF0wFMS4yl2ASWw1T9SN8nY22RcVwxbL9iDqdYFja+GZnB04rThZcoeqf/aG6erKYY522vi6F+2d4iCrN2uV6lCwuqlwci9H/L61kwynz5BGwOEpefycJ4uYBUByND/k/V95z5tUHOIKEOpE0A3/P/Ng3GQyYfSLDg/E7DmfXjt5hqn4i1nHddXdc6kXNLK2Ilt2LYfxhU/IVtYQbYfgQG/HxtNaiHROV+25tQKlx4B5oYY+WDutNo/+iz1VqvqGE3ShweMUUaV/WATtHniSXAlfhJqSRlJz0="
+
+matrix:
+  include:
+    - python: 3.6
+
+install:
+  # Install conda
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update conda
+
+  # Install dependencies
+  - conda install --file requirements/docs.txt
+  - pip install xonda
+  - python setup.py install
+
+script:
+  - set -e
+  - # Command to build your docs
+  - pip install doctr
+  - cd docs
+  - make html
+  - cd ..
+  - doctr deploy --deploy-repo ergs/rever-docs docs/_build/html
+
+after_success:
+  - codecov
+
+notifications:
+  email: false
+

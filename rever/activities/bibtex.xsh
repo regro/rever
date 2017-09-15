@@ -68,11 +68,11 @@ class BibTex(Activity):
         db = bibtexparser.loads(bibtex_str)
         e = db.entries
         bibtex_entry = {
-            'title': '$PROJECT_NAME',
-            'ID': '$PROJECT_NAME + $VERSION',
+            'title': $PROJECT_NAME,
+            'ID': $PROJECT_NAME + $VERSION,
             'author': render_authors('$AUTHORS'),
-            'url': '$URL',
-            'version': '$VERSION',
+            'url': $URL,
+            'version': $VERSION,
             'date': str(datetime.date.today()),
             'ENTRYTYPE': 'software'}
         e.extend(bibtex_entry)

@@ -1,4 +1,6 @@
 """Some special rever tools"""
+import ast
+
 from xonsh.tools import expand_path
 
 def eval_version(v):
@@ -11,3 +13,15 @@ def eval_version(v):
     else:
         rtn = expand_path(v)
     return rtn
+
+
+def find_version(filename):
+    with open(filename) as f:
+        initlines = f.readlines()
+    version_line = None
+    for line in initlines:
+        if line.startswith('__version__'):
+            vstr = line.strip().split()[-1]
+            ver = ast.literal_eval(vstr)
+            break
+    return ver

@@ -1,25 +1,15 @@
 #!/usr/bin/env python3
 import os
 import sys
-import ast
+
+from rever.tools import find_version
+
 try:
     from setuptools import setup
     HAVE_SETUPTOOLS = True
 except ImportError:
     from distutils.core import setup
     HAVE_SETUPTOOLS = False
-
-
-def find_version(filename):
-    with open(filename) as f:
-        initlines = f.readlines()
-    version_line = None
-    for line in initlines:
-        if line.startswith('__version__'):
-            vstr = line.strip().split()[-1]
-            ver = ast.literal_eval(vstr)
-            break
-    return ver
 
 
 def main():

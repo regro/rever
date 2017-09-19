@@ -10,18 +10,6 @@ except ImportError:
     HAVE_SETUPTOOLS = False
 
 
-def find_version(filename):
-    with open(filename) as f:
-        initlines = f.readlines()
-    version_line = None
-    for line in initlines:
-        if line.startswith('__version__'):
-            vstr = line.strip().split()[-1]
-            ver = ast.literal_eval(vstr)
-            break
-    return ver
-
-
 def main():
     """The main entry point."""
     if sys.version_info[:2] < (3, 4):
@@ -34,7 +22,7 @@ def main():
         description='Release Versions of Software',
         long_description=readme,
         license='BSD',
-        version=find_version('rever/__init__.py'),
+        version='0.1.0',
         author='Anthony Scopatz',
         maintainer='Anthony Scopatz',
         author_email='scopatz@gmail.com',

@@ -1,11 +1,13 @@
 """Activity for bumping version."""
 import re
+import datetime
 
 from rever import vcsutils
 from rever.activity import Activity
-from rever.tools import eval_version
-import bibtexparser
-import datetime
+try:
+    import bibtexparser
+except ImportError:
+    pass
 
 
 def render_authors(authors):
@@ -30,39 +32,23 @@ def render_authors(authors):
 
 
 class BibTex(Activity):
-    """Changes the version to the value of $VERSION.
+    """Writes a BibTex reference for the version of software
 
-    This activity requires the 'patterns' argumenent be supplied.
-    This argument is an iterable of 3-tuples consisting of:
-
-    * filename, str - file to update the version in
-    * pattern, str - A Python regular expression that specifies
-      how to find matching lines for the replacement string
-    * new, str or function returning a string - the replacement
-      template as a string or a simple callable that accepts the
-      version. If it is a string, it is expanded with environment
-      variables.
-
-    For example::
-
-        patterns = [
-            # replace __version__ in init file
-            ('src/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
-
-            # replace version in appveyor
-            ('.appveyor.yml', 'version:\s*',
-              (lambda ver: 'version: {0}.{{build}}'.format(ver))),
-          ...
-        ]
+    Minimal ``rever.xsh``::
+        '''
+        $PROJECT_NAME = <my_project>  # The name of your project
+        $AUTHORS = ['Name1', 'Name2']  # The name of the authors
+        $URL = <URL to Project>  # A URL to the code
+        '''
     """
 
     def __init__(self, *, deps=frozenset('version_bump'),
                  bibfile='bibtex.bib'):
-        super().__init__(name='version_bump', deps=deps, func=self._func,
-                         desc="Changes the version to the value of $VERSION.")
+        super().__init__(name='bibtex', deps=deps, func=self._func,
+                         desc="Write BibTex file for version")
         self.bibfile = bibfile
 
-    def _func(self, patterns=()):
+    def _func(self):
         with open(self.bibfile) as bibtex_file:
             bibtex_str = bibtex_file.read()
         db = bibtexparser.loads(bibtex_str)

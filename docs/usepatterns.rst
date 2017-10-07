@@ -9,7 +9,9 @@ Rever is a very powerful versioning and release tool. Like all good tools there 
 .. code-block:: python
 
     # The short X.Y version.
+
     version = REVER_VERSION.rsplit('.',1)[0]
 
     # The full version, including alpha/beta/rc tags.
+
     release = REVER_VERSION

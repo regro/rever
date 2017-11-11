@@ -4,9 +4,9 @@ import os
 from rever import vcsutils
 from rever.logger import current_logger
 from rever.main import env_main
-from rever.activities.bibtex import BibTex
 
 REVER_XSH = """
+from rever.activities.bibtex import BibTex
 $ACTIVITIES = ['bibtex']
 $DAG['bibtex'] = BibTex()
 $PROJECT_NAME = 'my_project'  # The name of your project

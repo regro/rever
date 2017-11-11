@@ -8,9 +8,9 @@ from rever.main import env_main
 REVER_XSH = """
 from rever.activities.bibtex import BibTex
 $ACTIVITIES = ['bibtex']
-$PROJECT_NAME = 'my_project'  # The name of your project
-$AUTHORS = ['Name1', 'Name2']  # The name of the authors
-$URL = 'URL/to/Project'  # A URL to the code
+$BIBTEX_PROJECT_NAME = 'my_project'  # The name of your project
+$BIBTEX_AUTHORS = ['Name1', 'Name2']  # The name of the authors
+$BIBTEX_URL = 'URL/to/Project'  # A URL to the code
 """
 
 

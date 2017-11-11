@@ -7,9 +7,8 @@ from rever.activity import Activity
 try:
     import bibtexparser
 except ImportError:
-    pass
+    bibtexparser = None
 
-# $ACTIVITIES = ['bibtex']
 
 def render_authors(authors):
     """Parse a list of of tuples of authors into valid bibtex
@@ -27,7 +26,7 @@ def render_authors(authors):
         Valid bibtex authors
     """
     if len(authors) == 1:
-        return ' '.join(authors[0])
+        return ''.join(authors[0])
     else:
         return ' and '.join(authors)
 
@@ -37,39 +36,41 @@ class BibTex(Activity):
 
     Minimal ``rever.xsh``::
         '''
-        $PROJECT_NAME = <my_project>  # The name of your project
-        $AUTHORS = ['Name1', 'Name2']  # The name of the authors
-        $URL = <URL to Project>  # A URL to the code
+        $BIBTEX_PROJECT_NAME = <my_project>  # The name of your project
+        $BIBTEX_AUTHORS = ['Name1', 'Name2']  # The name of the authors
+        $BIBTEX_URL = <URL to Project>  # A URL to the code
         '''
     """
 
     def __init__(self, *, deps=frozenset(('version_bump', )),
-                 bibfile='bibtex.bib'):
+                 ):
         super().__init__(name='bibtex', deps=deps, func=self._func,
                          desc="Write BibTex file for version")
-        self.bibfile = bibfile
 
-    def _func(self):
-        if os.path.exists(self.bibfile):
-            with open(self.bibfile) as bibtex_file:
+    def _func(self, bibfile='bibtex.bib', project_name=None, authors=(),
+              url=None):
+        if bibtexparser is None:
+            return None
+        if os.path.exists(bibfile):
+            with open(bibfile) as bibtex_file:
                 bibtex_str = bibtex_file.read()
             db = bibtexparser.loads(bibtex_str)
         else:
             db = bibtexparser.bibdatabase.BibDatabase()
         bibtex_entry = {
-            'title': $PROJECT_NAME,
-            'ID': $PROJECT_NAME + $VERSION,
-            'author': render_authors($AUTHORS),
-            'url': $URL,
+            'title': project_name,
+            'ID': project_name + $VERSION,
+            'author': render_authors(authors),
+            'url': url,
             'version': $VERSION,
             'date': str(datetime.date.today()),
             'ENTRYTYPE': 'software'}
         db.entries.append(bibtex_entry)
         writer = bibtexparser.bwriter.BibTexWriter()
 
-        with open(self.bibfile, 'w') as b:
+        with open(bibfile, 'w') as b:
             b.write(writer.write(db))
-        vcsutils.git_track(self.bibfile)
-        vcsutils.commit('bibtex entry created at ' + self.bibfile)
+        vcsutils.track(bibfile)
+        vcsutils.commit('bibtex entry created at ' + bibfile)
 
 $DAG['bibtex'] = BibTex()

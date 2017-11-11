@@ -1,4 +1,7 @@
 """Some special rever tools"""
+import os
+from contextlib import contextmanager
+
 from xonsh.tools import expand_path
 
 def eval_version(v):
@@ -11,3 +14,12 @@ def eval_version(v):
     else:
         rtn = expand_path(v)
     return rtn
+
+
+@contextmanager
+def indir(d):
+    """Context manager for temporarily entering into a directory."""
+    old_d = os.getcwd()
+    ![cd @(d)]
+    yield
+    ![cd @(old_d)]

@@ -71,24 +71,24 @@ class BibTex(Activity):
 
 $DAG['bibtex'] = BibTex()
 
-@activity(deps={'version_bump'})
-def bibtex(output_file='bibtex.bib'):
-    with open(output_file) as bibtex_file:
-        bibtex_str = bibtex_file.read()
-    db = bibtexparser.loads(bibtex_str)
-    e = db.entries
-    bibtex_entry = {
-        'title': $PROJECT_NAME,
-        'ID': $PROJECT_NAME + $VERSION,
-        'author': render_authors('$AUTHORS'),
-        'url': $URL,
-        'version': $VERSION,
-        'date': str(datetime.date.today()),
-        'ENTRYTYPE': 'software'}
-    e.extend(bibtex_entry)
-    writer = bibtexparser.BibTexWriter()
-
-    with open(output_file, 'w') as b:
-        b.write(writer.write(db))
-    vcsutils.git_track(output_file)
-    vcsutils.commit('bibtex entry created at ' + output_file)
+# @activity(deps={'version_bump'})
+# def bibtex(output_file='bibtex.bib'):
+#     with open(output_file) as bibtex_file:
+#         bibtex_str = bibtex_file.read()
+#     db = bibtexparser.loads(bibtex_str)
+#     e = db.entries
+#     bibtex_entry = {
+#         'title': $PROJECT_NAME,
+#         'ID': $PROJECT_NAME + $VERSION,
+#         'author': render_authors('$AUTHORS'),
+#         'url': $URL,
+#         'version': $VERSION,
+#         'date': str(datetime.date.today()),
+#         'ENTRYTYPE': 'software'}
+#     e.extend(bibtex_entry)
+#     writer = bibtexparser.BibTexWriter()
+#
+#     with open(output_file, 'w') as b:
+#         b.write(writer.write(db))
+#     vcsutils.git_track(output_file)
+#     vcsutils.commit('bibtex entry created at ' + output_file)

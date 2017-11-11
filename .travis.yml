@@ -26,8 +26,6 @@ install:
 
 script:
   - set -e
-  - conda install --file requirements/tests.txt
-  - py.test -v ./tests/
   - # Command to build your docs
   - pip install doctr
   - cd docs

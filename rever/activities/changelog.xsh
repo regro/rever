@@ -62,6 +62,7 @@ class Changelog(Activity):
         cats = {c: '' for c in NEWS_CATEGORIES}
         files = [os.path.join(news, f) for f in os.listdir(news)
                  if self.keep_file(f, ignore)]
+        files.sort()
         for fname in files:
             with open(fname) as f:
                 raw = f.read()

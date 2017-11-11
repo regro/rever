@@ -40,7 +40,11 @@ def find_path(dag, ends, done=frozenset(), path=None, already_done=None):
     if len(todo) == 0:
         return path, already_done
     for end in sorted(todo):
-        deps = set(dag[end].deps)
+        try:
+            deps = set(dag[end].deps)
+        except KeyError:
+            # we need to do it this way to support defaultdict
+            raise KeyError('{0!r} not found in DAG!'.format(end))
         need = deps - sofar
         already_done.extend([x for x in sorted(deps & done) if x not in already_done])
         if len(need) > 0:

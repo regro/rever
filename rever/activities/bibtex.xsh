@@ -1,8 +1,9 @@
 """Activity for bumping version."""
 import datetime
+import os
 
 from rever import vcsutils
-from rever.activity import Activity, activity
+from rever.activity import Activity
 try:
     import bibtexparser
 except ImportError:
@@ -42,27 +43,29 @@ class BibTex(Activity):
         '''
     """
 
-    def __init__(self, *, deps=frozenset('version_bump'),
+    def __init__(self, *, deps=frozenset(('version_bump', )),
                  bibfile='bibtex.bib'):
         super().__init__(name='bibtex', deps=deps, func=self._func,
                          desc="Write BibTex file for version")
         self.bibfile = bibfile
 
     def _func(self):
-        with open(self.bibfile) as bibtex_file:
-            bibtex_str = bibtex_file.read()
-        db = bibtexparser.loads(bibtex_str)
-        e = db.entries
+        if os.path.exists(self.bibfile):
+            with open(self.bibfile) as bibtex_file:
+                bibtex_str = bibtex_file.read()
+            db = bibtexparser.loads(bibtex_str)
+        else:
+            db = bibtexparser.bibdatabase.BibDatabase()
         bibtex_entry = {
             'title': $PROJECT_NAME,
             'ID': $PROJECT_NAME + $VERSION,
-            'author': render_authors('$AUTHORS'),
+            'author': render_authors($AUTHORS),
             'url': $URL,
             'version': $VERSION,
             'date': str(datetime.date.today()),
             'ENTRYTYPE': 'software'}
-        e.extend(bibtex_entry)
-        writer = bibtexparser.BibTexWriter()
+        db.entries.append(bibtex_entry)
+        writer = bibtexparser.bwriter.BibTexWriter()
 
         with open(self.bibfile, 'w') as b:
             b.write(writer.write(db))
@@ -70,25 +73,3 @@ class BibTex(Activity):
         vcsutils.commit('bibtex entry created at ' + self.bibfile)
 
 $DAG['bibtex'] = BibTex()
-
-# @activity(deps={'version_bump'})
-# def bibtex(output_file='bibtex.bib'):
-#     with open(output_file) as bibtex_file:
-#         bibtex_str = bibtex_file.read()
-#     db = bibtexparser.loads(bibtex_str)
-#     e = db.entries
-#     bibtex_entry = {
-#         'title': $PROJECT_NAME,
-#         'ID': $PROJECT_NAME + $VERSION,
-#         'author': render_authors('$AUTHORS'),
-#         'url': $URL,
-#         'version': $VERSION,
-#         'date': str(datetime.date.today()),
-#         'ENTRYTYPE': 'software'}
-#     e.extend(bibtex_entry)
-#     writer = bibtexparser.BibTexWriter()
-#
-#     with open(output_file, 'w') as b:
-#         b.write(writer.write(db))
-#     vcsutils.git_track(output_file)
-#     vcsutils.commit('bibtex entry created at ' + output_file)

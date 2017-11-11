@@ -4,9 +4,11 @@ import os
 from rever import vcsutils
 from rever.logger import current_logger
 from rever.main import env_main
+from rever.activities.bibtex import BibTex
 
 REVER_XSH = """
 $ACTIVITIES = ['bibtex']
+$DAG['bibtex'] = BibTex()
 $PROJECT_NAME = 'my_project'  # The name of your project
 $AUTHORS = ['Name1', 'Name2']  # The name of the authors
 $URL = 'URL/to/Project'  # A URL to the code

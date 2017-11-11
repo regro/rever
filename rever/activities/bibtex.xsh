@@ -31,45 +31,45 @@ def render_authors(authors):
         return ' and '.join(authors)
 
 
-# class BibTex(Activity):
-#     """Writes a BibTex reference for the version of software
-#
-#     Minimal ``rever.xsh``::
-#         '''
-#         $PROJECT_NAME = <my_project>  # The name of your project
-#         $AUTHORS = ['Name1', 'Name2']  # The name of the authors
-#         $URL = <URL to Project>  # A URL to the code
-#         '''
-#     """
-#
-#     def __init__(self, *, deps=frozenset('version_bump'),
-#                  bibfile='bibtex.bib'):
-#         super().__init__(name='bibtex', deps=deps, func=self._func,
-#                          desc="Write BibTex file for version")
-#         self.bibfile = bibfile
-#
-#     def _func(self):
-#         with open(self.bibfile) as bibtex_file:
-#             bibtex_str = bibtex_file.read()
-#         db = bibtexparser.loads(bibtex_str)
-#         e = db.entries
-#         bibtex_entry = {
-#             'title': $PROJECT_NAME,
-#             'ID': $PROJECT_NAME + $VERSION,
-#             'author': render_authors('$AUTHORS'),
-#             'url': $URL,
-#             'version': $VERSION,
-#             'date': str(datetime.date.today()),
-#             'ENTRYTYPE': 'software'}
-#         e.extend(bibtex_entry)
-#         writer = bibtexparser.BibTexWriter()
-#
-#         with open(self.bibfile, 'w') as b:
-#             b.write(writer.write(db))
-#         vcsutils.git_track(self.bibfile)
-#         vcsutils.commit('bibtex entry created at ' + self.bibfile)
+class BibTex(Activity):
+    """Writes a BibTex reference for the version of software
 
-# $DAG['bibtex'] = BibTex()
+    Minimal ``rever.xsh``::
+        '''
+        $PROJECT_NAME = <my_project>  # The name of your project
+        $AUTHORS = ['Name1', 'Name2']  # The name of the authors
+        $URL = <URL to Project>  # A URL to the code
+        '''
+    """
+
+    def __init__(self, *, deps=frozenset('version_bump'),
+                 bibfile='bibtex.bib'):
+        super().__init__(name='bibtex', deps=deps, func=self._func,
+                         desc="Write BibTex file for version")
+        self.bibfile = bibfile
+
+    def _func(self):
+        with open(self.bibfile) as bibtex_file:
+            bibtex_str = bibtex_file.read()
+        db = bibtexparser.loads(bibtex_str)
+        e = db.entries
+        bibtex_entry = {
+            'title': $PROJECT_NAME,
+            'ID': $PROJECT_NAME + $VERSION,
+            'author': render_authors('$AUTHORS'),
+            'url': $URL,
+            'version': $VERSION,
+            'date': str(datetime.date.today()),
+            'ENTRYTYPE': 'software'}
+        e.extend(bibtex_entry)
+        writer = bibtexparser.BibTexWriter()
+
+        with open(self.bibfile, 'w') as b:
+            b.write(writer.write(db))
+        vcsutils.git_track(self.bibfile)
+        vcsutils.commit('bibtex entry created at ' + self.bibfile)
+
+$DAG['bibtex'] = BibTex()
 
 @activity(deps={'version_bump'})
 def bibtex(output_file='bibtex.bib'):

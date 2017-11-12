@@ -2,6 +2,7 @@
 import os
 
 from rever.tools import indir
+from rever.tools import render_authors
 
 
 def test_indir():
@@ -10,3 +11,8 @@ def test_indir():
     with indir(new):
         assert os.getcwd() == new
     assert os.getcwd() == cur
+
+
+def test_render_authors():
+    for a, b in zip([(), ('Jane Doe'), ('Jane Doe', 'John Smith')], ['', 'Jane Doe', 'Jane Doe and John Smith']):
+        assert render_authors(a) == b

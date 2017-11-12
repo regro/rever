@@ -4,31 +4,11 @@ import os
 
 from rever import vcsutils
 from rever.activity import Activity
+from rever.toosl import render_authors
 try:
     import bibtexparser
 except ImportError:
     bibtexparser = None
-
-
-def render_authors(authors):
-    """Parse a list of of tuples of authors into valid bibtex
-
-    Parameters
-    ----------
-    authors: list of str
-        The authors eg ['Your name in nicely formatted bibtex'].
-        Please see ``<http://nwalsh.com/tex/texhelp/bibtx-23.html>`` for
-        information about how to format your name for bibtex
-
-    Returns
-    -------
-    str:
-        Valid bibtex authors
-    """
-    if len(authors) == 1:
-        return ''.join(authors[0])
-    else:
-        return ' and '.join(authors)
 
 
 class BibTex(Activity):

@@ -1,10 +1,7 @@
 """Tests the bibtex activity activity."""
 import os
 
-from rever import vcsutils
-from rever.logger import current_logger
 from rever.main import env_main
-from rever.activities.bibtex import render_authors
 
 REVER_XSH = """
 from rever.activities.bibtex import BibTex

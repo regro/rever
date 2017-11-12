@@ -1,5 +1,6 @@
 """Custom environment handling tools for rever."""
 import re
+import sys
 from contextlib import contextmanager
 
 from xonsh.environ import Ensurer, VarDocs
@@ -31,10 +32,12 @@ def detype_logger(x):
 def default_dag():
     """Creates a default activity DAG."""
     from rever.activities.changelog import Changelog
+    from rever.activities.pypi import PyPI
     from rever.activities.tag import Tag
     from rever.activities.version_bump import VersionBump
     dag = {
         'changelog': Changelog(),
+        'pypi': PyPI(),
         'tag': Tag(),
         'version_bump': VersionBump(),
     }
@@ -60,13 +63,16 @@ ENVVARS = {
     re.compile('ACTIVITIES_\w*'): ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                                    'A list of activity names for rever to execute for the entry '
                                    'point named after the first underscore.'),
-    'DAG': (default_dag(), always_true, None, str,
+    'DAG': (default_dag, always_true, None, str,
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,
                "Rever logger object. Setting this variable to a string will "
                "change the filename of the logger."),
+    'PYTHON': (sys.executable if sys.executable else 'python', is_string, str,
+               ensure_string, 'Path to Python executable that rever is run '
+                              'with or "python".'),
     'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
                   'used for storing rever temporary files.'),
     'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
@@ -82,13 +88,15 @@ def setup():
     for key, (default, validate, convert, detype, docstr) in ENVVARS.items():
         if key in ${...}:
             del ${...}[key]
-        ${...}._defaults[key] = default
+        ${...}._defaults[key] = default() if callable(default) else default
         ${...}._ensurers[key] = Ensurer(validate=validate, convert=convert,
                                         detype=detype)
         ${...}._docs[key] = VarDocs(docstr=docstr)
 
 
 def teardown():
+    for act in $DAG.values():
+        act.clear_kwargs_from_env()
     for key in ENVVARS:
         ${...}._defaults.pop(key)
         ${...}._ensurers.pop(key)

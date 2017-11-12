@@ -3,21 +3,7 @@ import re
 
 from rever import vcsutils
 from rever.activity import Activity
-from rever.tools import eval_version
-
-
-def replace_in_file(pattern, new, fname):
-    """Replaces a given pattern in a file"""
-    with open(fname, 'r') as f:
-        raw = f.read()
-    lines = raw.splitlines()
-    ptn = re.compile(pattern)
-    for i, line in enumerate(lines):
-        if ptn.match(line):
-            lines[i] = new
-    upd = '\n'.join(lines) + '\n'
-    with open(fname, 'w') as f:
-        f.write(upd)
+from rever.tools import eval_version, replace_in_file
 
 
 class VersionBump(Activity):

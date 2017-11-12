@@ -80,6 +80,7 @@ ENVVARS = {
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,
                "Rever logger object. Setting this variable to a string will "
                "change the filename of the logger."),
+    'PROJECT': ('', is_string, str, ensure_string, 'Project name'),
     'PYTHON': (sys.executable if sys.executable else 'python', is_string, str,
                ensure_string, 'Path to Python executable that rever is run '
                               'with or "python".'),

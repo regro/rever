@@ -1,5 +1,6 @@
 """Some special rever tools"""
 import os
+import re
 import sys
 import hashlib
 import urllib.request
@@ -17,6 +18,20 @@ def eval_version(v):
     else:
         rtn = expand_path(v)
     return rtn
+
+
+def replace_in_file(pattern, new, fname):
+    """Replaces a given pattern in a file"""
+    with open(fname, 'r') as f:
+        raw = f.read()
+    lines = raw.splitlines()
+    ptn = re.compile(pattern)
+    for i, line in enumerate(lines):
+        if ptn.match(line):
+            lines[i] = new
+    upd = '\n'.join(lines) + '\n'
+    with open(fname, 'w') as f:
+        f.write(upd)
 
 
 @contextmanager

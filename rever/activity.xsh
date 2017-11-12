@@ -37,6 +37,7 @@ class Activity:
         self.args = args
         self.kwargs = kwargs
         self.desc = desc
+        self._env_names = None
 
     def __str__(self):
         s = '{}: {}'.format(self.name, self.desc)
@@ -86,26 +87,39 @@ class Activity:
         self._undo = undo
         return undo
 
-    def kwargs_from_env(self):
-        """Obtains possible func() kwarg from the environment."""
+    @property
+    def env_names(self):
+        """Dictionary mapping parameter names to the names of environment
+        varaibles that the activity looks for when it is executed.
+        """
+        if self._env_names is not None:
+            return self._env_names
         if self.func is None:
             return {}
         prefix = self.name.upper() + '_'
         params = inspect.signature(self.func).parameters
+        self._env_names = {name: prefix + name.upper() for name in params}
+        return self._env_names
+
+    def kwargs_from_env(self):
+        """Obtains possible func() kwarg from the environment."""
         kwargs = {}
-        for name in params:
-            key = prefix + name.upper()
+        for name, key in self.env_names.items():
             if key in ${...}:
                 kwargs[name] = ${...}[key]
         return kwargs
+
+    def clear_kwargs_from_env(self):
+        """Removes kwarg from the environment, if they exist."""
+        for key in self.env_names.values():
+            if key in ${...}:
+                del ${...}[key]
 
     def all_kwargs(self):
         """Returns all kwargs for this activity."""
         kwargs = self.kwargs_from_env()
         kwargs.update(self.kwargs or {})
         return kwargs
-
-
 
 
 def activity(name=None, deps=frozenset(), undo=None, desc=None):

@@ -48,7 +48,16 @@ def validate_rc(rc):
 
 
 class PyPI(Activity):
-    """Uploads a package to the Python Package Index
+    """Uploads a package to the Python Package Index.
+
+    The behaviour of this activity may be adjusted through the following
+    environment variables:
+
+    :$PYPI_RC:  str, path to the pypirc file, default ``~/.pypirc``.
+    :$PYPI_BUILD_COMMANDS: list of str, The commands to run in setup.py
+        that will build the project, default ``['sdist']``.  Other examples
+        include ``'bdist'`` or ``'bdist_wininst'``.
+    :$PYPI_UPLOAD: bool, whether or not to upload PyPI, default True.
     """
 
     def __init__(self, *, deps=frozenset(('version_bump',))):
@@ -70,5 +79,5 @@ class PyPI(Activity):
             commands += ('upload',)
         p = ![$PYTHON setup.py @(commands)]
         if p.rtn != 0:
-            raise RuntimeError('pypi upload failed! Did you register the
+            raise RuntimeError('pypi upload failed! Did you register the '
                                'package with "python setup.py register"?')

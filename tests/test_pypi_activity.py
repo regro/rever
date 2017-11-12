@@ -1,14 +1,38 @@
 """Tests the pypi activity."""
 import tempfile
+import builtins
+import subprocess
 
 from rever.logger import current_logger
 from rever.main import env_main
+from rever import vcsutils
 from rever.activities.pypi import create_rc, validate_rc
 
 
 REVER_XSH = """
-$ACTIVITIES = ['tag']
-$TAG_PUSH = False
+$ACTIVITIES = ['version_bump', 'pypi']
+$PYPI_RC = 'pypirc'
+$PYPI_BUILD_COMMANDS = ['--version']
+$PYPI_UPLOAD = False
+$VERSION_BUMP_PATTERNS = [
+    ('setup.py', '    version\s*=.*', "    version='$VERSION'"),
+    ]
+"""
+
+VALID_RC = """[distutils]
+index-servers =
+    pypi
+
+[pypi]
+username:MisterT
+password:JibberJabber
+"""
+
+SETUP_PY = """
+from distutils.core import setup
+setup(
+    version='42.1.0',
+)
 """
 
 
@@ -28,15 +52,6 @@ def test_create_rc():
            'password=WakkaJawaka\n\n')
     assert exp == obs
 
-
-VALID_RC = """[distutils]
-index-servers =
-    pypi
-
-[pypi]
-username:MisterT
-password:JibberJabber
-"""
 
 def test_valid_rc():
     with tempfile.NamedTemporaryFile('w+t') as f:
@@ -59,23 +74,18 @@ def test_invalid_rc():
 
 
 def test_pypi_activity(gitrepo):
-    return
-    vcsutils.tag('42.1.0')
-    files = [('rever.xsh', REVER_XSH),]
+    files = [('rever.xsh', REVER_XSH),
+             ('pypirc', VALID_RC),
+             ('setup.py', SETUP_PY)]
     for filename, body in files:
         with open(filename, 'w') as f:
             f.write(body)
     vcsutils.track('.')
     vcsutils.commit('Some versioned files')
     env_main(['42.1.1'])
-    # now see if this worked
-    current = vcsutils.latest_tag()
-    assert '42.1.1' == current
-    # now try to undo the tag
-    env_main(['-u', 'tag', '42.1.1'])
-    current = vcsutils.latest_tag()
-    assert '42.1.0' == current
-    # ensure that the updates were commited
-    logger = current_logger()
-    entries = logger.load()
-    assert entries[-2] != entries[-1]
+    env = builtins.__xonsh_env__
+    python = env.get('PYTHON')
+    out = subprocess.check_output([python, 'setup.py', '--version'],
+                                  universal_newlines=True)
+    out = out.strip()
+    assert '42.1.1' == out

@@ -31,11 +31,16 @@ def ensure_github(f):
 
 
 @ensure_github
-def credfilename():
+def credfilename(credfile=None):
     """Returns the path to the creditial file."""
-    d = os.path.join($REVER_CONFIG_DIR, 'github')
-    os.makedirs(d, exist_ok=True)
-    f = os.path.join(d, $GITHUB_ORG + '-' + $GITHUB_REPO + '.cred')
+    if credfile is None:
+        d = os.path.join($REVER_CONFIG_DIR, 'github')
+        os.makedirs(d, exist_ok=True)
+        f = os.path.join(d, $GITHUB_ORG + '-' + $GITHUB_REPO + '.cred')
+    else:
+        f = os.path.abspath(credfile)
+        d = os.path.dirname(f)
+        os.makedirs(d, exist_ok=True)
     return f
 
 
@@ -50,10 +55,10 @@ def two_factor():
 
 
 @ensure_github
-def write_credfile():
+def write_credfile(credfile=None, username='', password=''):
     """Acquires a github token and writes a credentials file."""
-    username = input('GitHub Username: ')
-    password = ''
+    while not username:
+        username = input('GitHub Username: ')
     while not password:
         password = getpass('GitHub Password for {0}: '.format(username))
     note = 'rever {org}/{repo} {host}'
@@ -70,7 +75,7 @@ def write_credfile():
         msg += note
         msg += ('\n\nfrom https://github.com/settings/tokens')
         raise RuntimeError(msg)
-    credfile = credfilename()
+    credfile = credfilename(credfile)
     with open(credfile, 'w') as f:
         f.write(username + '\n')
         f.write(str(auth.token) + '\n')
@@ -80,9 +85,9 @@ def write_credfile():
     print_color('{YELLOW}secured permisions of ' + credfile, file=sys.stderr)
 
 
-def read_credfile():
+def read_credfile(credfile=None):
     """Reads in a credentials file and returns the username, token, and id."""
-    credfile = credfilename()
+    credfile = credfilename(credfile)
     with open(credfile, 'r') as f:
         username = f.readline().strip()
         token = f.readline().strip()
@@ -90,11 +95,11 @@ def read_credfile():
     return username, token, ghid
 
 
-def login():
+def login(credfile=None):
     """Returns a github object that is logged in."""
-    credfile = credfilename()
+    credfile = credfilename(credfile)
     if not os.path.exists(credfile):
-        write_credfile()
+        write_credfile(credfile)
     username, token, _ = read_credfile()
     gh = github3.login(username, token=token)
     return gh

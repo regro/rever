@@ -55,7 +55,7 @@ def list_to_csv(x):
     return ','.join(x)
 
 
-def rever_config_dir(env):
+def rever_config_dir():
     """Ensures and returns the $REVER_CONFIG_DIR"""
     rcd = os.path.expanduser(os.path.join($XDG_CONFIG_HOME, 'rever'))
     os.makedirs(rcd, exist_ok=True)

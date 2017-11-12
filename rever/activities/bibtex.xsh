@@ -4,7 +4,7 @@ import os
 
 from rever import vcsutils
 from rever.activity import Activity
-from rever.toosl import render_authors
+from rever.tools import render_authors
 try:
     import bibtexparser
 except ImportError:

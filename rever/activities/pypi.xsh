@@ -47,7 +47,6 @@ def validate_rc(rc):
     return True, ''
 
 
-
 class PyPI(Activity):
     """Uploads a package to the Python Package Index
     """

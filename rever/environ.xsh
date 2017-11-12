@@ -1,5 +1,6 @@
 """Custom environment handling tools for rever."""
 import re
+import sys
 from contextlib import contextmanager
 
 from xonsh.environ import Ensurer, VarDocs
@@ -67,6 +68,9 @@ ENVVARS = {
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,
                "Rever logger object. Setting this variable to a string will "
                "change the filename of the logger."),
+    'PYTHON': (sys.executable if sys.executable else 'python', is_string, str,
+               ensure_string, 'Path to Python executable that rever is run '
+                              'with or "python".'),
     'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
                   'used for storing rever temporary files.'),
     'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "

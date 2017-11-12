@@ -58,6 +58,10 @@ class PyPI(Activity):
         that will build the project, default ``['sdist']``.  Other examples
         include ``'bdist'`` or ``'bdist_wininst'``.
     :$PYPI_UPLOAD: bool, whether or not to upload PyPI, default True.
+
+    Other environment variables that affect the behavior are:
+
+    * ``$PYTHON``: the path to the Python interpreter.
     """
 
     def __init__(self, *, deps=frozenset(('version_bump',))):

@@ -55,7 +55,8 @@ class PyPI(Activity):
         super().__init__(name='pypi', deps=deps, func=self._func,
                          desc="Uploads to the Python Package Index.")
 
-    def _func(self, rc='$HOME/.pypirc'):
+    def _func(self, rc='$HOME/.pypirc', build_commands=('sdist',),
+              upload=True):
         rc = expand_path(rc)
         if not os.path.isfile(rc):
             print_color('{YELLOW}WARNING: PyPI run control file ' + rc + \
@@ -64,3 +65,10 @@ class PyPI(Activity):
         valid, msg = validate_rc(rc)
         if not valid:
             raise RuntimeError(msg)
+        commands = build_commands
+        if upload:
+            commands += ('upload',)
+        p = ![$PYTHON setup.py @(commands)]
+        if p.rtn != 0:
+            raise RuntimeError('pypi upload failed! Did you register the
+                               'package with "python setup.py register"?')

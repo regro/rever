@@ -24,9 +24,9 @@ def create_rc(rc, username=None, password=None):
     parser.set('pypi', 'password', password)
     with open(rc, 'w') as f:
         parser.write(f, False)
-    print_color('{YELLOW}wrote ' + rc , file=sys.stderr)
+    print_color('{YELLOW}wrote ' + rc, file=sys.stderr)
     os.chmod(rc, 0o600)
-    print_color('{YELLOW}secured permisions of ' + rc , file=sys.stderr)
+    print_color('{YELLOW}secured permisions of ' + rc, file=sys.stderr)
 
 
 def validate_rc(rc):

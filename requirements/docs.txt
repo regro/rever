@@ -3,3 +3,4 @@ lazyasd
 cloud_sptheme
 numpydoc
 Sphinx
+bibtexparser

@@ -99,7 +99,7 @@ source tarball activity could be implemented as:
 
 
 Alternatively, if you really need a lot of fine grained control or encapsulation, you can also
-iomport the ``Activity`` class and subclass it.  Note that when you define an activity this way,
+import the ``Activity`` class and subclass it.  Note that when you define an activity this way,
 it does not register an instance of this activity for you in the ``$DAG``.  You have to take
 care of this bookeeping yourself. For example, the tarball activity can be implemented as
 follows:

@@ -8,3 +8,4 @@ prompt_toolkit
 codecov
 flake8
 coverage
+bibtexparser

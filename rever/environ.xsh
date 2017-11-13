@@ -88,6 +88,10 @@ ENVVARS = {
                               csv_to_list, list_to_csv,
                               'Conda channels to use, in order of decreasing precedence. '
                               'Defaults to conda-forge and defaults'),
+    'DOCKER_PIP_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                        'Dependencies to install in the base container via pip.'),
+    'DOCKER_PIP_REQUIREMENTS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                                'Requirements files to use in pip install.'),
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
                         'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),

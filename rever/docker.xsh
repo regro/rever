@@ -64,11 +64,13 @@ def pip_deps(pip=None, pip_requirements=None):
     reqs = pip_requirements or $DOCKER_PIP_REQUIREMENTS
     if not pip and not reqs:
         return ''
-    inst = ['-r ' + r for r in reqs] + pip
-    s = ('RUN apt-get -y update && \\\n'
-         '    apt-get install -y --fix-missing \\\n')
-    s += wrap(' '.join(inst), indent=' '*8) + ' && \\\n'
-    s += '    apt-get clean -y\n\n'
+    inst = []
+    if reqs:
+        inst += ['-r ' + r for r in reqs]
+    if pip:
+        inst += pip
+    s = ('RUN pip install \\\n'
+    s += wrap(' '.join(inst), indent=' '*8) + '\n\n'
     return s
 
 

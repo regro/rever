@@ -113,7 +113,7 @@ def stream_url_progress(url, verb='downloading', chunksize=1024):
             if lenbytes == 0:
                 break
             else:
-                progress(nbytes, totalbytes)
+                progress(nbytes, totalbytes or nbytes * 2)
                 yield b
     if nbytes < totalbytes:
         color = 'RED'

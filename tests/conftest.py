@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import builtins
 import subprocess
 
 import pytest
@@ -29,3 +30,11 @@ def gitrepo(request):
         yield repo
     os.chdir(cwd)
     shutil.rmtree(repo)
+
+
+@pytest.fixture
+def gitecho(request):
+    aliases = builtins.aliases
+    aliases['git'] = lambda args: 'Would have run: ' + ' '.join(args) + '\n'
+    yield None
+    del aliases['git']

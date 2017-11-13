@@ -3,7 +3,9 @@ import os
 import re
 import sys
 import getpass
+from ast import literal_eval
 from contextlib import contextmanager
+from collections.abc import MutableMapping
 
 from xonsh.environ import Ensurer, VarDocs
 from xonsh.tools import (is_string, ensure_string, always_false, always_true,
@@ -58,6 +60,19 @@ def list_to_csv(x):
     return ','.join(x)
 
 
+def is_dict_str_str_or_none(x):
+    """Checks if x is a mutable mapping from strings to strings or None"""
+    if x is None:
+        return True
+    elif not isinstance(x, MutableMapping):
+        return False
+    # now we know we have a mapping, check items.
+    for key, value in x.items():
+        if not isinstance(key, str) or not isinstance(value, str):
+            return False
+    return True
+
+
 def rever_config_dir():
     """Ensures and returns the $REVER_CONFIG_DIR"""
     rcd = os.path.expanduser(os.path.join($XDG_CONFIG_HOME, 'rever'))
@@ -82,16 +97,27 @@ ENVVARS = {
                         'Dependencies to install in the base container via apt-get.'),
     'DOCKER_BASE_FROM': ('continuumio/miniconda3', is_string, str, ensure_string,
                          'Image to include in the base rever image.'),
+    'DOCKER_BASE_IMAGE': ('$PROJECT/rever-base', is_string, str, ensure_string,
+                          'Imagee name for the base docker image. This is evaluated in the '
+                          'current environment, default $PROJECT/rever-base'),
     'DOCKER_CONDA_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                           'Dependencies to install in the base container via conda.'),
     'DOCKER_CONDA_CHANNELS': (('conda-forge', 'defaults'), is_nonstring_seq_of_strings,
                               csv_to_list, list_to_csv,
                               'Conda channels to use, in order of decreasing precedence. '
                               'Defaults to conda-forge and defaults'),
+    'DOCKER_INSTALL_COMMAND': ('', is_string, str, ensure_string,
+                               'Command for installing the project that is used in docker.'),
+    'DOCKER_INSTALL_ENVVARS': (None, is_dict_str_str_or_none, repr, literal_eval,
+                               'Environment variables to set at the end of the '
+                               'docker install. May be either a Python dictionary mapping '
+                               'string variable names to string values or None, default None.'),
     'DOCKER_PIP_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                         'Dependencies to install in the base container via pip.'),
     'DOCKER_PIP_REQUIREMENTS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                                 'Requirements files to use in pip install.'),
+    'DOCKER_ROOT': ('', is_string, str, ensure_string,
+                    'Root directory for docker to use.'),
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
                         'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),

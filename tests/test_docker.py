@@ -6,7 +6,8 @@ import tempfile
 import pytest
 
 from rever import environ
-from rever.docker import apt_deps, conda_deps, pip_deps, make_base_dockerfile
+from rever.docker import (apt_deps, conda_deps, pip_deps, make_base_dockerfile,
+    docker_envvars, make_install_dockerfile)
 
 
 @pytest.fixture
@@ -116,3 +117,41 @@ def test_make_base_dockerfile(dockerenv):
                                pip_requirements=['req1', 'req0'])
     assert EXP_BASE == obs
 
+
+@pytest.mark.parametrize('envvars, exp', [
+    (None, ''),
+    ({}, ''),
+    ({'PATH': '$HOME/.local/bin/$PATH'},
+"""ENV PATH $HOME/.local/bin/$PATH
+"""),
+    ({'PATH': '$HOME/.local/bin/$PATH', 'A': 'YO', 'Z': 'APPA'},
+"""ENV A YO
+ENV PATH $HOME/.local/bin/$PATH
+ENV Z APPA
+"""),
+])
+def test_docker_envvars(envvars, exp):
+    obs = docker_envvars(envvars)
+    assert exp == obs
+
+
+EXP_INSTALL = """FROM project/rever-base
+
+ADD . /root/project
+
+WORKDIR /root/project
+
+RUN setup.py install --user
+
+ENV PATH $HOME/.local/bin/$PATH
+
+"""
+
+
+def test_make_install_dockerfile(dockerenv):
+    obs = make_install_dockerfile(base='project/rever-base',
+                                  root='.',
+                                  command='setup.py install --user',
+                                  envvars={'PATH': '$HOME/.local/bin/$PATH'},
+                                  )
+    assert EXP_INSTALL == obs

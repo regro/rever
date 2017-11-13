@@ -1,6 +1,11 @@
 """Dockers tools for rever."""
 import textwrap
 
+from xonsh.tools import expand_path
+
+from rever import vcsutils
+
+
 _TEXT_WRAPPER = None
 BASE_DOCKERFILE = """FROM {base_from}
 
@@ -86,9 +91,55 @@ def collate_deps(apt=None, conda=None, conda_channels=None,
 
 def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=None,
                          pip=None, pip_requirements=None):
-    """Constructs the base dockerfile, if needed."""
+    """Constructs the base dockerfile."""
     base_from = base_from or $DOCKER_BASE_FROM
     deps = collate_deps(apt=apt, conda=conda, conda_channels=conda_channels,
                         pip=pip, pip_requirements=pip_requirements)
     base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps)
     return base
+
+
+def docker_root(root=None):
+    """Gets the root-level directory for the repo that docker should use."""
+    if root:
+        return root
+    return $DOCKER_ROOT or vcsutils.root()
+
+
+def docker_envvars(envvars=None):
+    """Constructs a string that sets envvars in docker from a dictionary mapping
+    environment variable names to value strings.
+    """
+    if not envvars:
+        return ''
+    s = ''
+    t = 'ENV {0} {1}\n'
+    for var, value in sorted(envvars.items()):
+        s += t.format(var, value)
+    return s
+
+
+INSTALL_DOCKERFILE = """FROM {base}
+
+ADD {root} /root/project
+
+WORKDIR /root/project
+
+RUN {command}
+
+{envvars}
+"""
+
+
+def make_install_dockerfile(base=None, root=None, command=None, envvars=None):
+    """Constructs a dockerfile that installs the source code."""
+    base = expand_path(base or $DOCKER_BASE_IMAGE)
+    root = docker_root(root)
+    command = command or $DOCKER_INSTALL_COMMAND
+    if not command:
+        raise ValueError('Docker must have an install command! '
+                         'Try setting $DOCKER_INSTALL_COMMAND')
+    envvars = docker_envvars(envvars or $DOCKER_INSTALL_ENVVARS)
+    install = INSTALL_DOCKERFILE.format(base=base, root=root, command=command,
+                                        envvars=envvars)
+    return install

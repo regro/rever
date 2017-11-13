@@ -58,18 +58,35 @@ def conda_deps(conda=None, conda_channels=None):
     return s
 
 
-def collate_deps(apt=None, conda=None, conda_channels=None, pip=None):
+def pip_deps(pip=None, pip_requirements=None):
+    """Constructs pip-based install command"""
+    pip = pip or $DOCKER_PIP_DEPS
+    reqs = pip_requirements or $DOCKER_PIP_REQUIREMENTS
+    if not pip and not reqs:
+        return ''
+    inst = ['-r ' + r for r in reqs] + pip
+    s = ('RUN apt-get -y update && \\\n'
+         '    apt-get install -y --fix-missing \\\n')
+    s += wrap(' '.join(inst), indent=' '*8) + ' && \\\n'
+    s += '    apt-get clean -y\n\n'
+    return s
+
+
+def collate_deps(apt=None, conda=None, conda_channels=None,
+                 pip=None, pip_requirements=None):
     """Constructs a string that installs all known dependencies."""
     s = ''
     s += apt_deps(apt)
     s += conda_deps(conda, conda_channels)
-    s += pip_deps(pip)
+    s += pip_deps(pip, pip_requirements)
     return s
 
 
-def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=None, pip=None):
+def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=None,
+                         pip=None, pip_requirements=None):
     """Constructs the base dockerfile, if needed."""
     base_from = base_from or $DOCKER_BASE_FROM
-    deps = collate_deps(apt=apt, conda=conda, conda_channels=conda_channels, pip=pip)
+    deps = collate_deps(apt=apt, conda=conda, conda_channels=conda_channels,
+                        pip=pip, pip_requirements=None)
     base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps)
     return base

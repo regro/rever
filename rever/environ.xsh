@@ -78,6 +78,8 @@ ENVVARS = {
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
+    'DOCKER_BASE_FROM': ('continuumio/miniconda3', is_string, str, ensure_string,
+                         'Image to include in the base rever image.')
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
                         'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),

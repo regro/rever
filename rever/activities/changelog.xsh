@@ -4,8 +4,7 @@ import re
 
 from rever import vcsutils
 from rever.activity import Activity
-from rever.tools import eval_version
-from rever.activities.version_bump import replace_in_file
+from rever.tools import eval_version, replace_in_file
 
 
 NEWS_CATEGORIES = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',

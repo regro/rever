@@ -24,9 +24,9 @@ def create_rc(rc, username=None, password=None):
     parser.set('pypi', 'password', password)
     with open(rc, 'w') as f:
         parser.write(f, False)
-    print_color('{YELLOW}wrote ' + rc , file=sys.stderr)
+    print_color('{YELLOW}wrote ' + rc, file=sys.stderr)
     os.chmod(rc, 0o600)
-    print_color('{YELLOW}secured permisions of ' + rc , file=sys.stderr)
+    print_color('{YELLOW}secured permisions of ' + rc, file=sys.stderr)
 
 
 def validate_rc(rc):
@@ -53,11 +53,15 @@ class PyPI(Activity):
     The behaviour of this activity may be adjusted through the following
     environment variables:
 
-    :$PYPI_RC:  str, path to the pypirc file, default ``~/.pypirc``.
+    :$PYPI_RC: str, path to the pypirc file, default ``~/.pypirc``.
     :$PYPI_BUILD_COMMANDS: list of str, The commands to run in setup.py
         that will build the project, default ``['sdist']``.  Other examples
         include ``'bdist'`` or ``'bdist_wininst'``.
     :$PYPI_UPLOAD: bool, whether or not to upload PyPI, default True.
+
+    Other environment variables that affect the behavior are:
+
+    * ``$PYTHON``: the path to the Python interpreter.
     """
 
     def __init__(self, *, deps=frozenset(('version_bump',))):

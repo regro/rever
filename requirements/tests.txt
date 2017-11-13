@@ -9,3 +9,4 @@ codecov
 flake8
 coverage
 bibtexparser
+github3.py

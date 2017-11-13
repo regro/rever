@@ -78,6 +78,14 @@ ENVVARS = {
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
+    'DOCKER_APT_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                        'Dependencies to install in the base container via apt-get.')
+    'DOCKER_CONDA_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                          'Dependencies to install in the base container via conda.')
+    'DOCKER_CONDA_CHANNELS': (('conda-forge', 'defaults'), is_nonstring_seq_of_strings,
+                              csv_to_list, list_to_csv,
+                              'Conda channels to use, in order of decreasing precedence. '
+                              'Defaults to conda-forge and defaults')
     'DOCKER_BASE_FROM': ('continuumio/miniconda3', is_string, str, ensure_string,
                          'Image to include in the base rever image.')
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,

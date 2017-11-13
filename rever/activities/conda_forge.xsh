@@ -67,6 +67,50 @@ DEFAULT_PATTERNS = (
 
 class CondaForge(Activity):
     """Updates conda-forge feedstocks.
+
+    The behaviour of this activity may be adjusted through the following
+    environment variables:
+
+    :$CONDA_FORGE_FEEDSTOCK: str or None, feedstock name or URL,
+        default ``$PROJECT-feedstock``.
+    :$CONDA_FORGE_PROTOCOL: str, one of ``'ssh'``, ``'http'``, or ``'https'``
+        that specifies how the activity should interact with github when
+        cloning, pulling, or pushing to the feedstock repo. Note that
+        ``'ssh'`` requires you to have an SSH key registered with github.
+        The default  is ``'ssh'``.
+    :$CONDA_FORGE_SOURCE_URL: str, the URL that the recipe will use to
+        download the source code. This is needed so that we may update the
+        hash of the downloaded file. This string is evaluated with the current
+        environment. Default
+        ``'https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/$VERSION.tar.gz'``.
+    :$CONDA_FORGE_HASH_TYPE: str, the type of hash that the recipe uses, eg
+        ``'md5'`` or ``'sha256'``. Default ``'sha256'``.
+    :$CONDA_FORGE_PATTERNS: list or 3-tuples of str, this is list of
+        (filename, pattern-regex, replacement) tuples that is evaluated
+        inside of the recipe directory. This is similar to the version bump
+        pattern structure. Both the pattern-regex str and the replacement str
+        will have environment variables expanded. The following environment
+        variables are added for this evaluation:
+
+        * ``$SOURCE_URL``: the fully expanded source code URL.
+        * ``$HASH_TYPE``: the hash type used to hash ``$SOURCE_URL``.
+        * ``$HASH``: the hexdigest of ``$SOURCE_URL``.
+
+        The default patterns match most standard recipes.
+    :$CONDA_FORGE_PULL_REQUEST: bool, whether the activity should open
+        a pull request to the upstream conda-forge feestock, default True.
+    :$CONDA_FORGE_RERENDER: bool, whether the activity should rerender the
+        feedstock using conda-smithy, default True.
+
+    Other environment variables that affect the behavior are:
+
+    * ``$GITHUB_CREDFILE``: the credential file to use.
+    * ``$GITHUB_ORG``: the github organization that the project belongs to.
+    * ``$GITHUB_REPO``: the github repository of theproject.
+    * ``$PROJECT``: the name of the project being released.
+    * ``$REVER_CONFIG_DIR``: the user's config directory for rever, which
+      is where the GitHub credential files are stored by default.
+
     """
 
     def __init__(self, *, deps=frozenset(('version_bump', 'changelog'))):

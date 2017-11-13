@@ -53,7 +53,7 @@ class PyPI(Activity):
     The behaviour of this activity may be adjusted through the following
     environment variables:
 
-    :$PYPI_RC:  str, path to the pypirc file, default ``~/.pypirc``.
+    :$PYPI_RC: str, path to the pypirc file, default ``~/.pypirc``.
     :$PYPI_BUILD_COMMANDS: list of str, The commands to run in setup.py
         that will build the project, default ``['sdist']``.  Other examples
         include ``'bdist'`` or ``'bdist_wininst'``.

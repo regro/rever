@@ -25,7 +25,7 @@ def wrap(s, indent='', suffix=' \\', width=70):
     tw.initial_indent = tw.subsequent_indent = indent
     tw.width = width
     lines = tw.wrap(s)
-    new = (suffix + '\n').join(s)
+    new = (suffix + '\n').join(lines)
     return new
 
 
@@ -46,15 +46,15 @@ def conda_deps(conda=None, conda_channels=None):
     conda = conda or $DOCKER_CONDA_DEPS
     if not conda:
         return ''
-    channels = conda_channels or $DOCKER_CONDA_CHANNELS
+    channels = $DOCKER_CONDA_CHANNELS if conda_channels is None else conda_channels
     s = 'RUN conda config --set always_yes yes && \\\n'
     if channels:
         for channel in channels[::-1]:
             s += '    conda config --add channels ' + channel + ' && \\\n'
-    s += '    conda install \\\n')
+    s += '    conda install \\\n'
     s += wrap(' '.join(sorted(conda)), indent=' '*8) + ' && \\\n'
     s += '    conda clean --all && \\\n'
-    s += '    conda info \n\n'
+    s += '    conda info\n\n'
     return s
 
 
@@ -69,8 +69,8 @@ def pip_deps(pip=None, pip_requirements=None):
         inst += ['-r ' + r for r in reqs]
     if pip:
         inst += pip
-    s = ('RUN pip install \\\n'
-    s += wrap(' '.join(inst), indent=' '*8) + '\n\n'
+    s = 'RUN pip install \\\n'
+    s += wrap(' '.join(inst), indent=' '*4) + '\n\n'
     return s
 
 
@@ -89,6 +89,6 @@ def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=No
     """Constructs the base dockerfile, if needed."""
     base_from = base_from or $DOCKER_BASE_FROM
     deps = collate_deps(apt=apt, conda=conda, conda_channels=conda_channels,
-                        pip=pip, pip_requirements=None)
+                        pip=pip, pip_requirements=pip_requirements)
     base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps)
     return base

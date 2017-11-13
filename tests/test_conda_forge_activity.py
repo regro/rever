@@ -7,7 +7,8 @@ import pytest
 from rever import vcsutils
 from rever.logger import current_logger
 from rever.main import env_main
-from rever.activities.conda_forge import feedstock_url, feedstock_repo
+from rever.activities.conda_forge import (feedstock_url, feedstock_repo,
+                                          fork_url)
 
 
 @pytest.mark.parametrize('name, proto, exp', [
@@ -38,14 +39,33 @@ def test_feedstock_repo(name, exp):
     assert exp == obs
 
 
+@pytest.mark.parametrize('feed, username, exp', [
+    ('git@github.com:conda-forge/my-feedstock.git', 'zappa',
+     'git@github.com:zappa/my-feedstock.git'),
+    ('http://github.com/conda-forge/my-feedstock.git', 'zappa',
+     'http://github.com/zappa/my-feedstock.git'),
+    ('https://github.com/conda-forge/my-feedstock.git', 'zappa',
+     'https://github.com/zappa/my-feedstock.git'),
+])
+def test_fork_url(feed, username, exp):
+    obs = fork_url(feed, username)
+    assert exp == obs
+
+
 
 REVER_XSH = """
 $ACTIVITIES = ['conda_forge']
 $PROJECT = 'rever'
+$GITHUB_CREDFILE = 'credfile'
 $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'
 $CONDA_FORGE_RERENDER = False
 $CONDA_FORGE_PULL_REQUEST = False
+"""
+
+CREDFILE = """zappa
+45463104f006ccb3a512fb20e31b9a50f10ba38b
+55d60676
 """
 
 ORIG_META_YAML = """
@@ -168,7 +188,8 @@ def test_conda_forge_activity(gitrepo, gitecho):
     meta_yaml = os.path.join(recipe_dir, 'meta.yaml')
     os.makedirs(recipe_dir, exist_ok=True)
     files = [('rever.xsh', REVER_XSH),
-             (meta_yaml, ORIG_META_YAML)]
+             (meta_yaml, ORIG_META_YAML),
+             ('credfile', CREDFILE)]
     for filename, body in files:
         with open(filename, 'w') as f:
             f.write(body)

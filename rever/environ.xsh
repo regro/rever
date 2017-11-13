@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import getpass
 from contextlib import contextmanager
 
 from xonsh.environ import Ensurer, VarDocs
@@ -77,6 +78,8 @@ ENVVARS = {
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
+    'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
+                        'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),
     'GITHUB_REPO': ('', is_string, str, ensure_string, 'GitHub repository name'),
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,

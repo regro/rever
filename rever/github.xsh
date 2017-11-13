@@ -33,14 +33,18 @@ def ensure_github(f):
 @ensure_github
 def credfilename(credfile=None):
     """Returns the path to the creditial file."""
-    if credfile is None:
-        d = os.path.join($REVER_CONFIG_DIR, 'github')
-        os.makedirs(d, exist_ok=True)
-        f = os.path.join(d, $GITHUB_ORG + '-' + $GITHUB_REPO + '.cred')
-    else:
+    if credfile is not None:
         f = os.path.abspath(credfile)
         d = os.path.dirname(f)
         os.makedirs(d, exist_ok=True)
+    elif $GITHUB_CREDFILE:
+        f = os.path.abspath($GITHUB_CREDFILE)
+        d = os.path.dirname(f)
+        os.makedirs(d, exist_ok=True)
+    else:
+        d = os.path.join($REVER_CONFIG_DIR, 'github')
+        os.makedirs(d, exist_ok=True)
+        f = os.path.join(d, $GITHUB_ORG + '-' + $GITHUB_REPO + '.cred')
     return f
 
 
@@ -95,11 +99,14 @@ def read_credfile(credfile=None):
     return username, token, ghid
 
 
-def login(credfile=None):
+def login(credfile=None, return_username=False):
     """Returns a github object that is logged in."""
     credfile = credfilename(credfile)
     if not os.path.exists(credfile):
         write_credfile(credfile)
     username, token, _ = read_credfile()
     gh = github3.login(username, token=token)
-    return gh
+    if return_username:
+        return gh, username
+    else:
+        return gh

@@ -98,7 +98,7 @@ ENVVARS = {
     'DOCKER_BASE_FROM': ('continuumio/miniconda3', is_string, str, ensure_string,
                          'Image to include in the base rever image.'),
     'DOCKER_BASE_IMAGE': ('$PROJECT/rever-base', is_string, str, ensure_string,
-                          'Imagee name for the base docker image. This is evaluated in the '
+                          'Image name for the base docker image. This is evaluated in the '
                           'current environment, default $PROJECT/rever-base'),
     'DOCKER_CONDA_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                           'Dependencies to install in the base container via conda.'),
@@ -112,6 +112,9 @@ ENVVARS = {
                                'Environment variables to set at the end of the '
                                'docker install. May be either a Python dictionary mapping '
                                'string variable names to string values or None, default None.'),
+    'DOCKER_INSTALL_IMAGE': ('$PROJECT/rever-install', is_string, str, ensure_string,
+                             'Image name for the install docker image. This is evaluated in the '
+                             'current environment, default $PROJECT/rever-install'),
     'DOCKER_PIP_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                         'Dependencies to install in the base container via pip.'),
     'DOCKER_PIP_REQUIREMENTS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,

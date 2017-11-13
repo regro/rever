@@ -143,3 +143,19 @@ def make_install_dockerfile(base=None, root=None, command=None, envvars=None):
     install = INSTALL_DOCKERFILE.format(base=base, root=root, command=command,
                                         envvars=envvars)
     return install
+
+
+ACTIVITY_DOCKERFILE = """FROM {install}
+
+{envvars}
+RUN {command}
+"""
+
+
+def make_activity_dockerfile(command, install=None, envvars=None):
+    """Constructs a dockerfile that runs a command for an activity."""
+    install = expand_path(install or $DOCKER_INSTALL_IMAGE)
+    envvars = docker_envvars(envvars)
+    activity = ACTIVITY_DOCKERFILE.format(base=base, root=root, command=command,
+                                          envvars=envvars)
+    return activity

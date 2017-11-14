@@ -1,7 +1,8 @@
 """Dockers tools for rever."""
+import sys
 import textwrap
 
-from xonsh.tools import expand_path
+from xonsh.tools import expand_path, print_color
 
 from rever import vcsutils
 
@@ -181,3 +182,68 @@ def make_install_dockerfile(base=None, root=None, command=None, envvars=None,
                                         source_from=source_from)
     return install
 
+
+def should_build_image(dockerfile, image, maker, force=False, **kwargs):
+    """Determines if we should (re)build the dockerfile image."""
+    if force:
+        return True
+    if not os.path.isfile(dockerfile):
+        return True
+    # dockerfile exists, let's check contents
+    with open(dockerfile, 'r') as f:
+        current = f.read()
+    new = maker(**kwargs)
+    if current != new:
+        return True
+    # current dockerfile is up-to-date, let's check if the image exists
+    # an empty image-id means the image does not exist
+    imageid = $(docker images -q @(image)).strip()
+    return not imageid
+
+
+def build_image(dockerfile, image, maker, **kwargs):
+    """Builds a docker image."""
+    s = maker(**kwargs)
+    with open(dockerfile, 'w') as f:
+        f.write(s)
+    print_color('{PURPLE}Wrote ' + dockerfile + '{NO_COLOR}')
+    print_color('{CYAN}Building docker image ' + image + ' ...{NO_COLOR}')
+    docker build -t @(image) -f @(dockerfile) --no-cache .
+
+
+def ensure_images(base_file=None, base_image=None, force_base=False,
+                  base_from=None, apt=None, conda=None, conda_channels=None,
+                  pip=None, pip_requirements=None,
+                  install_file=None, install_image=None, force_install=False,
+                  root=None, command=None, envvars=None, workdir=None,
+                  url=None, source=None):
+    """This verifies that docker images have been built for rever, and builds
+    them if they haven't.
+    """
+    # ensure base build
+    base_file = base_file or $DOCKER_BASE_FILE
+    base_image = base_image or $DOCKER_BASE_IMAGE
+    base_kwargs = dict(base_from=base_from, apt=apt, conda=conda,
+                       conda_channels=conda_channels, pip=pip,
+                       pip_requirements=pip_requirements)
+    should_build_base = should_build_image(base_file, base_image,
+                                           make_base_dockerfile, force=force_base,
+                                           **base_kwargs)
+    if should_build_base:
+        build_image(base_file, base_image, make_base_dockerfile, **base_kwargs)
+    # ensure install build
+    install_file = install_file or $DOCKER_INSTALL_FILE
+    install_image = install_image or $DOCKER_INSTALL_IMAGE
+    install_kwargs = dict(base=base_image, root=root, command=command,
+                          envvars=envvars, workdir=workdir, url=url,
+                          source=source)
+    if should_build_base:
+        should_build_install = True
+    else:
+        should_build_install = should_build_image(install_file, install_image,
+                                                  make_install_dockerfile,
+                                                  force=force_install,
+                                                  **install_kwargs)
+    if should_build_install:
+        build_image(install_file, install_image, make_install_dockerfile,
+                    **install_kwargs)

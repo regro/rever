@@ -100,6 +100,10 @@ ENVVARS = {
     'DOCKER_BASE_IMAGE': ('$PROJECT/rever-base', is_string, str, ensure_string,
                           'Image name for the base docker image. This is evaluated in the '
                           'current environment, default $PROJECT/rever-base'),
+    'DOCKER_BASE_FILE': ('$REVER_DIR/rever-base.dockerfile',
+                         is_string, str, ensure_string,
+                         'Path to base dockerfile, default '
+                         '``$REVER_DIR/rever-base.dockerfile``'),
     'DOCKER_CONDA_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                           'Dependencies to install in the base container via conda.'),
     'DOCKER_CONDA_CHANNELS': (('conda-forge', 'defaults'), is_nonstring_seq_of_strings,

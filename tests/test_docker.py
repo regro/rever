@@ -39,6 +39,7 @@ def test_apt_deps(dockerenv, deps, exp):
     ([], ['conda-forge'], ''),
     (['dep1', 'dep0'], [],
 """RUN conda config --set always_yes yes && \\
+    conda update --all && \\
     conda install \\
         dep0 dep1 && \\
     conda clean --all && \\
@@ -49,6 +50,7 @@ def test_apt_deps(dockerenv, deps, exp):
 """RUN conda config --set always_yes yes && \\
     conda config --add channels my-channel && \\
     conda config --add channels conda-forge && \\
+    conda update --all && \\
     conda install \\
         dep0 dep1 && \\
     conda clean --all && \\
@@ -86,6 +88,9 @@ def test_pip_deps(dockerenv, deps, reqs, exp):
 
 EXP_BASE = """FROM zappa/project
 
+ENV REVER_VCS git
+ENV VERSION x.y.z
+
 WORKDIR /root
 
 RUN apt-get -y update && \\
@@ -96,6 +101,7 @@ RUN apt-get -y update && \\
 RUN conda config --set always_yes yes && \\
     conda config --add channels my-channel && \\
     conda config --add channels conda-forge && \\
+    conda update --all && \\
     conda install \\
         dep0 dep1 && \\
     conda clean --all && \\
@@ -137,9 +143,9 @@ def test_docker_envvars(envvars, exp):
 
 EXP_INSTALL = """FROM project/rever-base
 
-ADD . /root/project
+ADD . $HOME/my/workdir
 
-WORKDIR /root/project
+WORKDIR $HOME/my/workdir
 
 RUN setup.py install --user
 
@@ -153,5 +159,6 @@ def test_make_install_dockerfile(dockerenv):
                                   root='.',
                                   command='setup.py install --user',
                                   envvars={'PATH': '$HOME/.local/bin/$PATH'},
+                                  workdir='$HOME/my/workdir',
                                   )
     assert EXP_INSTALL == obs

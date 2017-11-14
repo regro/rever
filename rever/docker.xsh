@@ -9,6 +9,7 @@ from rever import vcsutils
 _TEXT_WRAPPER = None
 BASE_DOCKERFILE = """FROM {base_from}
 
+{envvars}
 WORKDIR /root
 
 {deps}
@@ -34,6 +35,19 @@ def wrap(s, indent='', suffix=' \\', width=70):
     return new
 
 
+def docker_envvars(envvars=None):
+    """Constructs a string that sets envvars in docker from a dictionary mapping
+    environment variable names to value strings.
+    """
+    if not envvars:
+        return ''
+    s = ''
+    t = 'ENV {0} {1}\n'
+    for var, value in sorted(envvars.items()):
+        s += t.format(var, value)
+    return s
+
+
 def apt_deps(apt=None):
     """Constructs apt-based install command"""
     apt = apt or $DOCKER_APT_DEPS
@@ -56,6 +70,7 @@ def conda_deps(conda=None, conda_channels=None):
     if channels:
         for channel in channels[::-1]:
             s += '    conda config --add channels ' + channel + ' && \\\n'
+    s += '    conda update --all && \\\n'
     s += '    conda install \\\n'
     s += wrap(' '.join(sorted(conda)), indent=' '*8) + ' && \\\n'
     s += '    conda clean --all && \\\n'
@@ -95,7 +110,13 @@ def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=No
     base_from = base_from or $DOCKER_BASE_FROM
     deps = collate_deps(apt=apt, conda=conda, conda_channels=conda_channels,
                         pip=pip, pip_requirements=pip_requirements)
-    base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps)
+    env = {'PROJECT': $PROJECT, 'VERSION': $VERSION, 'REVER_VCS': $REVER_VCS,
+           'GITHUB_ORG': $GITHUB_ORG, 'GITHUB_REPO': $GITHUB_REPO,
+           'WEBSITE_URL': $WEBSITE_URL}
+    env = {k: v for k, v in env.items() if v}
+    envvars = docker_envvars(env)
+    base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps,
+                                  envvars=envvars)
     return base
 
 
@@ -106,24 +127,36 @@ def docker_root(root=None):
     return $DOCKER_ROOT or vcsutils.root()
 
 
-def docker_envvars(envvars=None):
-    """Constructs a string that sets envvars in docker from a dictionary mapping
-    environment variable names to value strings.
+def docker_source_from(source=None, url=None, root=None, workdir=None):
+    """This constructs a docker command detailing how to get the source
+    code for the project. In order of precedence, this will use,
+
+    * A command as provided by source or $DOCKER_INSTALL_SOURCE
+    * A URL to clone with $REVER_VCS as provided by url or $DOCKER_INSTALL_URL
+    * A directory on the file system, defaulting to $DOCKER_ROOT or
+      the root directory of the project repo.
+
     """
-    if not envvars:
-        return ''
-    s = ''
-    t = 'ENV {0} {1}\n'
-    for var, value in sorted(envvars.items()):
-        s += t.format(var, value)
+    url = url or $DOCKER_INSTALL_URL
+    source = source or $DOCKER_INSTALL_SOURCE
+    if source:
+        s = 'RUN ' + source
+    elif url:
+        workdir = workdir or $DOCKER_WORKDIR
+        s = 'RUN {vcs} clone {url} {workdir}'
+        s = s.format(vcs=$REVER_VCS, url=url, workdir=workdir)
+    else:
+        root = docker_root(root)
+        workdir = workdir or $DOCKER_WORKDIR
+        s = 'ADD {root} {workdir}'.format(root=root, workdir=workdir)
     return s
 
 
 INSTALL_DOCKERFILE = """FROM {base}
 
-ADD {root} /root/project
+{source_from}
 
-WORKDIR /root/project
+WORKDIR {workdir}
 
 RUN {command}
 
@@ -131,31 +164,20 @@ RUN {command}
 """
 
 
-def make_install_dockerfile(base=None, root=None, command=None, envvars=None):
+def make_install_dockerfile(base=None, root=None, command=None, envvars=None,
+                            workdir=None, url=None, source=None):
     """Constructs a dockerfile that installs the source code."""
     base = expand_path(base or $DOCKER_BASE_IMAGE)
-    root = docker_root(root)
+    workdir = workdir or $DOCKER_WORKDIR
+    source_from = docker_source_from(source=None, url=url, root=root,
+                                     workdir=workdir)
     command = command or $DOCKER_INSTALL_COMMAND
     if not command:
         raise ValueError('Docker must have an install command! '
                          'Try setting $DOCKER_INSTALL_COMMAND')
     envvars = docker_envvars(envvars or $DOCKER_INSTALL_ENVVARS)
-    install = INSTALL_DOCKERFILE.format(base=base, root=root, command=command,
-                                        envvars=envvars)
+    install = INSTALL_DOCKERFILE.format(base=base, command=command,
+                                        envvars=envvars, workdir=workdir,
+                                        source_from=source_from)
     return install
 
-
-ACTIVITY_DOCKERFILE = """FROM {install}
-
-{envvars}
-RUN {command}
-"""
-
-
-def make_activity_dockerfile(command, install=None, envvars=None):
-    """Constructs a dockerfile that runs a command for an activity."""
-    install = expand_path(install or $DOCKER_INSTALL_IMAGE)
-    envvars = docker_envvars(envvars)
-    activity = ACTIVITY_DOCKERFILE.format(base=base, root=root, command=command,
-                                          envvars=envvars)
-    return activity

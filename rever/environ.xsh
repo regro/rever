@@ -115,12 +115,20 @@ ENVVARS = {
     'DOCKER_INSTALL_IMAGE': ('$PROJECT/rever-install', is_string, str, ensure_string,
                              'Image name for the install docker image. This is evaluated in the '
                              'current environment, default $PROJECT/rever-install'),
+    'DOCKER_INSTALL_SOURCE': ('', is_string, str, ensure_string,
+        'Command for obtaining the source code in the install container.'
+        'This command shoudl create the $DOCKER_WORKDIR.'),
+    'DOCKER_INSTALL_URL': ('', is_string, str, ensure_string,
+                           'URL to clone to in docker in the install image.'),
     'DOCKER_PIP_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                         'Dependencies to install in the base container via pip.'),
     'DOCKER_PIP_REQUIREMENTS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                                 'Requirements files to use in pip install.'),
     'DOCKER_ROOT': ('', is_string, str, ensure_string,
                     'Root directory for docker to use.'),
+    'DOCKER_WORKDIR': ('$HOME/$PROJECT', is_string, str, ensure_string,
+        'The working directory for the docker container. This is evaluated in '
+        'the container itself, default $HOME/$PROJECT'),
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
                         'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),

@@ -7,7 +7,7 @@ import pytest
 
 from rever import environ
 from rever.docker import (apt_deps, conda_deps, pip_deps, make_base_dockerfile,
-    docker_envvars, make_install_dockerfile)
+    docker_envvars, make_install_dockerfile, docker_source_from)
 
 
 @pytest.fixture
@@ -15,6 +15,23 @@ def dockerenv(request):
     with environ.context():
         env = builtins.__xonsh_env__
         yield env
+
+
+@pytest.mark.parametrize('envvars, exp', [
+    (None, ''),
+    ({}, ''),
+    ({'PATH': '$HOME/.local/bin/$PATH'},
+"""ENV PATH $HOME/.local/bin/$PATH
+"""),
+    ({'PATH': '$HOME/.local/bin/$PATH', 'A': 'YO', 'Z': 'APPA'},
+"""ENV A YO
+ENV PATH $HOME/.local/bin/$PATH
+ENV Z APPA
+"""),
+])
+def test_docker_envvars(envvars, exp):
+    obs = docker_envvars(envvars)
+    assert exp == obs
 
 
 @pytest.mark.parametrize('deps, exp', [
@@ -124,21 +141,19 @@ def test_make_base_dockerfile(dockerenv):
     assert EXP_BASE == obs
 
 
-@pytest.mark.parametrize('envvars, exp', [
-    (None, ''),
-    ({}, ''),
-    ({'PATH': '$HOME/.local/bin/$PATH'},
-"""ENV PATH $HOME/.local/bin/$PATH
-"""),
-    ({'PATH': '$HOME/.local/bin/$PATH', 'A': 'YO', 'Z': 'APPA'},
-"""ENV A YO
-ENV PATH $HOME/.local/bin/$PATH
-ENV Z APPA
-"""),
+@pytest.mark.parametrize('source, url, root, workdir, exp', [
+    ('curl -L afile.tar.gz && tar xvf afile.tar.gz && rm afile.tar.gz',
+     None, '.', '$HOME/my/workdir',
+     'RUN curl -L afile.tar.gz && tar xvf afile.tar.gz && rm afile.tar.gz'),
+    (None, 'git@github.com:regro/rever.git', '.', '$HOME/my/workdir',
+     'RUN git clone git@github.com:regro/rever.git $HOME/my/workdir'),
+    (None, None, '.', '$HOME/my/workdir',
+     'ADD . $HOME/my/workdir'),
 ])
-def test_docker_envvars(envvars, exp):
-    obs = docker_envvars(envvars)
+def test_docker_source_from(dockerenv, source, url, root, workdir, exp):
+    obs = docker_source_from(source=source, url=url, root=root, workdir=workdir)
     assert exp == obs
+
 
 
 EXP_INSTALL = """FROM project/rever-base
@@ -149,7 +164,7 @@ WORKDIR $HOME/my/workdir
 
 RUN setup.py install --user
 
-ENV PATH $HOME/.local/bin/$PATH
+ENV PATH $HOME/.local/bin:$PATH
 
 """
 
@@ -158,7 +173,7 @@ def test_make_install_dockerfile(dockerenv):
     obs = make_install_dockerfile(base='project/rever-base',
                                   root='.',
                                   command='setup.py install --user',
-                                  envvars={'PATH': '$HOME/.local/bin/$PATH'},
+                                  envvars={'PATH': '$HOME/.local/bin:$PATH'},
                                   workdir='$HOME/my/workdir',
                                   )
     assert EXP_INSTALL == obs

@@ -1,10 +1,12 @@
 """Dockers tools for rever."""
 import sys
 import textwrap
+from collections.abc import MutableMapping
 
 from xonsh.tools import expand_path, print_color
 
 from rever import vcsutils
+from rever import environ
 
 
 _TEXT_WRAPPER = None
@@ -222,7 +224,7 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
     """
     # ensure base build
     base_file = base_file or $DOCKER_BASE_FILE
-    base_image = base_image or $DOCKER_BASE_IMAGE
+    base_image = expand_path(base_image or $DOCKER_BASE_IMAGE)
     base_kwargs = dict(base_from=base_from, apt=apt, conda=conda,
                        conda_channels=conda_channels, pip=pip,
                        pip_requirements=pip_requirements)
@@ -233,7 +235,7 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
         build_image(base_file, base_image, make_base_dockerfile, **base_kwargs)
     # ensure install build
     install_file = install_file or $DOCKER_INSTALL_FILE
-    install_image = install_image or $DOCKER_INSTALL_IMAGE
+    install_image = expand_path(install_image or $DOCKER_INSTALL_IMAGE)
     install_kwargs = dict(base=base_image, root=root, command=command,
                           envvars=envvars, workdir=workdir, url=url,
                           source=source)
@@ -247,3 +249,114 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
     if should_build_install:
         build_image(install_file, install_image, make_install_dockerfile,
                     **install_kwargs)
+
+
+def run_in_container(image, command, env=True):
+    """Run a command inside of a docker container.
+
+    Parameters
+    ----------
+    image : str
+        Name of the image to start the container with.
+    command : list of str
+        The command to run inside of the container.
+    env : bool or dict, optional
+        If False, not environment variables are passed down to the container.
+        If True, all rever environment variables are passed into the container (default).
+        Otherwise, this is a dictionary of enviroment variable names (str) to values (str).
+    """
+    # get the environment
+    if not env:
+        env = {}
+    elif isinstance(env, MutableMapping):
+        pass
+    else:
+        env = environ.rever_detype_env()
+    env_args = []
+    for key, val in env.items():
+        env_args.append('--env')
+        env_args.append(key + '=' + val)
+    docker run -t @(env_args) @(image) @(command)
+
+
+class InContainer(object):
+    """Macro context manager for running code within a container. This runs
+    a command of the following form within the container::
+
+        lang args block
+
+    For example::
+
+        xonsh -c "echo Wow Mom!\n"
+
+    """
+
+    __xonsh_block__ = str
+
+    def __init__(self, image=None, lang='xonsh', args=('-c',), env=True, **kwargs):
+        """
+        Parameters
+        ----------
+        image : str or None, optional
+            Name of the image to run, defaults to $DOCKER_INSTALL_IMAGE. Environment
+            variables will be expanded.
+        lang : str, optional
+            Language to execute the body in, default xonsh. This may also be a full
+            path to an executable.
+        args : sequence of str, optional
+            Extra arguments to pass in after the executable but before the main body.
+            Defaults to the standard compile flag ``'-c'``.
+        env : bool or dict, optional
+            Environment to use. This has the same meaning as in ``run_in_container()``.
+            Please see that function for more details, default True.
+        kwargs : dict, optional
+            All other keyword arguments are passed into ``ensure_images()`` when the
+            context is entered.
+        """
+        self.image = expand_path(image or $DOCKER_INSTALL_IMAGE)
+        self.lang = lang
+        self.args = args
+        self.env = env
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        # first make sure we have a container execute in
+        ensure_images(**self.kwargs)
+        # now actually run the container
+        command = [self.lang]
+        command.extend(self.args)
+        command.append(self.macro_block)
+        rtn = run_in_container(self.image, command, env=self.env)
+        return rtn
+
+    def __exit__(self, *exc):
+        # no reason to keep these attributes around.
+        del self.macro_globals, self.macro_locals
+
+
+def incontainer(*args, **kwargs)
+    """Macro context manager for running code within a container.
+
+    Parameters
+    ----------
+    image : str or None, optional
+        Name of the image to run, defaults to $DOCKER_INSTALL_IMAGE. Environment
+        variables will be expanded.
+    lang : str, optional
+            Language to execute the body in, default xonsh. This may also be a full
+            path to an executable.
+    args : sequence of str, optional
+            Extra arguments to pass in after the executable but before the main body.
+            Defaults to the standard compile flag ``'-c'``.
+    env : bool or dict, optional
+            Environment to use. This has the same meaning as in ``run_in_container()``.
+            Please see that function for more details, default True.
+    kwargs : dict, optional
+            All other keyword arguments are passed into ``ensure_images()`` when the
+            context is entered.
+
+    Returns
+    -------
+    New macro context manager InContainer instance.
+    """
+    return InContainer(*args, **kwargs)

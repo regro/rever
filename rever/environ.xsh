@@ -185,3 +185,20 @@ def context():
     setup()
     yield
     teardown()
+
+
+def rever_envvar_names():
+    """Returns the rever environment variable names as a set of str."""
+    names = set(ENVVARS.keys())
+    for act in $DAG.values():
+        names.update(act.env_names.values())
+    return names
+
+
+def rever_detype_env():
+    """Returns a detyped version of the environment containing only the rever
+    environment variables.
+    """
+    keep = rever_envvar_names()
+    denv = {k: v for k, v in ${...}.detype() if k in keep}
+    return denv

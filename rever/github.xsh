@@ -85,7 +85,7 @@ def write_credfile(credfile=None, username='', password=''):
         f.write(str(auth.token) + '\n')
         f.write(str(auth.id))
     print_color('{YELLOW}wrote ' + credfile , file=sys.stderr)
-    os.chmod(rc, 0o600)
+    os.chmod(credfile, 0o600)
     print_color('{YELLOW}secured permisions of ' + credfile, file=sys.stderr)
 
 

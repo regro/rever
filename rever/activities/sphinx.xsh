@@ -15,11 +15,25 @@ class Sphinx(DockerActivity):
 
     Environment variables that modify this activity's behaviour are:
 
+    :$SPHINX_DOCS_DIR: str, the directory in the container that is the root of
+        the documentation. This must be an absolute path. Defaults to
+        ``'$DOCKER_HOME/$PROJECT/docs'``.
     :$SPHINX_HOST_DIR: str, the directory on the host (ie outside of the container
         to place the built docs in, default ``'$REVER_DIR/sphinx-build'``.
     :$SPHINX_BUILD_DIR: str, the directory in the container where sphinx will
-        build the docs, default ``'$DOCKER_WORKDIR/docs/_build'``.
+        build the docs, default ``'{docs_dir}/_build'``. If ``'{docs_dir}'`` is
+        present in the string, then the string will be formated with the
+        value of $SPHINX_DOCS_DIR. Otherwise, enviroment variables will be expanded.
+    :$SPHINX_OPTS: str or list of str, Additional options to provide to the sphinx
+        builders. Default to no extra options.
+    :$SPHINX_PAPER: str, The paper size to use in latex.  Maybe ``''``, ``'a4'``,
+        ``'letter'``, or similar.  Defaults to an empty string, which disables this
+        option.
+    :$SPHINX_BUILDER: list of str, The build targets that sphinx should construct.
+        This defaults to ``['html']``.
 
+    As a dockerized activity, the docker environment variables affect the execution
+    of the sphinx activity.
     """
 
     _cmd = 'sphinx-build -b {builder} {opts} {docs_dir} {build_dir}/{builder}'

@@ -248,7 +248,7 @@ class DockerActivity(Activity):
     def _func(self, image=None, lang=None, args=None, code=None, env=None):
         image = expand_path(self.image or $DOCKER_INSTALL_IMAGE)
         lang = lang or self.lang
-        args = self.args if args is None else args
+        args = self.run_args if args is None else args
         code = self.code if code is None else code
         env = self.env if env is None else env
         # first make sure we have a container execute in
@@ -257,7 +257,7 @@ class DockerActivity(Activity):
         command = [lang]
         command.extend(args)
         command.append(code)
-        rtn = run_in_container(image, command, env=env)
+        rtn = docker.run_in_container(image, command, env=env)
         return rtn
 
 

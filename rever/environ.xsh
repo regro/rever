@@ -108,10 +108,14 @@ ENVVARS = {
                          '``$REVER_DIR/rever-base.dockerfile``'),
     'DOCKER_CONDA_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                           'Dependencies to install in the base container via conda.'),
-    'DOCKER_CONDA_CHANNELS': (('conda-forge', 'defaults'), is_nonstring_seq_of_strings,
+    'DOCKER_CONDA_CHANNELS': (('conda-forge',), is_nonstring_seq_of_strings,
                               csv_to_list, list_to_csv,
                               'Conda channels to use, in order of decreasing precedence. '
-                              'Defaults to conda-forge and defaults'),
+                              'Defaults to conda-forge'),
+    'DOCKER_GIT_EMAIL': ('', is_string, str, ensure_string,
+                         'Email to configure for git in the docker container'),
+    'DOCKER_GIT_NAME': ('', is_string, str, ensure_string,
+                        'Username to configure for git in the docker container'),
     'DOCKER_INSTALL_COMMAND': ('', is_string, str, ensure_string,
                                'Command for installing the project that is used in docker.'),
     'DOCKER_INSTALL_ENVVARS': (None, is_dict_str_str_or_none, repr, literal_eval,
@@ -206,5 +210,5 @@ def rever_detype_env():
     environment variables.
     """
     keep = rever_envvar_names()
-    denv = {k: v for k, v in ${...}.detype() if k in keep}
+    denv = {k: v for k, v in ${...}.detype().items() if k in keep}
     return denv

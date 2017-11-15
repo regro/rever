@@ -11,7 +11,7 @@ class PyTest(DockerActivity):
     """
 
     def __init__(self):
-        super().__init__(name='pytets', deps=frozenset(), func=self._func,
+        super().__init__(name='pytest', deps=frozenset(), func=self._func,
                          desc="Runs pytest inside of a docker container",
                          lang='sh', code='pytest')
 

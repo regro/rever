@@ -7,7 +7,7 @@ import pytest
 
 from rever import environ
 from rever.docker import (apt_deps, conda_deps, pip_deps, make_base_dockerfile,
-    docker_envvars, make_install_dockerfile, docker_source_from)
+    docker_envvars, make_install_dockerfile, docker_source_from, git_configure)
 
 
 @pytest.fixture
@@ -103,6 +103,21 @@ def test_pip_deps(dockerenv, deps, reqs, exp):
     assert exp == obs
 
 
+@pytest.mark.parametrize('name, email, exp', [
+    ('', '', ''),
+    (None, None, ''),
+    ('', 'my@email.com', 'RUN git config --global user.email "my@email.com"\n'),
+    ('zappa', None, 'RUN git config --global user.name "zappa"\n'),
+    ('zappa', 'my@email.com',
+     'RUN git config --global user.name "zappa" && \\\n'
+     '    git config --global user.email "my@email.com"\n'),
+])
+def test_git_configure(dockerenv, name, email, exp):
+    obs = git_configure(name, email)
+    assert exp == obs
+
+
+
 EXP_BASE = """FROM zappa/project
 
 ENV REVER_VCS git
@@ -126,8 +141,6 @@ RUN conda config --set always_yes yes && \\
 
 RUN pip install \\
     -r req1 -r req0 dep1 dep0
-
-
 """
 
 

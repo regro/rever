@@ -11,12 +11,15 @@ from rever import environ
 
 
 _TEXT_WRAPPER = None
-BASE_DOCKERFILE = """FROM {base_from}
+BASE_DOCKERFILE = """
+FROM {base_from}
 
 {envvars}
 WORKDIR /root
 
 {deps}
+
+{git_config}
 """
 
 
@@ -108,8 +111,27 @@ def collate_deps(apt=None, conda=None, conda_channels=None,
     return s
 
 
+def git_configure(name=None, email=None):
+    """Make basic git configuration."""
+    name = name or $DOCKER_GIT_NAME
+    email = email or $DOCKER_GIT_EMAIL
+    if not name and not email:
+        return ''
+    cmd = 'RUN '
+    if name:
+        cmd += 'git config --global user.name "{0}"'.format(name)
+        if email:
+            cmd += ' && \\\n    '
+        else:
+            cmd += '\n'
+    if email:
+        cmd += 'git config --global user.email "{}"\n'.format(email)
+    return cmd
+
+
 def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=None,
-                         pip=None, pip_requirements=None):
+                         pip=None, pip_requirements=None, git_name=None,
+                         git_email=None):
     """Constructs the base dockerfile."""
     base_from = base_from or $DOCKER_BASE_FROM
     deps = collate_deps(apt=apt, conda=conda, conda_channels=conda_channels,
@@ -119,8 +141,10 @@ def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=No
            'WEBSITE_URL': $WEBSITE_URL}
     env = {k: v for k, v in env.items() if v}
     envvars = docker_envvars(env)
+    git_config = git_configure(name=git_name, email=git_email)
     base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps,
-                                  envvars=envvars)
+                                  envvars=envvars, git_config=git_config)
+    base = base.strip() + '\n'
     return base
 
 
@@ -151,6 +175,7 @@ def docker_source_from(source=None, url=None, root=None, workdir=None):
         s = s.format(vcs=$REVER_VCS, url=url, workdir=workdir)
     else:
         root = docker_root(root)
+        root = os.path.relpath(root, '.')
         workdir = workdir or $DOCKER_WORKDIR
         s = 'ADD {root} {workdir}'.format(root=root, workdir=workdir)
     return s

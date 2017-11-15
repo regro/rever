@@ -290,7 +290,7 @@ def validate_mount(mount):
     """Validates a docker mount description. Returns a boolean flag and a message."""
     msgs = []
     keys = set(mount.keys())
-    key_diff = keys - VALID_MOUNT_KEYS)
+    key_diff = keys - VALID_MOUNT_KEYS
     if len(key_diff) > 0:
         msg = 'docker mount contains unrecognized keys: ' + ' '.join(key_diff)
         msgs.append(msg)
@@ -322,11 +322,11 @@ def mount_argument(mount):
     keys = set(mount.keys())
     if 'type' in mount:
         args.append('type=' + mount['type'])
-    src_keys = keys & VALID_MOUNT_SRCS:
+    src_keys = keys & VALID_MOUNT_SRCS
     if len(src_keys) == 1:
         src_key = src_keys.pop()
         args.append(src_key + '=' + mount[src_key])
-    dst_keys = keys & VALID_MOUNT_DSTS:
+    dst_keys = keys & VALID_MOUNT_DSTS
     dst_key = dst_keys.pop()
     args.append(dst_key + '=' + mount[dst_key])
     ro_keys = keys & VALID_MOUNT_ROS
@@ -378,7 +378,7 @@ def run_in_container(image, command, env=True, mounts=()):
         env_args.append(key + '=' + val)
     mount_args = []
     for mount in mounts:
-        flag, msg = validate_mount(mount):
+        flag, msg = validate_mount(mount)
         if not flag:
             raise ValueError(msg)
         mount_arg.append('--mount')

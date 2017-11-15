@@ -13,6 +13,9 @@ $TAG_REMOTE = 'git@github.com:ergs/rever.git'
 
 with open('requirements/tests.txt') as f:
     $DOCKER_CONDA_DEPS = f.read().split()
+with open('requirements/docs.txt') as f:
+    $DOCKER_CONDA_DEPS += f.read().split()
+$DOCKER_CONDA_DEPS = [d.lower() for d in set($DOCKER_CONDA_DEPS)]
 $DOCKER_PIP_DEPS = ['xonda']
 $DOCKER_INSTALL_COMMAND = './setup.py install'
 $DOCKER_GIT_NAME = 'rever'

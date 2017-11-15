@@ -7,7 +7,8 @@ import pytest
 
 from rever import environ
 from rever.docker import (apt_deps, conda_deps, pip_deps, make_base_dockerfile,
-    docker_envvars, make_install_dockerfile, docker_source_from, git_configure)
+    docker_envvars, make_install_dockerfile, docker_source_from, git_configure, validate_mount,
+    mount_argument)
 
 
 @pytest.fixture
@@ -120,6 +121,7 @@ def test_git_configure(dockerenv, name, email, exp):
 
 EXP_BASE = """FROM zappa/project
 
+ENV HOME /root
 ENV REVER_VCS git
 ENV VERSION x.y.z
 
@@ -190,3 +192,36 @@ def test_make_install_dockerfile(dockerenv):
                                   workdir='$HOME/my/workdir',
                                   )
     assert EXP_INSTALL == obs
+
+
+@pytest.mark.parametrize('mount, exp', [
+    ({}, False),
+    ({'dst': 'loc'}, True),
+    ({'dst': 'loc', 'target': 'loc'}, False),
+    ({'dst': 'loc', 'type': 'bind'}, True),
+    ({'dst': 'loc', 'type': 'notbind'}, False),
+    ({'dst': 'loc', 'src': 'otherloc'}, True),
+    ({'dst': 'loc', 'src': 'otherloc', 'source': 'yetanother'}, False),
+    ({'dst': 'loc', 'ro': True}, True),
+    ({'dst': 'loc', 'ro': True, 'readonly': True}, False),
+    ({'dst': 'loc', 'consistency': 'cached'}, True),
+    ({'dst': 'loc', 'consistency': 'notcached'}, False),
+])
+def test_validate_mount(mount, exp):
+    obs, _ = validate_mount(mount)
+    if exp:
+        assert obs
+    else:
+        assert not obs
+
+
+@pytest.mark.parametrize('mount, exp', [
+    ({'dst': 'loc'}, 'dst=loc'),
+    ({'dst': 'loc', 'type': 'bind'}, 'type=bind,dst=loc'),
+    ({'dst': 'loc', 'src': 'otherloc'}, 'src=otherloc,dst=loc'),
+    ({'dst': 'loc', 'ro': True}, 'dst=loc,ro=true'),
+    ({'dst': 'loc', 'consistency': 'cached'}, 'dst=loc,consistency=cached'),
+])
+def test_mount_argument(mount, exp):
+    obs = mount_argument(mount)
+    assert exp == obs

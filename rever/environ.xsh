@@ -39,6 +39,7 @@ def default_dag():
     from rever.activities.conda_forge import CondaForge
     from rever.activities.pypi import PyPI
     from rever.activities.pytest import PyTest
+    from rever.activities.sphinx import Sphinx
     from rever.activities.tag import Tag
     from rever.activities.version_bump import VersionBump
     dag = {
@@ -46,6 +47,7 @@ def default_dag():
         'conda_forge': CondaForge(),
         'pypi': PyPI(),
         'pytest': PyTest(),
+        'sphinx': Sphinx(),
         'tag': Tag(),
         'version_bump': VersionBump(),
     }
@@ -116,6 +118,8 @@ ENVVARS = {
                          'Email to configure for git in the docker container'),
     'DOCKER_GIT_NAME': ('', is_string, str, ensure_string,
                         'Username to configure for git in the docker container'),
+    'DOCKER_HOME': ('/root', is_string, str, ensure_string,
+                    'Home directory in the docker container, default /root'),
     'DOCKER_INSTALL_COMMAND': ('', is_string, str, ensure_string,
                                'Command for installing the project that is used in docker.'),
     'DOCKER_INSTALL_ENVVARS': (None, is_dict_str_str_or_none, repr, literal_eval,

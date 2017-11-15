@@ -138,7 +138,7 @@ def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=No
                         pip=pip, pip_requirements=pip_requirements)
     env = {'PROJECT': $PROJECT, 'VERSION': $VERSION, 'REVER_VCS': $REVER_VCS,
            'GITHUB_ORG': $GITHUB_ORG, 'GITHUB_REPO': $GITHUB_REPO,
-           'WEBSITE_URL': $WEBSITE_URL}
+           'WEBSITE_URL': $WEBSITE_URL, 'HOME': $DOCKER_HOME}
     env = {k: v for k, v in env.items() if v}
     envvars = docker_envvars(env)
     git_config = git_configure(name=git_name, email=git_email)
@@ -277,7 +277,69 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
                     **install_kwargs)
 
 
-def run_in_container(image, command, env=True):
+VALID_MOUNT_KEYS = frozenset(['type', 'src', 'source', 'dst', 'destination', 'target',
+                              'ro', 'readonly', 'consistency'])
+VALID_MOUNT_TYPES = frozenset(['volume', 'bind', 'tmpfs'])
+VALID_MOUNT_SRCS = frozenset(['src', 'source'])
+VALID_MOUNT_DSTS = frozenset(['dst', 'destination', 'target'])
+VALID_MOUNT_ROS = frozenset(['ro', 'readonly'])
+VALID_MOUNT_CONSISTENCY = frozenset(['default', 'consistent', 'cached', 'delegated'])
+
+
+def validate_mount(mount):
+    """Validates a docker mount description. Returns a boolean flag and a message."""
+    msgs = []
+    keys = set(mount.keys())
+    key_diff = keys - VALID_MOUNT_KEYS
+    if len(key_diff) > 0:
+        msg = 'docker mount contains unrecognized keys: ' + ' '.join(key_diff)
+        msgs.append(msg)
+    if 'type' in mount and mount['type'] not in VALID_MOUNT_TYPES:
+        msg = 'mount type not recognized {0!r}'.format(mount['type'])
+        msgs.append(msg)
+    if len(keys & VALID_MOUNT_SRCS) > 1:
+        msg = 'both src and source keys are present, only one is allowed'
+        msgs.append(msg)
+    dst_keys = keys & VALID_MOUNT_DSTS
+    if len(dst_keys) != 1:
+        if len(dst_keys) == 0:
+            msg = "a destination key must be present, got zero"
+        else:
+            msg = 'got more than 1 destination key: ' + ' '.join(dst_keys)
+        msgs.append(msg)
+    if len(keys & VALID_MOUNT_ROS) > 1:
+        msg = 'recieved too many read-only keys'
+        msgs.append(msg)
+    if 'consistency' in keys and mount['consistency'] not in VALID_MOUNT_CONSISTENCY:
+        msg = 'invalid consistency given to mount {0!r}'.format(mount['consistency'])
+        msgs.append(msg)
+    return (True, '') if len(msgs) == 0 else (False, ' AND '.join(msgs))
+
+
+def mount_argument(mount):
+    """Creates a mount command argument from a mount dictionary."""
+    args = []
+    keys = set(mount.keys())
+    if 'type' in mount:
+        args.append('type=' + mount['type'])
+    src_keys = keys & VALID_MOUNT_SRCS
+    if len(src_keys) == 1:
+        src_key = src_keys.pop()
+        args.append(src_key + '=' + mount[src_key])
+    dst_keys = keys & VALID_MOUNT_DSTS
+    dst_key = dst_keys.pop()
+    args.append(dst_key + '=' + mount[dst_key])
+    ro_keys = keys & VALID_MOUNT_ROS
+    if len(ro_keys) == 1:
+        ro_key = ro_keys.pop()
+        val = 'true' if bool(mount[ro_key]) else 'false'
+        args.append(ro_key + '=' + val)
+    if 'consistency' in keys:
+        args.append('consistency=' + mount['consistency'])
+    return ','.join(args)
+
+
+def run_in_container(image, command, env=True, mounts=()):
     """Run a command inside of a docker container.
 
     Parameters
@@ -290,6 +352,18 @@ def run_in_container(image, command, env=True):
         If False, not environment variables are passed down to the container.
         If True, all rever environment variables are passed into the container (default).
         Otherwise, this is a dictionary of enviroment variable names (str) to values (str).
+    mounts : list of dict, optional
+        This is a list of dictionaries that specifies files or directories, volumes, or
+        temporary file systems to mount.  Valid keys in the dictionary are:
+
+        * ``'type'``
+        * ``'src'`` or ``'source'``
+        * ``'dst'`` or ``'destination'`` or ``'target'``
+        * ``'ro'`` or  ``'readonly'``
+        * ``'consistency'``
+
+        See https://docs.docker.com/engine/reference/commandline/service_create/#add-bind-mounts-volumes-or-memory-filesystems
+        for more information
     """
     # get the environment
     if not env:
@@ -302,7 +376,14 @@ def run_in_container(image, command, env=True):
     for key, val in env.items():
         env_args.append('--env')
         env_args.append(key + '=' + val)
-    ![docker run -t @(env_args) @(image) @(command)]
+    mount_args = []
+    for mount in mounts:
+        flag, msg = validate_mount(mount)
+        if not flag:
+            raise ValueError(msg)
+        mount_args.append('--mount')
+        mount_args.append(mount_argument(mount))
+    ![docker run -t @(env_args) @(mount_args) @(image) @(command)]
 
 
 class InContainer(object):
@@ -319,7 +400,8 @@ class InContainer(object):
 
     __xonsh_block__ = str
 
-    def __init__(self, image=None, lang='xonsh', args=('-c',), env=True, **kwargs):
+    def __init__(self, image=None, lang='xonsh', args=('-c',), env=True,
+                 mounts=(), **kwargs):
         """
         Parameters
         ----------
@@ -335,6 +417,10 @@ class InContainer(object):
         env : bool or dict, optional
             Environment to use. This has the same meaning as in ``run_in_container()``.
             Please see that function for more details, default True.
+        mounts : list of dict, optional
+            Locations to mount in the running container. This has the same meaning as
+            ing ``run_in_container()``. Please see that function for more details, default
+            does not mount anything.
         kwargs : dict, optional
             All other keyword arguments are passed into ``ensure_images()`` when the
             context is entered.
@@ -343,6 +429,7 @@ class InContainer(object):
         self.lang = lang
         self.args = args
         self.env = env
+        self.mounts = mounts
         self.kwargs = kwargs
 
     def __enter__(self):
@@ -352,7 +439,7 @@ class InContainer(object):
         command = [self.lang]
         command.extend(self.args)
         command.append(self.macro_block)
-        rtn = run_in_container(self.image, command, env=self.env)
+        rtn = run_in_container(self.image, command, env=self.env, mounts=self.mounts)
         return rtn
 
     def __exit__(self, *exc):
@@ -369,17 +456,21 @@ def incontainer(*args, **kwargs):
         Name of the image to run, defaults to $DOCKER_INSTALL_IMAGE. Environment
         variables will be expanded.
     lang : str, optional
-            Language to execute the body in, default xonsh. This may also be a full
-            path to an executable.
+        Language to execute the body in, default xonsh. This may also be a full
+        path to an executable.
     args : sequence of str, optional
-            Extra arguments to pass in after the executable but before the main body.
-            Defaults to the standard compile flag ``'-c'``.
+        Extra arguments to pass in after the executable but before the main body.
+        Defaults to the standard compile flag ``'-c'``.
     env : bool or dict, optional
-            Environment to use. This has the same meaning as in ``run_in_container()``.
-            Please see that function for more details, default True.
+        Environment to use. This has the same meaning as in ``run_in_container()``.
+        Please see that function for more details, default True.
+    mounts : list of dict, optional
+        Locations to mount in the running container. This has the same meaning as
+        in ``run_in_container()``. Please see that function for more details, default
+        does not mount anything.
     kwargs : dict, optional
-            All other keyword arguments are passed into ``ensure_images()`` when the
-            context is entered.
+        All other keyword arguments are passed into ``ensure_images()`` when the
+        context is entered.
 
     Returns
     -------

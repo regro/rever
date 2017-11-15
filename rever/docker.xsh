@@ -138,7 +138,7 @@ def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=No
                         pip=pip, pip_requirements=pip_requirements)
     env = {'PROJECT': $PROJECT, 'VERSION': $VERSION, 'REVER_VCS': $REVER_VCS,
            'GITHUB_ORG': $GITHUB_ORG, 'GITHUB_REPO': $GITHUB_REPO,
-           'WEBSITE_URL': $WEBSITE_URL}
+           'WEBSITE_URL': $WEBSITE_URL, 'HOME': $DOCKER_HOME}
     env = {k: v for k, v in env.items() if v}
     envvars = docker_envvars(env)
     git_config = git_configure(name=git_name, email=git_email)
@@ -381,8 +381,8 @@ def run_in_container(image, command, env=True, mounts=()):
         flag, msg = validate_mount(mount)
         if not flag:
             raise ValueError(msg)
-        mount_arg.append('--mount')
-        mount_arg.append(mount_argument(mount))
+        mount_args.append('--mount')
+        mount_args.append(mount_argument(mount))
     ![docker run -t @(env_args) @(mount_args) @(image) @(command)]
 
 

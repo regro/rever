@@ -121,6 +121,7 @@ def test_git_configure(dockerenv, name, email, exp):
 
 EXP_BASE = """FROM zappa/project
 
+ENV HOME /root
 ENV REVER_VCS git
 ENV VERSION x.y.z
 

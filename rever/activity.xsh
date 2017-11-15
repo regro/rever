@@ -41,6 +41,7 @@ class Activity:
         self.kwargs = kwargs
         self.desc = desc
         self._env_names = None
+        self.ns = None
 
     def __str__(self):
         s = '{}: {}'.format(self.name, self.desc)
@@ -252,7 +253,12 @@ class DockerActivity(Activity):
         code = self.code if code is None else code
         env = self.env if env is None else env
         # first make sure we have a container execute in
-        docker.ensure_images()
+        if self.ns is None:
+            force_base = force_install = False
+        else:
+            force_base = self.ns.docker_base
+            force_install = self.ns.docker_install
+        docker.ensure_images(force_base=force_base, force_install=force_install)
         # now actually run the container
         command = [lang]
         command.extend(args)

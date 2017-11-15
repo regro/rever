@@ -8,6 +8,8 @@ from rever import github
 from rever.activity import Activity
 from rever.tools import eval_version, indir, hash_url, replace_in_file
 
+from xonsh.tools import print_color
+
 
 def feedstock_url(feedstock, protocol='ssh'):
     """Returns the URL for a conda-forge feedstock."""

@@ -118,6 +118,10 @@ ENVVARS = {
                                'Environment variables to set at the end of the '
                                'docker install. May be either a Python dictionary mapping '
                                'string variable names to string values or None, default None.'),
+    'DOCKER_INSTALL_FILE': ('$REVER_DIR/rever-install.dockerfile',
+                            is_string, str, ensure_string,
+                            'Path to base dockerfile, odefault '
+                            '``$REVER_DIR/rever-install.dockerfile``'),
     'DOCKER_INSTALL_IMAGE': ('$PROJECT/rever-install', is_string, str, ensure_string,
                              'Image name for the install docker image. This is evaluated in the '
                              'current environment, default $PROJECT/rever-install'),

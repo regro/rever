@@ -106,7 +106,7 @@ class CondaForge(Activity):
 
     * ``$GITHUB_CREDFILE``: the credential file to use.
     * ``$GITHUB_ORG``: the github organization that the project belongs to.
-    * ``$GITHUB_REPO``: the github repository of theproject.
+    * ``$GITHUB_REPO``: the github repository of the project.
     * ``$PROJECT``: the name of the project being released.
     * ``$REVER_CONFIG_DIR``: the user's config directory for rever, which
       is where the GitHub credential files are stored by default.

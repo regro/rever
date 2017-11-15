@@ -12,7 +12,6 @@ $TAG_REMOTE = 'git@github.com:regro/rever.git'
 
 $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'
-$GITHUB_CREDFILE = '~/.gh_cred.txt'
 
 
 with open('requirements/tests.txt') as f:

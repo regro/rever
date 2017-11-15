@@ -38,12 +38,14 @@ def default_dag():
     from rever.activities.changelog import Changelog
     from rever.activities.conda_forge import CondaForge
     from rever.activities.pypi import PyPI
+    from rever.activities.pytest import PyTest
     from rever.activities.tag import Tag
     from rever.activities.version_bump import VersionBump
     dag = {
         'changelog': Changelog(),
         'conda_forge': CondaForge(),
         'pypi': PyPI(),
+        'pytest': PyTest(),
         'tag': Tag(),
         'version_bump': VersionBump(),
     }

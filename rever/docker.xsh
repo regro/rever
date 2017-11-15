@@ -210,7 +210,7 @@ def build_image(dockerfile, image, maker, **kwargs):
         f.write(s)
     print_color('{PURPLE}Wrote ' + dockerfile + '{NO_COLOR}')
     print_color('{CYAN}Building docker image ' + image + ' ...{NO_COLOR}')
-    docker build -t @(image) -f @(dockerfile) --no-cache .
+    ![docker build -t @(image) -f @(dockerfile) --no-cache .]
 
 
 def ensure_images(base_file=None, base_image=None, force_base=False,
@@ -276,7 +276,7 @@ def run_in_container(image, command, env=True):
     for key, val in env.items():
         env_args.append('--env')
         env_args.append(key + '=' + val)
-    docker run -t @(env_args) @(image) @(command)
+    ![docker run -t @(env_args) @(image) @(command)]
 
 
 class InContainer(object):
@@ -334,7 +334,7 @@ class InContainer(object):
         del self.macro_globals, self.macro_locals
 
 
-def incontainer(*args, **kwargs)
+def incontainer(*args, **kwargs):
     """Macro context manager for running code within a container.
 
     Parameters

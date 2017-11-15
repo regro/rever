@@ -1,3 +1,4 @@
+$PROJECT = 'rever'
 $REVER_DIR = 'rever-tmp'
 $ACTIVITIES = ['pytest', 'version_bump', 'changelog', 'tag']
 

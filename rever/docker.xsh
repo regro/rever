@@ -1,4 +1,5 @@
 """Dockers tools for rever."""
+import os
 import sys
 import textwrap
 from collections.abc import MutableMapping
@@ -223,7 +224,7 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
     them if they haven't.
     """
     # ensure base build
-    base_file = base_file or $DOCKER_BASE_FILE
+    base_file = expand_path(base_file or $DOCKER_BASE_FILE)
     base_image = expand_path(base_image or $DOCKER_BASE_IMAGE)
     base_kwargs = dict(base_from=base_from, apt=apt, conda=conda,
                        conda_channels=conda_channels, pip=pip,
@@ -234,7 +235,7 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
     if should_build_base:
         build_image(base_file, base_image, make_base_dockerfile, **base_kwargs)
     # ensure install build
-    install_file = install_file or $DOCKER_INSTALL_FILE
+    install_file = expand_path(install_file or $DOCKER_INSTALL_FILE)
     install_image = expand_path(install_image or $DOCKER_INSTALL_IMAGE)
     install_kwargs = dict(base=base_image, root=root, command=command,
                           envvars=envvars, workdir=workdir, url=url,

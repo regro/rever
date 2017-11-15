@@ -163,6 +163,9 @@ class DockerActivity(Activity):
     :$<NAME>_ENV: bool or dict, Environment to use. This has the same meaning as in
         ``rever.docker.run_in_container()``. Please see that function for
         more details, default True.
+    :$<NAME>_MOUNT: list of dict, Locations to mount in the running container.
+        This has the same meaning as in ``rever.docker.run_in_container()``.
+        Please see that function for more details, default does not mount anything.
 
     Additionally, DockerActivities are macro context managers. This allows you
     to set the code block by entering the context::
@@ -178,7 +181,7 @@ class DockerActivity(Activity):
 
     def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None,
                  desc=None, image=None, lang='xonsh', run_args=('-c',),
-                 code=None, env=True):
+                 code=None, env=True, mounts=()):
         """
         Parameters
         ----------
@@ -212,6 +215,11 @@ class DockerActivity(Activity):
             Environment to use. This has the same meaning as in
             ``rever.docker.run_in_container()``. Please see that function for
             more details, default True.
+        mounts : list of dict, optional
+            Locations to mount in the running container. This has the same meaning as
+            ing ``run_in_container()``. Please see that function for more details, default
+            does not mount anything.
+
         """
         super().__init__(name=name, deps=deps, func=func or self._func,
                          undo=undo, desc=desc)
@@ -220,6 +228,7 @@ class DockerActivity(Activity):
         self.run_args = run_args
         self._code = code
         self.env = env
+        self.mounts = mounts
 
     @property
     def code(self):
@@ -246,12 +255,13 @@ class DockerActivity(Activity):
         # no reason to keep these attributes around.
         del self.macro_globals, self.macro_locals
 
-    def _func(self, image=None, lang=None, args=None, code=None, env=None):
+    def _func(self, image=None, lang=None, args=None, code=None, env=None, mounts=None):
         image = expand_path(self.image or $DOCKER_INSTALL_IMAGE)
         lang = lang or self.lang
         args = self.run_args if args is None else args
         code = self.code if code is None else code
         env = self.env if env is None else env
+        mounts = self.mounts if mounts is None else mounts
         # first make sure we have a container execute in
         if self.ns is None:
             force_base = force_install = False
@@ -263,9 +273,8 @@ class DockerActivity(Activity):
         command = [lang]
         command.extend(args)
         command.append(code)
-        rtn = docker.run_in_container(image, command, env=env)
+        rtn = docker.run_in_container(image, command, env=env, mounts=mounts)
         return rtn
-
 
 def dockeractivity(**kwargs):
     """Returns a new docker activity. This accepts the same keyword arguments

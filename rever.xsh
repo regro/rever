@@ -1,6 +1,6 @@
 $PROJECT = 'rever'
 $REVER_DIR = 'rever-tmp'
-$ACTIVITIES = ['pytest', 'version_bump', 'changelog', 'sphinx', 'tag', 'conda_forge']
+$ACTIVITIES = ['pytest', 'version_bump', 'changelog', 'sphinx', 'tag', 'conda_forge', 'ghpages']
 
 $VERSION_BUMP_PATTERNS = [
     ('rever/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
@@ -12,7 +12,7 @@ $TAG_REMOTE = 'git@github.com:regro/rever.git'
 
 $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'
-
+$GHPAGES_REPO = 'git@github.com:regro/rever-docs.git'
 
 with open('requirements/tests.txt') as f:
     $DOCKER_CONDA_DEPS = f.read().split()

@@ -66,27 +66,71 @@ def render_authors(authors):
         return ' and '.join(authors)
 
 
-def progress(count, total, prefix='', suffix='', width=60, file=None,
+PONG = ("▐⠂       ▌",
+        "▐⠈       ▌",
+        "▐ ⠂      ▌",
+        "▐ ⠠      ▌",
+        "▐  ⡀     ▌",
+        "▐  ⠠     ▌",
+        "▐   ⠂    ▌",
+        "▐   ⠈    ▌",
+        "▐    ⠂   ▌",
+        "▐    ⠠   ▌",
+        "▐     ⡀  ▌",
+        "▐     ⠠  ▌",
+        "▐      ⠂ ▌",
+        "▐      ⠈ ▌",
+        "▐       ⠂▌",
+        "▐       ⠠▌",
+        "▐       ⡀▌",
+        "▐      ⠠ ▌",
+        "▐      ⠂ ▌",
+        "▐     ⠈  ▌",
+        "▐     ⠂  ▌",
+        "▐    ⠠   ▌",
+        "▐    ⡀   ▌",
+        "▐   ⠠    ▌",
+        "▐   ⠂    ▌",
+        "▐  ⠈     ▌",
+        "▐  ⠂     ▌",
+        "▐ ⠠      ▌",
+        "▐ ⡀      ▌",
+        "▐⠠       ▌",
+        )
+
+
+_NPONG = 0
+
+
+def progress(count, total=None, prefix='', suffix='', width=60, file=None,
              fill='`·.,¸,.·*¯`·.,¸,.·*¯', color=None, empty=' '):
     """CLI progress bar"""
     # forked from https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
     # under an MIT license, Copyright (c) 2016 Vladimir Ignatev
+    global _NPONG
     file = sys.stdout if file is None else file
-    filler = fill * (1 + width//len(fill))
-    filled_len = int(round(width * count / float(total)))
-    bar = filler[:filled_len] + empty * (width - filled_len)
-    if color is None:
-        color = 'YELLOW' if count < total else 'GREEN'
-    frac = count / float(total)
-    fmt = ('{prefix}[{{{color}}}{bar}{{NO_COLOR}}] '
-           '{{{color}}}{frac:.1%}{{NO_COLOR}}{suffix}\r')
+    if total is None:
+        bar = PONG[_NPONG]
+        _NPONG = (_NPONG + 1)%len(PONG)
+        fmt = ('{prefix}{{{color}}}{bar}{{NO_COLOR}} '
+               '{frac} bytes{suffix}\r')
+        frac = count
+    else:
+        filler = fill * (1 + width//len(fill))
+        filled_len = int(round(width * count / float(total)))
+        bar = filler[:filled_len] + empty * (width - filled_len)
+        if color is None:
+            color = 'YELLOW' if count < total else 'GREEN'
+        frac = count / float(total)
+        fmt = ('{prefix}[{{{color}}}{bar}{{NO_COLOR}}] '
+               '{{{color}}}{frac:.1%}{{NO_COLOR}}{suffix}\r')
     s = fmt.format(prefix=prefix, color=color, bar=bar, frac=frac,
                    suffix=suffix)
     print_color(s, end='', file=file)
     file.flush()
 
 
-def stream_url_progress(url, verb='downloading', chunksize=1024):
+def stream_url_progress(url, verb='downloading', chunksize=1024, width=60):
     """Generator yielding successive bytes from a URL.
 
     Parameters
@@ -113,9 +157,14 @@ def stream_url_progress(url, verb='downloading', chunksize=1024):
             if lenbytes == 0:
                 break
             else:
-                progress(nbytes, totalbytes or nbytes * 2)
+                progress(nbytes, totalbytes, width=width)
                 yield b
-    if nbytes < totalbytes:
+            if totalbytes is None:
+                totalbytes = f.length
+    if totalbytes is None:
+        color = 'GREEN'
+        suffix = '{GREEN} TOTAL{NO_COLOR}\n'
+    elif nbytes < totalbytes:
         color = 'RED'
         suffix = '{RED} FAILED{{NO_COLOR}\n'
     else:

@@ -178,5 +178,18 @@ def git_latest_tag():
 
 latest_tag = make_vcs_dispatcher({'git': git_latest_tag},
     name='latest_tag',
-    doc="Retruns the most recent tag in the repo.",
+    doc="Returns the most recent tag in the repo.",
     err = 'no way to find the most recent tag for {!r}')
+
+
+def git_root():
+    """Returns the root repository directory from git"""
+    root = $(git rev-parse --show-toplevel)
+    return root.strip()
+
+
+root = make_vcs_dispatcher({'git': git_root},
+    name='root',
+    doc="Returns the root repository directory.",
+    err = 'no way to find the root repository directory from {!r}')
+

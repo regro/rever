@@ -24,6 +24,12 @@ def PARSER():
     p.add_argument('-e', '--entrypoint', default=None, dest='entrypoint',
                    help='the entry point target, this determines the activities '
                         'to execute.')
+    p.add_argument('--docker-base', default=False, action='store_true',
+                   dest='docker_base', help='Forces (re-)build of the '
+                                            'base docker container.')
+    p.add_argument('--docker-install', default=False, action='store_true',
+                   dest='docker_install', help='Forces (re-)build of the '
+                                            'install docker container.')
     p.add_argument('version', help='version to release')
     return p
 
@@ -105,6 +111,7 @@ def run_activities(ns):
                     "completed!{NO_COLOR}")
     for name in need:
         act = $DAG[name]
+        act.ns = ns
         status = act()
         if not status:
             sys.exit(1)
@@ -127,6 +134,7 @@ def undo_activities(ns):
     order = sorted(latest_acts, reverse=True, key=latest_acts.get)
     for name in order:
         act = $DAG[name]
+        act.ns = ns
         act.undo()
 
 

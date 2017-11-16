@@ -70,8 +70,8 @@ class GHPages(Activity):
                 else:
                     copy_file(src, dst, verbose=1)
             # check if changes are needed
-            p = !(git diff --exit-code)            # check for unstaged changes
-            q = !(git diff --cached --exit-code)   # check for staged changes
+            p = !(git diff --exit-code --quiet)         # check for unstaged changes
+            q = !(git diff --cached --exit-code --quiet)  # check for staged changes
             if p.rtn == 0 and q.rtn == 0:
                 msg = ('{YELLOW}no changes made to GitHub pages repo, already '
                        'up-to-date.{NO_COLOR}')

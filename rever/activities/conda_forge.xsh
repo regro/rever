@@ -151,9 +151,7 @@ class CondaForge(Activity):
         with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash,
                                             SOURCE_URL=source_url):
             for f, p, n in patterns:
-                print(repr(p), repr(eval_version(p)))
                 p = eval_version(p)
-                print(repr(n), repr(eval_version(n)))
                 n = eval_version(n)
                 replace_in_file(p, n, f)
         with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):

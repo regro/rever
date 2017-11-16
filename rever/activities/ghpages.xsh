@@ -47,7 +47,26 @@ def expand_copy(copy):
 
 
 class GHPages(Activity):
-    """Activity for pushing documentation up to GitHub pages."""
+    """Activity for pushing documentation up to GitHub pages.
+
+    This activity uses the following environment variable:
+
+    :$GHPAGES_REPO: str, the URL of the GitHUb pages repository.
+    :$GHPAGES_BRANCH: str, the GitHub pages branch name, i.e. either
+        ``gh-pages`` or ``master``.  If not provided, the activity will
+        attempt to deduce it from the repo name.
+    :$GHPAGES_COPY: list or str 2-tuples, This is a list of (src, dst)
+        pairs of files to copy from the project into the gh-pages repo.
+        These pairs will have environment variables expanded and it is
+        evaluated in the current directory (where rever was run from).
+        src files or directories that don't exist will be skipped.
+        After variable expansion, this list will be deduplicated.
+        Additionally, the environment variable ``$GHPAGES_REPO_DIR``
+        is added to allow easy access to the local clone of the
+        repo, which is at ``$REVER_DIR/ghpages-repo``. By default,
+        this will look in the sphinx html directory created by the
+        sphinx activity.
+    """
 
     def __init__(self):
         super().__init__(name='ghpages', deps=frozenset(),
@@ -69,10 +88,13 @@ class GHPages(Activity):
                     copy_tree(src, dst, preserve_symlinks=1, verbose=1)
                 else:
                     copy_file(src, dst, verbose=1)
-            # check if changes are needed
-            p = !(git diff --exit-code --quiet)         # check for unstaged changes
-            q = !(git diff --cached --exit-code --quiet)  # check for staged changes
-            if p.rtn == 0 and q.rtn == 0:
+            # check if a commit is needed
+            with ${...}.swap(RAISE_SUBPROC_ERROR=False) as env:
+                # check for unstaged changes
+                p = !(git diff --exit-code --quiet).rtn
+                # check for staged changes
+                q = !(git diff --cached --exit-code --quiet).rtn
+            if p == 0 and q == 0:
                 msg = ('{YELLOW}no changes made to GitHub pages repo, already '
                        'up-to-date.{NO_COLOR}')
                 print_color(msg)

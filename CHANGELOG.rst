@@ -4,6 +4,16 @@ Rever Change Log
 
 .. current developments
 
+v0.2.3
+====================
+
+**Changed:**
+
+* Updated link in conda-forge activity to point to docs.
+
+
+
+
 v0.2.2
 ====================
 

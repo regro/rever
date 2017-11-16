@@ -18,7 +18,7 @@ def main():
         readme = f.read()
     scripts = ['scripts/rever']
     skw = dict(
-        name='rever',
+        name='re-ver',
         description='Release Versions of Software',
         long_description=readme,
         license='BSD',

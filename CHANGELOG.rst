@@ -4,6 +4,16 @@ Rever Change Log
 
 .. current developments
 
+v0.2.1
+====================
+
+**Fixed:**
+
+* Fixed ``eval_version`` import in ghrelease.
+
+
+
+
 v0.2.0
 ====================
 

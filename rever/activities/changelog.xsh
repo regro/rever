@@ -40,6 +40,9 @@ class Changelog(Activity):
     :news: str, path to directory containing news files. The default is 'news'.
     :ignore: list of str, regexes of filenames in the news directory to ignore.
              The default is ['TEMPLATE'].
+    :latest: str, file to write just the latest part of the changelog to.
+        This defaults to ``$REVER_DIR/LATEST``. This is evaluated in the
+        current environment.
     """
 
     def __init__(self, *, deps=frozenset()):
@@ -50,9 +53,14 @@ class Changelog(Activity):
     def _func(self, filename='CHANGELOG', pattern='.. current developments',
               header='.. current developments\n\nv$VERSION\n'
                      '====================\n\n',
-              news='news', ignore=('TEMPLATE',)):
+              news='news', ignore=('TEMPLATE',),
+              latest='$REVER_DIR/LATEST'):
         header = eval_version(header)
-        n = header + self.merge_news(news=news, ignore=ignore)
+        latest = eval_version(latest)
+        merged = self.merge_news(news=news, ignore=ignore)
+        with open(latest, 'w') as f:
+            f.write(merged)
+        n = header + merged
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)
 

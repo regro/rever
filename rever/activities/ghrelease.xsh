@@ -5,6 +5,7 @@ from xonsh.tools import expand_path
 
 from rever import github
 from rever.activity import Activity
+from rever.tools import eval_version
 
 
 def read_file_if_exists(filename):

@@ -277,6 +277,19 @@ def ensure_images(base_file=None, base_image=None, force_base=False,
                     **install_kwargs)
 
 
+_SUPPORTS_MOUNT = None
+
+
+def supports_mount():
+    """Checks if docker run supports the --mount option."""
+    global _SUPPORTS_MOUNT
+    if _SUPPORTS_MOUNT is not None:
+        return _SUPPORTS_MOUNT
+    out = $(docker run --help)
+    _SUPPORTS_MOUNT = '--mount' in out
+    return _SUPPORTS_MOUNT
+
+
 VALID_MOUNT_KEYS = frozenset(['type', 'src', 'source', 'dst', 'destination', 'target',
                               'ro', 'readonly', 'consistency'])
 VALID_MOUNT_TYPES = frozenset(['volume', 'bind', 'tmpfs'])
@@ -339,6 +352,30 @@ def mount_argument(mount):
     return ','.join(args)
 
 
+def volume_arguments(mount):
+    """Creates a list of volume arguments for older versions of docker that
+    don't support --mount.
+    """
+    vargs = []
+    keys = set(mount.keys())
+    t = mount.get('type', 'bind')
+    dst_keys = keys & VALID_MOUNT_DSTS
+    dst_key = dst_keys.pop()
+    if t == 'tempfs':
+        vargs.append('--tmpfs')
+        vargs.append(mount[dst_key])
+    else:
+        ro_keys = keys & VALID_MOUNT_ROS
+        if len(ro_keys):
+            ro_key = ro_keys.pop()
+            vargs.append('--read-only')
+        vargs.append('--volume')
+        src_keys = keys & VALID_MOUNT_SRCS
+        src_key = src_keys.pop()
+        vargs.append(mount[src_key] + ':' +  mount[dst_key])
+    return vargs
+
+
 def run_in_container(image, command, env=True, mounts=()):
     """Run a command inside of a docker container.
 
@@ -376,13 +413,17 @@ def run_in_container(image, command, env=True, mounts=()):
     for key, val in env.items():
         env_args.append('--env')
         env_args.append(key + '=' + val)
+    may_use_mount = supports_mount()
     mount_args = []
     for mount in mounts:
         flag, msg = validate_mount(mount)
         if not flag:
             raise ValueError(msg)
-        mount_args.append('--mount')
-        mount_args.append(mount_argument(mount))
+        if may_use_mount:
+            mount_args.append('--mount')
+            mount_args.append(mount_argument(mount))
+        else:
+            mount_args.extend(volume_arguments(mount))
     ![docker run -t @(env_args) @(mount_args) @(image) @(command)]
 
 

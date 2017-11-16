@@ -184,7 +184,7 @@ extra:
 def test_conda_forge_activity(gitrepo, gitecho):
     vcsutils.tag('0.0.1')
     env = builtins.__xonsh_env__
-    recipe_dir = os.path.join(env['REVER_DIR'], 'feedstock', 'recipe')
+    recipe_dir = os.path.join(env['REVER_DIR'], 'rever-feedstock', 'recipe')
     meta_yaml = os.path.join(recipe_dir, 'meta.yaml')
     os.makedirs(recipe_dir, exist_ok=True)
     files = [('rever.xsh', REVER_XSH),

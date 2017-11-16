@@ -128,7 +128,7 @@ class CondaForge(Activity):
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)
         origin = fork_url(upstream, username)
-        feedstock_dir = os.path.join($REVER_DIR, 'feedstock')
+        feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
         recipe_dir = os.path.join(feedstock_dir, 'recipe')
         if not os.path.isdir(feedstock_dir):
             p = ![git clone @(origin) @(feedstock_dir)]

@@ -4,6 +4,27 @@ Rever Change Log
 
 .. current developments
 
+v0.2.2
+====================
+
+**Changed:**
+
+* Conda smithy does not correctly rerender unless the feedstock
+  directory is called ``$PROJECT`` or ``$PROJECT-feedstock``,
+  thus the feedstock dir has been updated.
+* Python package name changed to ``re-ver``, since the
+  PyPI name ``rever`` is taken (even though no one has
+  uploaded a package).
+
+
+**Fixed:**
+
+* The conda forge activity was printing it matching patterns, and
+  it shouldn't have been doing that.
+
+
+
+
 v0.2.1
 ====================
 

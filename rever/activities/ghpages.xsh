@@ -69,6 +69,15 @@ class GHPages(Activity):
                     copy_tree(src, dst, preserve_symlinks=1, verbose=1)
                 else:
                     copy_file(src, dst, verbose=1)
+            # check if changes are needed
+            p = !(git diff --exit-code)            # check for unstaged changes
+            q = !(git diff --cached --exit-code)   # check for staged changes
+            if p.rtn == 0 and q.rtn == 0:
+                msg = ('{YELLOW}no changes made to GitHub pages repo, already '
+                       'up-to-date.{NO_COLOR}')
+                print_color(msg)
+                return
+            # now update the repo and push the changes
             # no need to use vcsutils here since we know we must be using git
             git add .
             msg = "GitHub pages update for " + $VERSION

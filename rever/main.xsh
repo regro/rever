@@ -142,6 +142,20 @@ def run_activities(ns):
             sys.exit(1)
 
 
+def setup_activities(ns):
+    """Actually run activities."""
+    need, done = compute_activities_to_run()
+    for name in done:
+        print_color("{GREEN}Activity '" + name + "' has already been "
+                    "completed!{NO_COLOR}")
+    for name in need:
+        act = $DAG[name]
+        act.ns = ns
+        status = act.setup()
+        if not status:
+            sys.exit(1)
+
+
 def undo_activities(ns):
     """Run undoer for specified activities."""
     done = compute_activities_completed()
@@ -178,6 +192,13 @@ def env_main(args=None):
         run_activities(ns)
 
 
+def env_setup(args=None):
+    ns = PARSER.parse_args(args)
+    $VERSION = ns.version
+    source @ (ns.rc)
+    running_activities(ns)
+    setup_activities(ns)
+
 def main(args=None):
     """Main function for rever."""
     with environ.context():
@@ -186,16 +207,7 @@ def main(args=None):
 
 def setup(args=None):
     with environ.context():
-        ns = PARSER.parse_args(args)
-        # Make the news dir and template
-        if not os.path.exists('news'):
-            os.makedirs('news')
-            with open('news/TEMPLATE.rst', 'w') as f:
-                f.write(NEWS_TEMPLATE)
-        if not os.path.exists('CHANGELOG.rst'):
-            r = CHANGELOG_TEMPLATE.format(PROJECT=ns.project)
-            with open('CHANGELOG.rst', 'w') as f:
-                f.write(r)
+        env_setup(args=args)
 
 
 

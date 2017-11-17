@@ -125,6 +125,25 @@ class Activity:
         kwargs.update(self.kwargs or {})
         return kwargs
 
+    def setup(self):
+        start_rev = vcsutils.current_rev()
+        log - a @ (self.name) - c
+        activity - start @ ("starting activity " + self.name)
+        args = self.args or ()
+        kwargs = self.all_kwargs()
+        try:
+            self.setup_func(*args, **kwargs)
+        except Exception:
+            msg = 'activity setup failed with execption:\n' + traceback.format_exc()
+            msg += 'rewinding to ' + start_rev
+            log - a @ (self.name) - c
+            activity - error @ (msg)
+            return False
+        $LOGGER.log(activity=self.name, category="activity-end",
+                    message="activity " + self.name + " complete",
+                    data={"start_rev": start_rev})
+        return True
+
 
 def activity(name=None, deps=frozenset(), undo=None, desc=None):
     """A decorator that turns the function into an activity. The arguments here have the

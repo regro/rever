@@ -13,6 +13,30 @@ NEWS_RE = re.compile('\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
                      flags=re.DOTALL)
 
 
+NEWS_TEMPLATE = '''
+**Added:** None
+
+**Changed:** None
+
+**Deprecated:** None
+
+**Removed:** None
+
+**Fixed:** None
+
+**Security:** None
+'''
+
+CHANGELOG_TEMPLATE="""
+====================
+{PROJECT} Change Log
+====================
+
+.. current developments
+
+"""
+
+
 class Changelog(Activity):
     """Manages keeping a changelog up-to-date.
 
@@ -101,3 +125,11 @@ class Changelog(Activity):
             if p.match(filename):
                 return False
         return True
+
+    def setup_func(self):
+        os.makedirs('news', exist_ok=True)
+        with open('TEMPLATE.rst', 'w') as f:
+            f.write(NEWS_TEMPLATE)
+        with open('CHANGELOG.rst', 'w') as f:
+            r = CHANGELOG_TEMPLATE.format(PROJECT=$PROJECT)
+            f.write(CHANGELOG_TEMPLATE)

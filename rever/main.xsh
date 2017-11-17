@@ -2,12 +2,37 @@
 import sys
 import argparse
 from collections import defaultdict
+import os
 
 from lazyasd import lazyobject
 from xonsh.tools import csv_to_set, print_color
 
 from rever import environ
 from rever.dag import find_path
+
+
+NEWS_TEMPLATE = '''
+**Added:** None
+
+**Changed:** None
+
+**Deprecated:** None
+
+**Removed:** None
+
+**Fixed:** None
+
+**Security:** None
+'''
+
+CHANGELOG_TEMPLATE="""
+====================
+{PROJECT} Change Log
+====================
+
+.. current developments
+
+"""
 
 
 @lazyobject
@@ -157,6 +182,21 @@ def main(args=None):
     """Main function for rever."""
     with environ.context():
         env_main(args=args)
+
+
+def setup(args=None):
+    with environ.context():
+        ns = PARSER.parse_args(args)
+        # Make the news dir and template
+        if not os.path.exists('news'):
+            os.makedirs('news')
+            with open('news/TEMPLATE.rst', 'w') as f:
+                f.write(NEWS_TEMPLATE)
+        if not os.path.exists('CHANGELOG.rst'):
+            r = CHANGELOG_TEMPLATE.format(PROJECT=ns.project)
+            with open('CHANGELOG.rst', 'w') as f:
+                f.write(r)
+
 
 
 if __name__ == '__main__':

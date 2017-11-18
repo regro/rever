@@ -71,7 +71,8 @@ class Changelog(Activity):
 
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='changelog', deps=deps, func=self._func,
-                         desc="Manages keeping a changelog up-to-date.")
+                         desc="Manages keeping a changelog up-to-date.",
+                         setup=self.setup_func)
         self._re_cache = {}
 
     def _func(self, filename='CHANGELOG', pattern='.. current developments',
@@ -127,6 +128,9 @@ class Changelog(Activity):
         return True
 
     def setup_func(self):
+        """Initializes the changelog activity by starting a news dir, making a template file,
+        and starting a changlog file
+        """
         os.makedirs('news', exist_ok=True)
         with open('TEMPLATE.rst', 'w') as f:
             f.write(NEWS_TEMPLATE)

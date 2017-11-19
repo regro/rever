@@ -109,6 +109,19 @@ def compute_activities_to_run(activities=None):
     return path, already_done
 
 
+def compute_setup_completed():
+    """Computes which activities' setups have been successfully completed."""
+    done = set()
+    entries = $LOGGER.load()
+    for entry in entries:
+        if 'activity' not in entry:
+            continue
+        act = entry['activity']
+        if entry['category'] == 'activity-setup':
+            done.add(entry['activity'])
+    return done
+
+
 def run_activities(ns):
     """Actually run activities."""
     need, done = compute_activities_to_run()
@@ -123,9 +136,32 @@ def run_activities(ns):
             sys.exit(1)
 
 
+def setup_project(ns):
+    """Perform top-level project setup."""
+    if $REVER_VCS == 'git':
+        if os.path.isfile('.gitignore'):
+            with open('.gitignore') as f:
+                gi = f.read()
+            if $REVER_DIR in gi or ($REVER_DIR + '/') in gi:
+                add_to_gi = False
+            else:
+                add_to_gi = True
+        else:
+            add_to_gi = True
+        if add_to_gi:
+            ignore = '\n# Rever\n' + $REVER_DIR + '/\n'
+            with open('.gitignore', 'a+') as f:
+                f.write(ignore)
+
+
 def setup_activities(ns):
     """Setup activities."""
+    done = compute_setup_completed()
     for name in $RUNNING_ACTIVITIES:
+        if name in done:
+            print_color("{GREEN}Activity '" + name + "' has already been "
+                        "setup!{NO_COLOR}")
+            continue
         act = $DAG[name]
         act.ns = ns
         status = act.setup()
@@ -169,6 +205,7 @@ def env_main(args=None):
     if ns.undo:
         undo_activities(ns)
     elif ns.setup:
+        setup_project(ns)
         setup_activities(ns)
     else:
         run_activities(ns)

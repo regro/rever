@@ -131,6 +131,7 @@ def test_changelog(gitrepo):
 SETUP_XSH = """
 $PROJECT = 'castlehouse'
 $ACTIVITIES = ['changelog']
+$REVER_DIR = 'rvr'
 
 $CHANGELOG_FILENAME = 'CHANGELOG.rst'
 $CHANGELOG_NEWS = 'nuws'
@@ -150,6 +151,14 @@ def test_changelog_setup(gitrepo):
     # now see if this worked
     newsfiles = os.listdir('nuws')
     assert 'TEMPLATE.rst' in newsfiles
+    basefiles = os.listdir('.')
+    assert 'CHANGELOG.rst' in basefiles
     with open('CHANGELOG.rst') as f:
         cl = f.read()
     assert 'castlehouse' in cl
+    assert '.gitignore' in basefiles
+    with open('.gitignore') as f:
+        gi = f.read()
+    assert '\n# Rever\nrvr/\n' in gi
+
+

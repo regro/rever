@@ -2,11 +2,15 @@
 import os
 import re
 import sys
-import pwd
-import grp
+import getpass
 import hashlib
 import urllib.request
 from contextlib import contextmanager
+if 'win' not in sys.platform:
+    import pwd
+    import grp
+else:
+    pwd = grp = None
 
 from xonsh.tools import expand_path, print_color
 
@@ -194,8 +198,16 @@ def hash_url(url, hash='sha256'):
 def user_group(filename, return_ids=False):
     """Returns the user and group name for a file, and optionally ids too.
     returns (user_name, group_name) if return_ids is False. If True, returns
-    (user_name, group_name, user_id, group_id).
+    (user_name, group_name, user_id, group_id).  On windows, the
+    user id and group id will be None and the group name will be the same
+    as the user name.
     """
+    if pwd is None:
+        uname = getpass.getuser()
+        if return_ids:
+            return uname, uname
+        else:
+            return uname, uname, None, None
     stat = os.stat(filename)
     uid = stat.st_uid
     gid = stat.st_gid

@@ -66,9 +66,15 @@ class Sphinx(DockerActivity):
         if opts and not isinstance(opts, str):
             optstr += ' ' + opts
         # now build the build command
-        cmds = ['groupadd --gid {gid} {group}'.format(gid=gid, group=group),
-                'useradd --uid {uid} --gid {gid} {user}'.format(uid=uid, gid=gid, user=user,),
-                'cd ' + docs_dir]
+        if gid is None:
+            cmds = ['groupadd {group}'.format(group=group),
+                    'useradd --gid {gid} {user}'.format(gid=group, user=user)]
+        else:
+            cmds = ['groupadd --gid {gid} {group}'.format(gid=gid, group=group),
+                    'useradd --uid {uid} --gid {gid} {user}'.format(uid=uid,
+                                                                    gid=gid,
+                                                                    user=user,)]
+        cmds.append('cd ' + docs_dir)
         cmds += [self._cmd.format(builder=b, opts=optstr, docs_dir=docs_dir, build_dir=build_dir)
                  for b in builders]
         cmds.append('chown -R {user}:{group} {build_dir}'.format(

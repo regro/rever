@@ -8,8 +8,9 @@ from contextlib import contextmanager
 from collections.abc import MutableMapping
 
 from xonsh.environ import Ensurer, VarDocs
-from xonsh.tools import (is_string, ensure_string, always_false, always_true,
-                         is_string_set, csv_to_set, set_to_csv, is_nonstring_seq_of_strings)
+from xonsh.tools import (is_string, ensure_string, always_false, always_true, is_bool,
+                         is_string_set, csv_to_set, set_to_csv, is_nonstring_seq_of_strings,
+                         to_bool, bool_to_str)
 
 from rever.logger import Logger
 
@@ -166,8 +167,10 @@ ENVVARS = {
                          'Path to rever configuration directory'),
     'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
                   'used for storing rever temporary files.'),
-    'REVER_VCS': ('git', is_string, str, ensure_string, "Name of version control "
-                  "system to use, such as 'git' or 'hg'"),
+    'REVER_FORCE': (False, is_bool, str, ensure_string, 'Path to directory '
+                  'used for storing rever temporary files.'),
+    'REVER_VCS': ('git', is_string, to_bool, bool_to_str, "Whethere or not to "
+                  "force potentially unsafe activities in rever."),
     'RUNNING_ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                            'List of activity names that rever is actually executing.'),
     'VERSION': ('x.y.z', is_string, str, ensure_string, 'Version string of new '

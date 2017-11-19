@@ -125,3 +125,31 @@ def test_changelog(gitrepo):
     logger = current_logger()
     entries = logger.load()
     assert entries[-2]['rev'] != entries[-1]['rev']
+
+
+
+SETUP_XSH = """
+$PROJECT = 'castlehouse'
+$ACTIVITIES = ['changelog']
+
+$CHANGELOG_FILENAME = 'CHANGELOG.rst'
+$CHANGELOG_NEWS = 'nuws'
+$CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
+"""
+
+def test_changelog_setup(gitrepo):
+    os.makedirs('nuws', exist_ok=True)
+    files = [('rever.xsh', SETUP_XSH),
+             ]
+    for filename, body in files:
+        with open(filename, 'w') as f:
+            f.write(body)
+    vcsutils.track('.')
+    vcsutils.commit('initial changelog')
+    env_main(['setup'])
+    # now see if this worked
+    newsfiles = os.listdir('nuws')
+    assert 'TEMPLATE.rst' in newsfiles
+    with open('CHANGELOG.rst') as f:
+        cl = f.read()
+    assert 'castlehouse' in cl

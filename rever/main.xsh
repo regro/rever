@@ -2,6 +2,7 @@
 import sys
 import argparse
 from collections import defaultdict
+import os
 
 from lazyasd import lazyobject
 from xonsh.tools import csv_to_set, print_color
@@ -24,13 +25,18 @@ def PARSER():
     p.add_argument('-e', '--entrypoint', default=None, dest='entrypoint',
                    help='the entry point target, this determines the activities '
                         'to execute.')
+    p.add_argument('-f', '--force', default=False, action='store_true',
+                   dest='force', help='Forces rever actions which might otherwise be safe.')
+    p.add_argument('-s', '--setup', default=False, action='store_true',
+                   dest='setup', help='Iniatilaizes the activities, if needed.')
     p.add_argument('--docker-base', default=False, action='store_true',
                    dest='docker_base', help='Forces (re-)build of the '
                                             'base docker container.')
     p.add_argument('--docker-install', default=False, action='store_true',
                    dest='docker_install', help='Forces (re-)build of the '
                                             'install docker container.')
-    p.add_argument('version', help='version to release')
+    p.add_argument('version', help='version to release, the value "setup" is an alias '
+                                   'to --setup.')
     return p
 
 
@@ -117,6 +123,16 @@ def run_activities(ns):
             sys.exit(1)
 
 
+def setup_activities(ns):
+    """Setup activities."""
+    for name in $RUNNING_ACTIVITIES:
+        act = $DAG[name]
+        act.ns = ns
+        status = act.setup()
+        if not status:
+            sys.exit(1)
+
+
 def undo_activities(ns):
     """Run undoer for specified activities."""
     done = compute_activities_completed()
@@ -144,11 +160,16 @@ def env_main(args=None):
     """
     ns = PARSER.parse_args(args)
     $VERSION = ns.version
+    $REVER_FORCE = ns.force
+    if ns.version == 'setup':
+        ns.setup = True
     source @(ns.rc)
     running_activities(ns)
     # run the command
     if ns.undo:
         undo_activities(ns)
+    elif ns.setup:
+        setup_activities(ns)
     else:
         run_activities(ns)
 

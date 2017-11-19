@@ -13,7 +13,7 @@ class Activity:
     """Activity representing a node in DAG of release tasks."""
 
     def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None,
-                 args=None, kwargs=None, desc=None):
+                 setup=None, args=None, kwargs=None, desc=None):
         """
         Parameters
         ----------
@@ -26,6 +26,8 @@ class Activity:
             Function to perform as activity when this activities is executed (called).
         undo : callable, optional
             Function to undo this activities behaviour and reset the repo state.
+        setup : callable, optional
+            Function to help initialize the activity.
         args : tuple, optional
             Arguments to be supplied to the ``func(*args)``, if needed.
         kwargs : mapping, optional
@@ -37,6 +39,7 @@ class Activity:
         self.deps = deps
         self.func = func
         self._undo = undo
+        self._setup = setup
         self.args = args
         self.kwargs = kwargs
         self.desc = desc
@@ -90,6 +93,22 @@ class Activity:
         """Decorator that sets the undo function for this activity."""
         self._undo = undo
         return undo
+
+    def setup(self):
+        """Calls this activities setup() initialization function."""
+        if self._setup is None:
+            print_color('{PURPLE}No setup needed for ' + self.name + ' activity{NO_COLOR}')
+            return
+        self._setup()
+        start_rev = vcsutils.current_rev()
+        msg = 'Setup activity {activity}'.format(activity=self.name)
+        log -a @(self.name) -c activity-setup @(msg)
+        return True
+
+    def setupper(self, setup):
+        """Decorator that sets the setup function for this activity."""
+        self._setup = setup
+        return setup
 
     @property
     def env_names(self):

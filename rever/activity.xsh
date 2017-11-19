@@ -3,7 +3,7 @@ import sys
 import inspect
 import traceback
 
-from xonsh.tools import expand_path
+from xonsh.tools import expand_path, print_color
 
 from rever import vcsutils
 from rever import docker

@@ -20,5 +20,6 @@ class Nose(DockerActivity):
     def _func(self, command='nosetests', args=()):
         code = command
         if args:
+            code += ' '
             code += args if isinstance(args, str) else ' '.join(args)
         super()._func(code=code)

@@ -20,15 +20,22 @@ def eval_version(v):
     return rtn
 
 
-def replace_in_file(pattern, new, fname):
-    """Replaces a given pattern in a file"""
+def replace_in_file(pattern, new, fname, leading_whitespace=True):
+    """Replaces a given pattern in a file. If leading whitespace is True,
+    whitespace at the begining of a line will be captured and preserved.
+    Otherwise, the pattern itself must contain all leading whitespace.
+    """
     with open(fname, 'r') as f:
         raw = f.read()
     lines = raw.splitlines()
-    ptn = re.compile(pattern)
+    if leading_whitespace:
+        ptn = re.compile('(\s*?)' + pattern)
+    else:
+        ptn = re.compile(pattern)
     for i, line in enumerate(lines):
-        if ptn.match(line):
-            lines[i] = new
+        m = ptn.match(line)
+        if m is not None:
+            lines[i] = m.group(1) + new if leading_whitespace else new
     upd = '\n'.join(lines) + '\n'
     with open(fname, 'w') as f:
         f.write(upd)

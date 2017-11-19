@@ -16,8 +16,7 @@ NEWS_RE = re.compile('\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
                      flags=re.DOTALL)
 
 
-NEWS_TEMPLATE = '''
-**Added:** None
+NEWS_TEMPLATE = """**Added:** None
 
 **Changed:** None
 
@@ -28,10 +27,9 @@ NEWS_TEMPLATE = '''
 **Fixed:** None
 
 **Security:** None
-'''
+"""
 
-INITIAL_CHANGELOG = """
-{bars}
+INITIAL_CHANGELOG = """{bars}
 {PROJECT} Change Log
 {bars}
 

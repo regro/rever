@@ -160,7 +160,7 @@ def env_main(args=None):
     """
     ns = PARSER.parse_args(args)
     $VERSION = ns.version
-    $REVER_FORCE = ns.force
+    $REVER_FORCED = ns.force
     if ns.version == 'setup':
         ns.setup = True
     source @(ns.rc)

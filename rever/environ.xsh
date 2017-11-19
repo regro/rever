@@ -167,8 +167,8 @@ ENVVARS = {
                          'Path to rever configuration directory'),
     'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
                   'used for storing rever temporary files.'),
-    'REVER_FORCE': (False, is_bool, str, ensure_string, 'Path to directory '
-                  'used for storing rever temporary files.'),
+    'REVER_FORCED': (False, is_bool, str, ensure_string, 'Path to directory '
+                     'used for storing rever temporary files.'),
     'REVER_VCS': ('git', is_string, to_bool, bool_to_str, "Whethere or not to "
                   "force potentially unsafe activities in rever."),
     'RUNNING_ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,

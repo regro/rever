@@ -155,6 +155,9 @@ class Changelog(Activity):
                 print_color('{RED}rever forced, overwriting files!{NO_COLOR}',
                             file=sys.stderr)
             else:
+                print_color('{RED}Use the --force option to force the creation '
+                            'of the changelog files.{NO_COLOR}',
+                            file=sys.stderr)
                 return False
         # actually create files
         os.makedirs(news, exist_ok=True)

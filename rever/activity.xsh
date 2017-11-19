@@ -99,8 +99,9 @@ class Activity:
         if self._setup is None:
             print_color('{PURPLE}No setup needed for ' + self.name + ' activity{NO_COLOR}')
             return True
-        self._setup()
-        start_rev = vcsutils.current_rev()
+        status = self._setup()
+        if not status:
+            return status
         msg = 'Setup activity {activity}'.format(activity=self.name)
         log -a @(self.name) -c activity-setup @(msg)
         return True

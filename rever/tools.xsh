@@ -2,11 +2,14 @@
 import os
 import re
 import sys
+import pwd
+import grp
 import hashlib
 import urllib.request
 from contextlib import contextmanager
 
 from xonsh.tools import expand_path, print_color
+
 
 def eval_version(v):
     """Evalauates the argument either as a template string which contains
@@ -186,3 +189,19 @@ def hash_url(url, hash='sha256'):
     for b in stream_url_progress(url, verb='Hashing'):
         hasher.update(b)
     return hasher.hexdigest()
+
+
+def user_group(filename, return_ids=False):
+    """Returns the user and group name for a file, and optionally ids too.
+    returns (user_name, group_name) if return_ids is False. If True, returns
+    (user_name, group_name, user_id, group_id).
+    """
+    stat = os.stat(filename)
+    uid = stat.st_uid
+    gid = stat.st_gid
+    uname = pwd.getpwuid(uid).pw_name
+    gname = grp.getgrgid(gid).gr_name
+    if return_ids:
+        return uname, gname, uid, gid
+    else:
+        return uname, gname

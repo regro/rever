@@ -8,6 +8,7 @@ from xonsh.tools import expand_path
 
 from rever import vcsutils
 from rever.activity import DockerActivity
+from rever.tools import user_group
 
 
 class Sphinx(DockerActivity):
@@ -53,6 +54,7 @@ class Sphinx(DockerActivity):
         else:
             build_dir = expand_path(build_dir)
         os.makedirs(host_dir, exist_ok=True)
+        user, group, uid, gid = user_group(host_dir, return_ids=True)
         mounts = [{'type': 'bind', 'src': host_dir, 'dst': build_dir}]
         # now get the options for the sphinx-build command
         options = ['-d', os.path.join(build_dir, 'doctrees')]
@@ -64,9 +66,13 @@ class Sphinx(DockerActivity):
         if opts and not isinstance(opts, str):
             optstr += ' ' + opts
         # now build the build command
-        cmds = ['cd ' + docs_dir]
+        cmds = ['groupadd --gid {gid} {group}'.format(gid=gid, group=group),
+                'useradd --uid {uid} --gid {gid} {user}'.format(uid=uid, gid=gid, user=user,),
+                'cd ' + docs_dir]
         cmds += [self._cmd.format(builder=b, opts=optstr, docs_dir=docs_dir, build_dir=build_dir)
                  for b in builders]
+        cmds.append('chown -R {user}:{group} {build_dir}'.format(
+                    user=user, group=group, build_dir=build_dir))
         code = ' && '.join(cmds)
         # OK, build the docs!
         super()._func(code=code, mounts=mounts)

@@ -40,6 +40,7 @@ def default_dag():
     from rever.activities.conda_forge import CondaForge
     from rever.activities.ghpages import GHPages
     from rever.activities.ghrelease import GHRelease
+    from rever.activities.nose import Nose
     from rever.activities.pypi import PyPI
     from rever.activities.pytest import PyTest
     from rever.activities.sphinx import Sphinx
@@ -50,6 +51,7 @@ def default_dag():
         'conda_forge': CondaForge(),
         'ghpages': GHPages(),
         'ghrelease': GHRelease(),
+        'nose': Nose(),
         'pypi': PyPI(),
         'pytest': PyTest(),
         'sphinx': Sphinx(),

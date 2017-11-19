@@ -98,7 +98,7 @@ class Activity:
         """Calls this activities setup() initialization function."""
         if self._setup is None:
             print_color('{PURPLE}No setup needed for ' + self.name + ' activity{NO_COLOR}')
-            return
+            return True
         self._setup()
         start_rev = vcsutils.current_rev()
         msg = 'Setup activity {activity}'.format(activity=self.name)

@@ -1,6 +1,7 @@
 """Activity for keeping a changelog from news entries."""
 import os
 import re
+import sys
 
 from rever import vcsutils
 from rever.activity import Activity
@@ -27,10 +28,10 @@ NEWS_TEMPLATE = '''
 **Security:** None
 '''
 
-CHANGELOG_TEMPLATE="""
-====================
+INITIAL_CHANGELOG = """
+{bars}
 {PROJECT} Change Log
-====================
+{bars}
 
 .. current developments
 
@@ -63,10 +64,12 @@ class Changelog(Activity):
 
     :news: str, path to directory containing news files. The default is 'news'.
     :ignore: list of str, regexes of filenames in the news directory to ignore.
-             The default is ['TEMPLATE'].
+             The default is to ignore the template file.
     :latest: str, file to write just the latest part of the changelog to.
         This defaults to ``$REVER_DIR/LATEST``. This is evaluated in the
         current environment.
+    :$CHANGELOG_TEMPLATE: str, filename of the template file in the
+        new directory
     """
 
     def __init__(self, *, deps=frozenset()):
@@ -78,8 +81,9 @@ class Changelog(Activity):
     def _func(self, filename='CHANGELOG', pattern='.. current developments',
               header='.. current developments\n\nv$VERSION\n'
                      '====================\n\n',
-              news='news', ignore=('TEMPLATE',),
-              latest='$REVER_DIR/LATEST'):
+              news='news', ignore=None,
+              latest='$REVER_DIR/LATEST', template='TEMPLATE'):
+        ignore = [template] if ignore is None else ignore
         header = eval_version(header)
         latest = eval_version(latest)
         merged = self.merge_news(news=news, ignore=ignore)
@@ -128,12 +132,36 @@ class Changelog(Activity):
         return True
 
     def setup_func(self):
-        """Initializes the changelog activity by starting a news dir, making a template file,
-        and starting a changlog file
+        """Initializes the changelog activity by starting a news dir, making
+        a template file, and starting a changlog file.
         """
-        os.makedirs('news', exist_ok=True)
-        with open('TEMPLATE.rst', 'w') as f:
+        # get vars from env
+        news = ${...}.get('CHANGELOG_NEWS', 'news')
+        template_file = ${...}.get('CHANGELOG_TEMPLATE', 'TEMPLATE')
+        template_file = os.path.join(news, template_file)
+        changelog_file = ${...}.get('CHANGELOG_FILENAME', 'CHANGELOG')
+        # run saftey checks
+        template_exists = os.path.isfile(template_file)
+        changelog_exists = os.path.isfile(changelog_file)
+        msgs = []
+        if template_exists:
+            msgs.append('Template file {0!r} exists'.format(template_file))
+        if changelog_exists:
+            msgs.append('Changelog file {0!r} exists'.format(changelog_file))
+        if len(msgs) > 0:
+            print_color('{RED}' + ' AND '.join(msgs) + '{NO_COLOR}',
+                        file=sys.stderr)
+            if $REVER_FORCED:
+                print_color('{RED}rever forced, overwriting files!{NO_COLOR}',
+                            file=sys.stderr)
+            else:
+                return False
+        # actually create files
+        os.makedirs(news, exist_ok=True)
+        with open(template_file, 'w') as f:
             f.write(NEWS_TEMPLATE)
-        with open('CHANGELOG.rst', 'w') as f:
-            r = CHANGELOG_TEMPLATE.format(PROJECT=$PROJECT)
-            f.write(CHANGELOG_TEMPLATE)
+        with open(changelog_file, 'w') as f:
+            s = INITIAL_CHANGELOG.format(PROJECT=$PROJECT,
+                                         bars='='*(len($PROJECT) + 11))
+            f.write(s)
+        return True

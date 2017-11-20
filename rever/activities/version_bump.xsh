@@ -9,28 +9,35 @@ from rever.tools import eval_version, replace_in_file
 class VersionBump(Activity):
     """Changes the version to the value of $VERSION.
 
-    This activity requires the 'patterns' argumenent be supplied.
-    This argument is an iterable of 3-tuples consisting of:
+    This activity is parameterized by the following environment
+    variable:
 
-    * filename, str - file to update the version in
-    * pattern, str - A Python regular expression that specifies
-      how to find matching lines for the replacement string
-    * new, str or function returning a string - the replacement
-      template as a string or a simple callable that accepts the
-      version. If it is a string, it is expanded with environment
-      variables.
+    :$VERSION_BUMP_PATTERNS: list of 3-tuples of str,
+        This activity is only usefule if replacement patterns are supplied to it.
+        This argument is an iterable of 3-tuples consisting of:
 
-    For example::
+        * filename, str - file to update the version in
+        * pattern, str - A Python regular expression that specifies
+          how to find matching lines for the replacement string.
+          Leading whitespace will be captured and replaced. The pattern
+          here can start at the first non-whitespace character.
+        * new, str or function returning a string - the replacement
+          template as a string or a simple callable that accepts the
+          version. If it is a string, it is expanded with environment
+          variables.
 
-        patterns = [
-            # replace __version__ in init file
-            ('src/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
+        For example::
 
-            # replace version in appveyor
-            ('.appveyor.yml', 'version:\s*',
-              (lambda ver: 'version: {0}.{{build}}'.format(ver))),
-          ...
-        ]
+            $VERSION_BUMP_PATTERNS = [
+                # replace __version__ in init file
+                ('src/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
+
+                # replace version in appveyor
+                ('.appveyor.yml', 'version:\s*',
+                  (lambda ver: 'version: {0}.{{build}}'.format(ver))),
+              ...
+            ]
+
     """
 
     def __init__(self, *, deps=frozenset()):

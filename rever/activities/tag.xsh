@@ -12,14 +12,14 @@ class Tag(Activity):
 
     This activity takes the following parameters:
 
-    :template: str, the template string to tag the version with,
-               by default this is '$VERSION'
-    :push: bool, flag for whether or not the current head and tag
-           sould be pushed, default True.
-    :remote: str or None, remote URL to push tags to. The default
-             is None, which is only valid whrn push=False.
-    :target: str or None, remote branch target to push tags to. The default
-             is None, which uses the current branch.
+    :$TAG_TEMPLATE: str, the template string to tag the version with,
+        by default this is '$VERSION'
+    :$TAG_PUSH: bool, flag for whether or not the current head and tag
+        sould be pushed, default True.
+    :$TAG_REMOTE: str or None, remote URL to push tags to. The default
+        is None, which is only valid when push=False.
+    :$TAG_TARGET: str or None, remote branch to push to once the tag has been made.
+        The default is None, which uses the current branch.
     """
 
     def __init__(self, *, deps=frozenset(('version_bump', 'changelog'))):

@@ -35,6 +35,7 @@ def feedstock_url(feedstock, protocol='ssh'):
 
 
 def feedstock_repo(feedstock):
+    """Gets the name of the feedstock repository."""
     if feedstock is None:
         repo = $PROJECT + '-feedstock'
     else:
@@ -106,11 +107,12 @@ class CondaForge(Activity):
 
     Other environment variables that affect the behavior are:
 
-    * ``$GITHUB_CREDFILE``: the credential file to use.
-    * ``$GITHUB_ORG``: the github organization that the project belongs to.
-    * ``$GITHUB_REPO``: the github repository of the project.
-    * ``$PROJECT``: the name of the project being released.
-    * ``$REVER_CONFIG_DIR``: the user's config directory for rever, which
+    :$GITHUB_CREDFILE: the credential file to use. This should NOT be
+        set in the rever.xsh file
+    :$GITHUB_ORG: the github organization that the project belongs to.
+    :$GITHUB_REPO: the github repository of the project.
+    :$PROJECT: the name of the project being released.
+    :$REVER_CONFIG_DIR: the user's config directory for rever, which
       is where the GitHub credential files are stored by default.
 
     """

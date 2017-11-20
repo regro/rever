@@ -47,13 +47,13 @@ class GHRelease(Activity):
 
     Other environment variables that affect the behavior are:
 
-    * ``$GITHUB_CREDFILE``: the credential file to use.
-    * ``$GITHUB_ORG``: the github organization that the project belongs to.
-    * ``$GITHUB_REPO``: the github repository of the project.
-    * ``$REVER_CONFIG_DIR``: the user's config directory for rever, which
-      is where the GitHub credential files are stored by default.
-    * ``$CHANGELOG_LATEST``: path to the latest release notes file
-      created by the changelog activity.
+    :$GITHUB_CREDFILE: the credential file to use.
+    :$GITHUB_ORG: the github organization that the project belongs to.
+    :$GITHUB_REPO: the github repository of the project.
+    :$REVER_CONFIG_DIR: the user's config directory for rever, which
+        is where the GitHub credential files are stored by default.
+    :$CHANGELOG_LATEST: path to the latest release notes file
+        created by the changelog activity.
 
     """
 

@@ -61,7 +61,7 @@ class PyPI(Activity):
 
     Other environment variables that affect the behavior are:
 
-    * ``$PYTHON``: the path to the Python interpreter.
+    :$PYTHON: the path to the Python interpreter.
     """
 
     def __init__(self, *, deps=frozenset(('version_bump',))):

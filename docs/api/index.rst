@@ -8,12 +8,9 @@ For those of you who want the gritty details.
 **Stock Activities:**
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
-    version_bump
-    changelog
-    tag_activity
-    command
+    activities/index
 
 **Core Iterface:**
 
@@ -34,3 +31,5 @@ For those of you who want the gritty details.
     main
     tools
     conda
+    docker
+    github

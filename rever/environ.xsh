@@ -36,6 +36,7 @@ def detype_logger(x):
 
 def default_dag():
     """Creates a default activity DAG."""
+    from rever.activities.bibtex import BibTex
     from rever.activities.changelog import Changelog
     from rever.activities.conda_forge import CondaForge
     from rever.activities.ghpages import GHPages
@@ -47,6 +48,7 @@ def default_dag():
     from rever.activities.tag import Tag
     from rever.activities.version_bump import VersionBump
     dag = {
+        'bibtex': BibTex(),
         'changelog': Changelog(),
         'conda_forge': CondaForge(),
         'ghpages': GHPages(),
@@ -207,6 +209,9 @@ def teardown():
 
 @contextmanager
 def context():
+    """A context manager for entering and leaving the rever environment
+    safely.
+    """
     setup()
     yield
     teardown()

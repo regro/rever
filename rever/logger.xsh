@@ -38,8 +38,8 @@ class Logger:
             entry['activity'] = activity
         if data is not None:
             entry['data'] = data
-        if version is not None:
-            entry['version'] = version
+
+        entry['version'] = version if version is not None else $VERSION
         # write to log file
         with open(self.filename, 'a+') as f:
             json.dump(entry, f, sort_keys=True, separators=(',', ':'))

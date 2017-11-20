@@ -4,3 +4,4 @@ cloud_sptheme
 numpydoc
 Sphinx
 bibtexparser
+pprintpp

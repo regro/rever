@@ -26,7 +26,6 @@ Initializing Rever
 ==================
 There are a couple steps you should take to get the most out of rever.
 1. Install rever. Rever is on conda-forge so install via
-
 ``conda install rever -c conda-forge`` or from source.
 2. Setup a ``rever.xsh`` file in the root directory of your source repository.
 Here is a simplified example from ``rever`` itself,

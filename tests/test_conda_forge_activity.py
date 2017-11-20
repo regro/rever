@@ -183,7 +183,7 @@ extra:
 EXP_META_YAML2 = """
 {% set name = "rever" %}
 {% set version = "0.2.0" %}
-{% set sha256 = "ce8924c4f2feb57f8151bdf8ab002f8fcedebc32855269cffbaa321d5023f352" %}
+{% set sha256 = "c1189e5e3cc66b329ea1c2ebaf129c54e54638a24df67fcffc4a8af55a724c85" %}
 
 package:
   name: {{ name|lower }}
@@ -194,7 +194,7 @@ source:
   fn: {{ name }}-{{ version }}.tar.gz
   url: https://github.com/ergs/rever/archive/{{ version }}.tar.gz
   sha256: {{ sha256 }}
-  sha256: ce8924c4f2feb57f8151bdf8ab002f8fcedebc32855269cffbaa321d5023f352
+  sha256: c1189e5e3cc66b329ea1c2ebaf129c54e54638a24df67fcffc4a8af55a724c85
 
 build:
   number: 0

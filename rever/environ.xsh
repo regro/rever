@@ -209,6 +209,9 @@ def teardown():
 
 @contextmanager
 def context():
+    """A context manager for entering and leaving the rever environment
+    safely.
+    """
     setup()
     yield
     teardown()

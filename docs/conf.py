@@ -94,7 +94,7 @@ release = REVER_VERSION
 #today_fmt = '%B %d, %Y'
 
 # List of documents that shouldn't be included in the build.
-exclude_patterns = ['api/blank.rst']
+exclude_patterns = ['api/blank.rst', 'api/activities/blank.rst']
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.

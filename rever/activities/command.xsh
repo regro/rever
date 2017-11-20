@@ -1,8 +1,7 @@
 from rever.activity import Activity
 
 class Command(Activity):
-    """
-    Runs a command
+    """Runs a command
 
     Optionally, an undo command can also be given to undo the given command
 
@@ -11,14 +10,18 @@ class Command(Activity):
        The recommended way to create a command is with the
        :func:`rever.activities.command.command` function.
 
-    :name: The name of the activity. Should be unique.
-
-    :command: The command to be run. Should be a valid xonsh command.
-
-    :undo_command: (optional) Command to undo the activity. Should be a valid
-         xonsh command.
     """
     def __init__(self, name, command, undo_command=None, **kwargs):
+        """
+        Paramaters
+        ----------
+        name : str
+            The name of the activity. Should be unique.
+        command : str
+            The command to be run. Should be a valid xonsh command.
+        undo_command : str, optional
+            Command to undo the activity. Should be a valid xonsh command.
+        """
         self.command = command
         self.undo_command = undo_command
         super().__init__(name=name, func=self._func, undo=self._undo, **kwargs)
@@ -33,16 +36,16 @@ class Command(Activity):
             evalx(self.undo_command)
 
 def command(name, command, undo_command=None, **kwargs):
-    """
-    Create a command activity
+    """Create a command activity
 
-
-    :name: The name of the activity. Should be unique.
-
-    :command: The command to be run. Should be a valid xonsh command.
-
-    :undo_command: (optional) Command to undo the activity. Should be a valid
-         xonsh command.
+    Paramaters
+    ----------
+    name : str
+        The name of the activity. Should be unique.
+    command : str
+        The command to be run. Should be a valid xonsh command.
+    undo_command : str, optional
+        Command to undo the activity. Should be a valid xonsh command.
 
     Examples
     --------

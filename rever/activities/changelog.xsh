@@ -41,35 +41,35 @@ INITIAL_CHANGELOG = """{bars}
 class Changelog(Activity):
     """Manages keeping a changelog up-to-date.
 
-    This activity takes a number of different input parameters as
-    configuration.
+    This activity may be configured with the following envionment variables:
 
-    :filename: str, path to input file. The default is 'CHANGELOG'.
-    :pattern: str, Python regex that is used to find the location in the file
-              where new changelog entries should be placed. The default is
-              '.. current developments'.
-    :header: str or callable that accepts a single version argument, this
-             is the replacement that goes above the new merge entries.
-             This should contain a string that matches the pattern arg
-             so that the next release may be inserted automatically.
-             The default value is:
+    :$CHANGELOG_FILENAME: str, path to input file. The default is 'CHANGELOG'.
+    :$CHANGELOG_PATTERN: str, Python regex that is used to find the location
+        in the file where new changelog entries should be placed. The default is
+        ``'.. current developments'``.
+    :$CHANGELOG_HEADER: str or callable that accepts a single version argument,
+        this is the replacement that goes above the new merge entries.
+        This should contain a string that matches the pattern arg
+        so that the next release may be inserted automatically.
+        The default value is:
 
-             .. code-block:: rst
+        .. code-block:: rst
 
-                 .. current developments
+            .. current developments
 
-                 v$VERSION
+            v$VERSION
 
-                 ====================
+            ====================
 
-    :news: str, path to directory containing news files. The default is 'news'.
-    :ignore: list of str, regexes of filenames in the news directory to ignore.
-             The default is to ignore the template file.
-    :latest: str, file to write just the latest part of the changelog to.
-        This defaults to ``$REVER_DIR/LATEST``. This is evaluated in the
-        current environment.
+    :$CHANGELOG_NEWS: str, path to directory containing news files.
+        The default is ``'news'``.
+    :$CHANGELOG_IGNORE: list of str, regexes of filenames in the news directory
+        to ignore. The default is to ignore the template file.
+    :$CHANGELOG_LATEST: str, file to write just the latest part of the
+        changelog to. This defaults to ``$REVER_DIR/LATEST``. This is evaluated
+        in the current environment.
     :$CHANGELOG_TEMPLATE: str, filename of the template file in the
-        new directory
+        news directory. The default is ``'TEMPLATE'``.
     """
 
     def __init__(self, *, deps=frozenset()):

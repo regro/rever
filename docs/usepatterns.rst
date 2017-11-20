@@ -29,8 +29,9 @@ There are a couple steps you should take to get the most out of rever.
 1. Install rever. Rever is on conda-forge so install via
 ``conda install rever -c conda-forge``, via pypi with ``pip install re-ver``,
 or from source.
+
 2. Setup a ``rever.xsh`` file in the root directory of your source repository.
-    Here is a simplified example from ``rever`` itself,
+   Here is a simplified example from ``rever`` itself,
     .. code-block:: xonsh
 
         $ACTIVITIES = [
@@ -55,5 +56,6 @@ or from source.
 3. After setting up the ``rever.xsh`` file run ``rever setup`` in the root
 directory of your source repository. This will setup files and other things
 needed for rever to operate.
+
 4. When you are ready to release run ``rever <new_version_number>`` and rever
 will take care of the rest.

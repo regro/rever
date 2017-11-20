@@ -65,11 +65,13 @@ def compute_activities_completed():
         if 'activity' not in entry:
             continue
         act = entry['activity']
-        if entry['category'] == 'activity-end':
+        if (entry['category'] == 'activity-end' and
+            entry['version'] == $VERSION):
             if act not in acts_done:
                 acts_done[act] = defaultdict(int)
             acts_done[act][entry['data']['start_rev']] += 1
-        elif entry['category'] == 'activity-undo':
+        elif (entry['category'] == 'activity-undo' and
+              entry['version'] == $VERSION):
             if act not in acts_done:
                 acts_done[act] = defaultdict(int)
             acts_done[act][entry['rev']] -= 1

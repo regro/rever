@@ -15,6 +15,6 @@ builtins.__xonsh_env__['RAISE_SUBPROC_ERROR'] = True
 import xonsh.imphooks
 xonsh.imphooks.install_import_hooks()
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 del xonsh, builtins, Execer, Shell

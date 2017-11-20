@@ -34,7 +34,7 @@ There are a couple steps you should take to get the most out of rever.
    Here is a simplified example from ``rever`` itself,
 
     .. code-block:: xonsh
-
+          $PROJECT = 'rever'
           $ACTIVITIES = [
                         'version_bump',  # Changes the version number in various source files (setup.py, __init__.py, etc)
                         'changelog',  # Uses files in the news folder to create a changelog for release

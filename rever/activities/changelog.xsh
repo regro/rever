@@ -137,9 +137,9 @@ class Changelog(Activity):
         """
         # get vars from env
         news = ${...}.get('CHANGELOG_NEWS', 'news')
-        template_file = ${...}.get('CHANGELOG_TEMPLATE', 'TEMPLATE')
+        template_file = ${...}.get('CHANGELOG_TEMPLATE', 'TEMPLATE.rst')
         template_file = os.path.join(news, template_file)
-        changelog_file = ${...}.get('CHANGELOG_FILENAME', 'CHANGELOG')
+        changelog_file = ${...}.get('CHANGELOG_FILENAME', 'CHANGELOG.rst')
         # run saftey checks
         template_exists = os.path.isfile(template_file)
         changelog_exists = os.path.isfile(changelog_file)

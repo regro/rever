@@ -10,7 +10,7 @@ For those of you who want the gritty details.
 .. toctree::
     :maxdepth: 2
 
-    activities
+    activities/index
 
 **Core Iterface:**
 
@@ -31,3 +31,5 @@ For those of you who want the gritty details.
     main
     tools
     conda
+    docker
+    github

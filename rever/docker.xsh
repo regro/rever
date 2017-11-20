@@ -34,6 +34,7 @@ def text_wrapper():
 
 
 def wrap(s, indent='', suffix=' \\', width=70):
+    """Wraps a dockerfile line."""
     tw = text_wrapper()
     tw.initial_indent = tw.subsequent_indent = indent
     tw.width = width
@@ -435,8 +436,10 @@ class InContainer(object):
 
     For example::
 
-        xonsh -c "echo Wow Mom!\n"
+        xonsh -c "echo Wow Mom!\\n"
 
+    This allows you to run your own code within a container without having to
+    worry about polluting the local namespace.
     """
 
     __xonsh_block__ = str
@@ -465,6 +468,7 @@ class InContainer(object):
         kwargs : dict, optional
             All other keyword arguments are passed into ``ensure_images()`` when the
             context is entered.
+
         """
         self.image = expand_path(image or $DOCKER_INSTALL_IMAGE)
         self.lang = lang
@@ -516,5 +520,6 @@ def incontainer(*args, **kwargs):
     Returns
     -------
     New macro context manager InContainer instance.
+
     """
     return InContainer(*args, **kwargs)

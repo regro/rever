@@ -13,7 +13,7 @@ class Command(Activity):
     """
     def __init__(self, name, command, undo_command=None, **kwargs):
         """
-        Paramaters
+        Parameters
         ----------
         name : str
             The name of the activity. Should be unique.
@@ -38,7 +38,7 @@ class Command(Activity):
 def command(name, command, undo_command=None, **kwargs):
     """Create a command activity
 
-    Paramaters
+    Parameters
     ----------
     name : str
         The name of the activity. Should be unique.

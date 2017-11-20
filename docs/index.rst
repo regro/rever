@@ -46,6 +46,7 @@ Contents
     :maxdepth: 1
 
     tutorial
+    usepatterns
 
 **Configuration & Setup:**
 

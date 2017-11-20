@@ -26,7 +26,8 @@ Initializing Rever
 ==================
 There are a couple steps you should take to get the most out of rever.
 1. Install rever. Rever is on conda-forge so install via ``conda install rever -c conda-forge`` or from source.
-1. Setup a ``rever.xsh`` file in the root directory of your source repository,
+2. Setup a ``rever.xsh`` file in the root directory of your source repository.
+Here is a simplified example from ``rever`` itself,
 
 .. code-block:: xonsh
 
@@ -49,6 +50,6 @@ There are a couple steps you should take to get the most out of rever.
     $GITHUB_ORG = 'regro'  # Github org for Github releases and conda-forge
     $GITHUB_REPO = 'rever'  # Github repo for Github releases  and conda-forge
 
-1. After setting up the ``rever.xsh`` file run ``rever setup`` in the root directory of your source repository. This will setup files and other things needed for rever to operate.
-1. When you are ready to release run ``rever <new_version_number>`` and rever will take care of the rest.
-1. Now you are ready, smooth sailing!
+3. After setting up the ``rever.xsh`` file run ``rever setup`` in the root directory of your source repository. This will setup files and other things needed for rever to operate.
+4. When you are ready to release run ``rever <new_version_number>`` and rever will take care of the rest.
+5. Now you are ready, smooth sailing!

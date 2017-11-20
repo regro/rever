@@ -4,6 +4,34 @@ Rever Change Log
 
 .. current developments
 
+v0.2.4
+====================
+
+**Added:**
+
+* Use Rever's own whitespace parsing in Rever's ``rever.xsh`` file
+* New activity for running nosetests inside of a docker container.
+* Setup framework that allows activities to initialize themseleves in
+  a project has been added.
+* Chacgelog setup functionality added.
+* ``rever setup`` will now perform some project level setup,
+  specifically adding the ``$REVER_DIR`` to the gitignore file,
+  if applicable.
+
+
+**Changed:**
+
+* Updated and improved documentation.
+* Patterning matching (as in version-bump) will now automatically capture
+  and replace leading whitespace.  Patterns and replacement strings may start
+  at the first non-whitespace character.
+* Addressed annoyance where sphinx documentation files were created
+  with root ownership. The user and group of sphinx files will now
+  match the user oand group of the ``$SPHINX_HOST_DIR`` on the host.
+
+
+
+
 v0.2.3
 ====================
 

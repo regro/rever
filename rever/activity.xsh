@@ -66,7 +66,7 @@ class Activity:
                 log -a @(self.name) -c activity-error @(msg)
                 return False
         data = {"start_rev": start_rev, "version": $VERSION}
-        data.update(kwargs_from_env())
+        data.update(self.kwargs_from_env())
         $LOGGER.log(activity=self.name, category="activity-end",
                     message="activity " + self.name + " complete",
                     data=data)

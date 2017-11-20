@@ -25,10 +25,12 @@ there are use patterns to maximizing your productivity.
 Initializing Rever
 ==================
 There are a couple steps you should take to get the most out of rever.
+
 1. Install rever. Rever is on conda-forge so install via
-``conda install rever -c conda-forge`` or from source.
+``conda install rever -c conda-forge``, via pypi with ``pip install re-ver``,
+or from source.
 2. Setup a ``rever.xsh`` file in the root directory of your source repository.
-Here is a simplified example from ``rever`` itself,
+    Here is a simplified example from ``rever`` itself,
     .. code-block:: xonsh
 
         $ACTIVITIES = [

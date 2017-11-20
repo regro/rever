@@ -8,7 +8,7 @@ $VERSION_BUMP_PATTERNS = [
     ('setup.py', 'version\s*=.*,', "version='$VERSION',")
     ]
 $CHANGELOG_FILENAME = 'CHANGELOG.rst'
-$CHANGELOG_IGNORE = ['TEMPLATE.rst']
+$CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
 $TAG_REMOTE = 'git@github.com:regro/rever.git'
 
 $GITHUB_ORG = 'regro'

@@ -13,6 +13,10 @@ import glob
 import builtins
 import inspect
 import importlib
+try:
+    import pprintpp as pprint
+except ImportError:
+    import pprint
 
 os.environ['XONSH_DEBUG'] = '1'
 
@@ -321,7 +325,34 @@ def find_activities():
                 continue
             acts[var] = (fullmodname, obj)
     acts.pop('Activity')
+    acts.pop('DockerActivity')
     return acts
+
+
+def make_activity_rever_xsh_example(act):
+    if inspect.isclass(act):
+        try:
+            act = act()
+        except TypeError:
+            return ''
+    s = ("This activity's defaults are equivalent to the following "
+         "``rever.xsh`` file:\n\n"
+         ".. code-block:: xonsh\n\n")
+    s += "    $ACTIVITIES = ['" + act.name + "']\n\n"
+    t = '    ${envvar} = {default}\n'
+    env_names = act.env_names
+    sig = inspect.signature(act.func)
+    empty = inspect.Parameter.empty
+    for kwarg, param in sig.parameters.items():
+        envvar = env_names[kwarg]
+        if param.default is empty:
+            default = "'<no default value>'"
+        else:
+            default = pprint.pformat(param.default)
+            default = '\n    '.join(default.splitlines())
+        s += t.format(envvar=envvar, default=default)
+    s += '\n\n'
+    return s
 
 
 def make_activities():
@@ -344,17 +375,21 @@ def make_activities():
     sec = ('.. _{low}:\n\n'
            '{var}\n'
            '{under}\n'
-           'Access the {var} activity via:\n\n'
+           'The {var} activity class is available via:\n\n'
            '.. code-block:: python\n\n'
            '    from {fullmodname} import {var}\n\n'
            '{docstr}\n\n'
+           '{rever_xsh}\n\n'
            '-------\n\n')
     for var in vars:
         title = var
         under = '.' * len(title)
-        docstr = inspect.getdoc(acts[var][1])
+        act = acts[var][1]
+        docstr = inspect.getdoc(act)
+        rever_xsh = make_activity_rever_xsh_example(act)
         s += sec.format(var=var, low=var.lower(), under=under,
-                        docstr=docstr, fullmodname=acts[var][0])
+                        docstr=docstr, fullmodname=acts[var][0],
+                        rever_xsh=rever_xsh)
     s = s[:-9]
     fname = os.path.join(os.path.dirname(__file__), 'activitiesbody')
     with open(fname, 'w') as f:

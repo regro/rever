@@ -180,7 +180,6 @@ def test_version_act_completed(gitrepo):
     assert done == set('a')
 
 
-
 VERSION_IN_CONFIG = """
 version = $VERSION
 
@@ -199,3 +198,15 @@ def test_version_in_config(gitrepo):
     with open('ver.txt') as f:
         version = f.read()
     assert vstr == version
+
+
+def test_compute_activities_completed(gitrepo):
+    l = current_logger()
+    env = builtins.__xonsh_env__
+    env['VERSION'] = 'x.y.z'
+    l.log('logging a', activity='a', category='activity-end',
+          data={'start_rev': 'hi'})
+    e = l.load()
+    assert compute_activities_completed() == {'a'}
+    env['VERSION'] = 'x.y.zz'
+    assert compute_activities_completed() == set()

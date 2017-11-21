@@ -27,7 +27,7 @@ class Logger:
         self._dirty = True
         self._cached_entries = ()
 
-    def log(self, message, activity=None, category='misc', data=None):
+    def log(self, message, activity=None, category='misc', data=None, version=None):
         """Logs a message, the associated activity (optional), the timestamp, and the
         current revision to the log file.
         """
@@ -38,6 +38,8 @@ class Logger:
             entry['activity'] = activity
         if data is not None:
             entry['data'] = data
+
+        entry['version'] = version if version is not None else $VERSION
         # write to log file
         with open(self.filename, 'a+') as f:
             json.dump(entry, f, sort_keys=True, separators=(',', ':'))

@@ -65,9 +65,10 @@ class Activity:
                 msg += 'rewinding to ' + start_rev
                 log -a @(self.name) -c activity-error @(msg)
                 return False
+        data = {"start_rev": start_rev}
         $LOGGER.log(activity=self.name, category="activity-end",
                     message="activity " + self.name + " complete",
-                    data={"start_rev": start_rev})
+                    data=data, version=$VERSION)
         return True
 
     def undo(self):

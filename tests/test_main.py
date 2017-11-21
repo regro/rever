@@ -69,6 +69,7 @@ def good():
         f.write('so good')
 """
 
+
 def test_bad_activities_break(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write(BAD_GOOD)
@@ -108,10 +109,10 @@ def test_dont_redo_deps(gitrepo):
     # make sure a and b were each run exactly once
     entries = env['LOGGER'].load()
     a_ends = [e for e in entries if e['activity'] == 'a' and
-                                    e['category'] == 'activity-end']
+              e['category'] == 'activity-end']
     assert len(a_ends) == 1
     b_ends = [e for e in entries if e['activity'] == 'b' and
-                                    e['category'] == 'activity-end']
+              e['category'] == 'activity-end']
     assert len(b_ends) == 1
 
 
@@ -142,11 +143,41 @@ def test_redo_deps_if_reverted(gitrepo):
     # make sure a and b were each run exactly once
     entries = env['LOGGER'].load()
     a_ends = [e for e in entries if e['activity'] == 'a' and
-                                    e['category'] == 'activity-end']
+              e['category'] == 'activity-end']
     assert len(a_ends) == 2
     b_ends = [e for e in entries if e['activity'] == 'b' and
-                                    e['category'] == 'activity-end']
+              e['category'] == 'activity-end']
     assert len(b_ends) == 1
+
+
+def test_version_act_completed(gitrepo):
+    # This test runs an activity a, undoes a, then runs an activity b that depends on a
+    # During the last run, a should not be rerun since it was already
+    # run the first time.
+    env = builtins.__xonsh_env__
+    dag = env['DAG']
+    a = dag['a'] = Activity(name='a')
+    b = dag['b'] = Activity(name='b', deps={'a'})
+    # run the first time
+    env_main(args=['--activities', 'a', 'x.y.z'])
+    done = compute_activities_completed()
+    assert done == {'a'}
+    # Now that we changed the version the activity is not done
+    env['VERSION'] = 'x.y.zz'
+    done = compute_activities_completed()
+    assert done == set()
+
+    env_main(args=['--activities', 'a', 'x.y.zz'])
+    done = compute_activities_completed()
+    assert done == set('a')
+
+    env_main(args=['--undo', 'a', 'x.y.z'])
+    done = compute_activities_completed()
+    assert done == set()
+
+    env['VERSION'] = 'x.y.zz'
+    done = compute_activities_completed()
+    assert done == set('a')
 
 
 VERSION_IN_CONFIG = """
@@ -155,6 +186,7 @@ version = $VERSION
 with open('ver.txt', 'w') as f:
     f.write(version)
 """
+
 
 def test_version_in_config(gitrepo):
     with open('rever.xsh', 'w') as f:
@@ -166,3 +198,15 @@ def test_version_in_config(gitrepo):
     with open('ver.txt') as f:
         version = f.read()
     assert vstr == version
+
+
+def test_compute_activities_completed(gitrepo):
+    l = current_logger()
+    env = builtins.__xonsh_env__
+    env['VERSION'] = 'x.y.z'
+    l.log('logging a', activity='a', category='activity-end',
+          data={'start_rev': 'hi'})
+    e = l.load()
+    assert compute_activities_completed() == {'a'}
+    env['VERSION'] = 'x.y.zz'
+    assert compute_activities_completed() == set()

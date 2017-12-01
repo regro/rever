@@ -51,6 +51,9 @@ class PushTag(Activity):
                 raise ValueError('tag remote cannot be None to remove remote '
                                  'tags, try setting $TAG_REMOTE or '
                                  '$GITHUB_ORG and $GITHUB_REPO in rever.xsh')
+        template = ${...}.get('TAG_TEMPLATE', '$VERSION')
+        tag = eval_version(template)
+
         vcsutils.del_remote_tag(tag, remote)
         msg = 'Removed remote tag {0!r}'.format(tag)
         log -a @(self.name) -c activity-undo @(msg)

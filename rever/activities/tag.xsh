@@ -1,4 +1,4 @@
-"""Activity for creating tags."""
+"""Activity for locally creating tags."""
 import re
 
 from rever import vcsutils
@@ -7,7 +7,7 @@ from rever.tools import eval_version
 
 
 class Tag(Activity):
-    """Tags the current version.
+    """Locally tags the current version.
 
     This activity takes the following parameters:
 

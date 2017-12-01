@@ -74,11 +74,20 @@ def write_credfile(credfile=None, username='', password=''):
         auth = github3.authorize(username, password, scopes, note, note_url,
                                  two_factor_callback=two_factor)
     except github3.exceptions.UnprocessableEntity:
-        msg = ('Could not create GitHub authentication token, probably because'
-               'it already exists. Try deleting the token titled:\n\n    ')
-        msg += note
-        msg += ('\n\nfrom https://github.com/settings/tokens')
-        raise RuntimeError(msg)
+        print_color('{YELLOW}Token for "' + note + ' "may already exist! '
+                    'Attempting to delete and regenerate...{NO_COLOR}', file=sys.stderr)
+        gh = github3.login(username, password=password, two_factor_callback=two_factor)
+        for auth in authorizations(gh):
+            if note == auth.note:
+                break
+        else:
+            msg = 'Could not find GitHub authentication token to delete it!'
+            raise RuntimeError(msg)
+        auth.delete()
+        print_color('{YELLOW}Deleted previous token.{NO_COLOR}')
+        auth = github3.authorize(username, password, scopes, note, note_url,
+                                 two_factor_callback=two_factor)
+        print_color('{YELLOW}Regenerated token.{NO_COLOR}')
     credfile = credfilename(credfile)
     with open(credfile, 'w') as f:
         f.write(username + '\n')
@@ -110,3 +119,10 @@ def login(credfile=None, return_username=False):
         return gh, username
     else:
         return gh
+
+
+def authorizations(gh, number=-1, etag=None):
+    """Generator that is API independent of getting the authorizations"""
+    authorizations = getattr(gh, 'iter_authorizations', None)
+    authorizations = authorizations or getattr(gh, 'authorizations')
+    yield from authorizations(number=number, etag=etag)

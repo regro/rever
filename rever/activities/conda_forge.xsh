@@ -104,6 +104,8 @@ class CondaForge(Activity):
         a pull request to the upstream conda-forge feestock, default True.
     :$CONDA_FORGE_RERENDER: bool, whether the activity should rerender the
         feedstock using conda-smithy, default True.
+    :$CONDA_FORGE_FORK: bool, whether the activity should create a new fork of
+        the feedstock if it doesn't exist already, default True.
 
     Other environment variables that affect the behavior are:
 
@@ -125,11 +127,24 @@ class CondaForge(Activity):
               source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'
                           '$VERSION.tar.gz'),
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
-              pull_request=True, rerender=True):
+              pull_request=True, rerender=True, fork=True):
         # first, let's grab the feedstock locally
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)
         origin = fork_url(upstream, username)
+        feedstock_reponame = feedstock_repo(feedstock)
+
+        if pull_request or fork:
+            repo = gh.repository('conda-forge', feedstock_reponame)
+
+        # Check if fork exists
+        if fork:
+            fork_repo = gh.repository(username, feedstock_reponame)
+            if fork_repo is None:
+                print("Fork doesn't exist creating feedstock fork...",
+                      file=sys.stderr)
+                repo.create_fork(username)
+
         feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
         recipe_dir = os.path.join(feedstock_dir, 'recipe')
         if not os.path.isdir(feedstock_dir):
@@ -166,8 +181,6 @@ class CondaForge(Activity):
         # lastly make a PR for the feedstock
         if not pull_request:
             return
-        feedstock_reponame = feedstock_repo(feedstock)
-        repo = gh.repository('conda-forge', feedstock_reponame)
         print('Creating conda-forge feedstock pull request...', file=sys.stderr)
         title = $PROJECT + ' v' + $VERSION
         head = username + ':' + $VERSION

@@ -18,7 +18,8 @@ from rever.activities.conda_forge import (feedstock_url, feedstock_repo,
     ('my-feedstock', 'http', 'http://github.com/conda-forge/my-feedstock.git'),
     ('http://github.com/conda-forge/my-feedstock.git', None,
      'http://github.com/conda-forge/my-feedstock.git'),
-    ('my-feedstock', 'https', 'https://github.com/conda-forge/my-feedstock.git'),
+    ('my-feedstock', 'https',
+     'https://github.com/conda-forge/my-feedstock.git'),
     ('https://github.com/conda-forge/my-feedstock.git', None,
      'https://github.com/conda-forge/my-feedstock.git'),
 ])
@@ -52,7 +53,6 @@ def test_fork_url(feed, username, exp):
     assert exp == obs
 
 
-
 REVER_XSH = """
 $ACTIVITIES = ['conda_forge']
 $PROJECT = 'rever'
@@ -61,6 +61,7 @@ $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'
 $CONDA_FORGE_RERENDER = False
 $CONDA_FORGE_PULL_REQUEST = False
+$CONDA_FORGE_FORK = False
 """
 
 CREDFILE = """zappa

@@ -9,7 +9,7 @@ $VERSION_BUMP_PATTERNS = [
     ]
 $CHANGELOG_FILENAME = 'CHANGELOG.rst'
 $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
-$TAG_REMOTE = 'git@github.com:regro/rever.git'
+$PUSH_TAG_REMOTE = 'git@github.com:regro/rever.git'
 
 $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'

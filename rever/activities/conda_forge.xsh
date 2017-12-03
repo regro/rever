@@ -126,7 +126,7 @@ class CondaForge(Activity):
               source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'
                           '$VERSION.tar.gz'),
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
-              pull_request=True, rerender=True):
+              pull_request=True, rerender=True, fork=True):
         # first, let's grab the feedstock locally
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)
@@ -136,7 +136,7 @@ class CondaForge(Activity):
 
         # Check if fork exists
         request = requests.get(origin)
-        if request.status_code != 200:
+        if request.status_code != 200 and fork:
             print("Fork doesn't exist creating feedstock fork...",
                   file=sys.stderr)
             repo.create_fork(username)

@@ -61,6 +61,7 @@ $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'
 $CONDA_FORGE_RERENDER = False
 $CONDA_FORGE_PULL_REQUEST = False
+$CONDA_FORGE_FORK = False
 """
 
 CREDFILE = """zappa

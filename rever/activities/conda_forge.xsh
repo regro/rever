@@ -2,7 +2,6 @@
 import os
 import re
 import sys
-import requests
 
 from xonsh.tools import print_color
 
@@ -157,9 +156,8 @@ class CondaForge(Activity):
 
         # Check if fork exists
         if fork:
-            request = requests.get(
-                convert_feedstock_url(origin, 'https').replace('.git', ''))
-            if request.status_code != 200:
+            fork_repo = gh.repository(username, feedstock_reponame)
+            if fork_repo is None:
                 print("Fork doesn't exist creating feedstock fork...",
                       file=sys.stderr)
                 repo.create_fork(username)

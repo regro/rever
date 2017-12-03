@@ -132,7 +132,9 @@ class CondaForge(Activity):
         upstream = feedstock_url(feedstock, protocol=protocol)
         origin = fork_url(upstream, username)
         feedstock_reponame = feedstock_repo(feedstock)
-        repo = gh.repository('conda-forge', feedstock_reponame)
+
+        if pull_request or fork:
+            repo = gh.repository('conda-forge', feedstock_reponame)
 
         # Check if fork exists
         request = requests.get(origin)

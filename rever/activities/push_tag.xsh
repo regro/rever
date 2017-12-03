@@ -18,16 +18,20 @@ class PushTag(Activity):
     Other environment variables that affect the behavior are:
     :$GITHUB_ORG str or None, GitHub org to push to if no $TAG_REMOTE
     :$GITHUB_REPO = str or None GitHub repo to push to if no $TAG_REMOTE
+    :$TAG_TEMPLATE: str, the template string to tag the version with,
+        by default this is '$VERSION'. This is used in undoing remote tags
     """
 
     def __init__(self, *, deps=frozenset(('tag', ))):
         super().__init__(name='push_tag', deps=deps, func=self._func,
                          desc="Tags the current version.")
 
-    def _func(self, remote=None, target=None, org=None, repo=None):
+    def _func(self, remote=None, target=None):
         if remote is None:
             # Pull from the org and repo
-            if org and repo:
+            org = ${...}.get('GITHUB_ORG', None)
+            repo = ${...}.get('GITHUB_REPO', None)
+            if org and repo and ${...}.get('REVER_VCS', None) is 'git':
                 remote = 'git@github.com:{org}/{repo}.git'.format(org=org,
                                                                   repo=repo)
             else:

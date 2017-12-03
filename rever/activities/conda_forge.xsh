@@ -12,6 +12,25 @@ from rever.activity import Activity
 from rever.tools import eval_version, indir, hash_url, replace_in_file
 
 
+def convert_feedstock_url(feedstock, protocol='https'):
+    """Convert one type of feedstock url into another"""
+    if feedstock is None:
+        feedstock = $PROJECT + '-feedstock'
+    for start in ['http://github.com/', 'https://github.com/', 'git@github.com:']:
+        if feedstock.startswith(start):
+            feedstock = feedstock.strip(start).split('/')[1]
+    if protocol == 'http':
+        url = 'http://github.com/conda-forge/' + feedstock + '.git'
+    elif protocol == 'https':
+        url = 'https://github.com/conda-forge/' + feedstock + '.git'
+    elif protocol == 'ssh':
+        url = 'git@github.com:conda-forge/' + feedstock + '.git'
+    else:
+        msg = 'Unrecognized github protocol {0!r}, must be ssh, http, or https.'
+        raise ValueError(msg.format(protocol))
+    return url
+
+
 def feedstock_url(feedstock, protocol='ssh'):
     """Returns the URL for a conda-forge feedstock."""
     if feedstock is None:
@@ -137,11 +156,13 @@ class CondaForge(Activity):
             repo = gh.repository('conda-forge', feedstock_reponame)
 
         # Check if fork exists
-        request = requests.get(origin)
-        if request.status_code != 200 and fork:
-            print("Fork doesn't exist creating feedstock fork...",
-                  file=sys.stderr)
-            repo.create_fork(username)
+        if fork:
+            request = requests.get(
+                convert_feedstock_url(origin, 'https').replace('.git', ''))
+            if request.status_code != 200:
+                print("Fork doesn't exist creating feedstock fork...",
+                      file=sys.stderr)
+                repo.create_fork(username)
 
         feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
         recipe_dir = os.path.join(feedstock_dir, 'recipe')

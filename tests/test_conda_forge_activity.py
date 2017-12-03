@@ -8,7 +8,7 @@ from rever import vcsutils
 from rever.logger import current_logger
 from rever.main import env_main
 from rever.activities.conda_forge import (feedstock_url, feedstock_repo,
-                                          fork_url)
+                                          fork_url, convert_feedstock_url)
 
 
 @pytest.mark.parametrize('name, proto, exp', [
@@ -18,12 +18,30 @@ from rever.activities.conda_forge import (feedstock_url, feedstock_repo,
     ('my-feedstock', 'http', 'http://github.com/conda-forge/my-feedstock.git'),
     ('http://github.com/conda-forge/my-feedstock.git', None,
      'http://github.com/conda-forge/my-feedstock.git'),
-    ('my-feedstock', 'https', 'https://github.com/conda-forge/my-feedstock.git'),
+    ('my-feedstock', 'https',
+     'https://github.com/conda-forge/my-feedstock.git'),
     ('https://github.com/conda-forge/my-feedstock.git', None,
      'https://github.com/conda-forge/my-feedstock.git'),
 ])
 def test_feedstock_url(name, proto, exp):
     obs = feedstock_url(name, protocol=proto)
+    assert exp == obs
+
+
+conver_feedstock_url_tests = []
+for name in ['git@github.com:conda-forge/my-feedstock.git',
+             'http://github.com/conda-forge/my-feedstock.git',
+             'https://github.com/conda-forge/my-feedstock.git']:
+    for proto, exp in zip(['ssh', 'http', 'https'],
+                          ['git@github.com:conda-forge/my-feedstock.git',
+                           'http://github.com/conda-forge/my-feedstock.git',
+                           'https://github.com/conda-forge/my-feedstock.git']):
+        conver_feedstock_url_tests.append((name, proto, exp))
+
+
+@pytest.mark.parametrize('name, proto, exp', conver_feedstock_url_tests)
+def test_convert_feedstock_url(name, proto, exp):
+    obs = convert_feedstock_url(name, protocol=proto)
     assert exp == obs
 
 
@@ -50,7 +68,6 @@ def test_feedstock_repo(name, exp):
 def test_fork_url(feed, username, exp):
     obs = fork_url(feed, username)
     assert exp == obs
-
 
 
 REVER_XSH = """

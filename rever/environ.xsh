@@ -46,6 +46,7 @@ def default_dag():
     from rever.activities.pytest import PyTest
     from rever.activities.sphinx import Sphinx
     from rever.activities.tag import Tag
+    from rever.activities.push_tag import PushTag
     from rever.activities.version_bump import VersionBump
     dag = {
         'bibtex': BibTex(),
@@ -58,6 +59,7 @@ def default_dag():
         'pytest': PyTest(),
         'sphinx': Sphinx(),
         'tag': Tag(),
+        'push_tag': PushTag(),
         'version_bump': VersionBump(),
     }
     return dag

@@ -1,7 +1,7 @@
 $PROJECT = 'rever'
 $REVER_DIR = 'rever-tmp'
 $ACTIVITIES = ['version_bump', 'changelog', 'pytest',
-               'sphinx', 'tag', 'pypi', 'conda_forge', 'ghpages', 'ghrelease']
+               'sphinx', 'tag', 'push_tag' 'pypi', 'conda_forge', 'ghpages', 'ghrelease']
 
 $VERSION_BUMP_PATTERNS = [
     ('rever/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
@@ -9,7 +9,7 @@ $VERSION_BUMP_PATTERNS = [
     ]
 $CHANGELOG_FILENAME = 'CHANGELOG.rst'
 $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
-$TAG_REMOTE = 'git@github.com:regro/rever.git'
+$PUSH_TAG_REMOTE = 'git@github.com:regro/rever.git'
 
 $GITHUB_ORG = 'regro'
 $GITHUB_REPO = 'rever'

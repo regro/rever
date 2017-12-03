@@ -8,7 +8,7 @@ from rever import vcsutils
 from rever.logger import current_logger
 from rever.main import env_main
 from rever.activities.conda_forge import (feedstock_url, feedstock_repo,
-                                          fork_url, convert_feedstock_url)
+                                          fork_url)
 
 
 @pytest.mark.parametrize('name, proto, exp', [

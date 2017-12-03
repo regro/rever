@@ -19,7 +19,7 @@ class PushTag(Activity):
     """
 
     def __init__(self, *, deps=frozenset(('tag', ))):
-        super().__init__(name='push-tag', deps=deps, func=self._func,
+        super().__init__(name='push_tag', deps=deps, func=self._func,
                          desc="Tags the current version.")
 
     def _func(self, remote=None, target=None, org=None, repo=None):

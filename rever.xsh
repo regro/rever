@@ -1,7 +1,7 @@
 $PROJECT = 'rever'
 $REVER_DIR = 'rever-tmp'
 $ACTIVITIES = ['version_bump', 'changelog', 'pytest',
-               'sphinx', 'tag', 'pypi', 'conda_forge', 'ghpages', 'ghrelease']
+               'sphinx', 'tag', 'push_tag' 'pypi', 'conda_forge', 'ghpages', 'ghrelease']
 
 $VERSION_BUMP_PATTERNS = [
     ('rever/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),

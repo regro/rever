@@ -29,6 +29,7 @@ There are a couple steps you should take to get the most out of rever.
                         'version_bump',  # Changes the version number in various source files (setup.py, __init__.py, etc)
                         'changelog',  # Uses files in the news folder to create a changelog for release
                         'tag',  # Creates a tag for the new version number
+                        'push_tag',  # Pushes the tag up to the $TAG_REMOTE
                         'pypi',  # Sends the package to pypi
                         'conda_forge',  # Creates a PR into your package's feedstock
                         'ghrelease'  # Creates a Github release entry for the new tag

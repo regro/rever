@@ -16,6 +16,7 @@ class PushTag(Activity):
         The default is None, which uses the current branch.
 
     Other environment variables that affect the behavior are:
+
     :$GITHUB_ORG str or None, GitHub org to push to if no $TAG_REMOTE
     :$GITHUB_REPO = str or None GitHub repo to push to if no $TAG_REMOTE
     :$TAG_TEMPLATE: str, the template string to tag the version with,
@@ -31,7 +32,7 @@ class PushTag(Activity):
             # Pull from the org and repo
             org = ${...}.get('GITHUB_ORG', None)
             repo = ${...}.get('GITHUB_REPO', None)
-            if org and repo and ${...}.get('REVER_VCS', None) is 'git':
+            if org and repo and ${...}.get('REVER_VCS', None) == 'git':
                 remote = 'git@github.com:{org}/{repo}.git'.format(org=org,
                                                                   repo=repo)
             else:

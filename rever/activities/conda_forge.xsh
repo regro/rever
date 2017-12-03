@@ -105,7 +105,7 @@ class CondaForge(Activity):
     :$CONDA_FORGE_RERENDER: bool, whether the activity should rerender the
         feedstock using conda-smithy, default True.
     :$CONDA_FORGE_FORK: bool, whether the activity should create a new fork of
-        the feedstock, default True.
+        the feedstock if it doesn't exist already, default True.
 
     Other environment variables that affect the behavior are:
 

@@ -28,17 +28,6 @@ def test_feedstock_url(name, proto, exp):
     assert exp == obs
 
 
-conver_feedstock_url_tests = []
-for name in ['git@github.com:conda-forge/my-feedstock.git',
-             'http://github.com/conda-forge/my-feedstock.git',
-             'https://github.com/conda-forge/my-feedstock.git']:
-    for proto, exp in zip(['ssh', 'http', 'https'],
-                          ['git@github.com:conda-forge/my-feedstock.git',
-                           'http://github.com/conda-forge/my-feedstock.git',
-                           'https://github.com/conda-forge/my-feedstock.git']):
-        conver_feedstock_url_tests.append((name, proto, exp))
-
-
 @pytest.mark.parametrize('name, exp', [
     ('my-feedstock', 'my-feedstock'),
     ('my-feedstock.git', 'my-feedstock'),

@@ -39,12 +39,6 @@ for name in ['git@github.com:conda-forge/my-feedstock.git',
         conver_feedstock_url_tests.append((name, proto, exp))
 
 
-@pytest.mark.parametrize('name, proto, exp', conver_feedstock_url_tests)
-def test_convert_feedstock_url(name, proto, exp):
-    obs = convert_feedstock_url(name, protocol=proto)
-    assert exp == obs
-
-
 @pytest.mark.parametrize('name, exp', [
     ('my-feedstock', 'my-feedstock'),
     ('my-feedstock.git', 'my-feedstock'),

@@ -11,25 +11,6 @@ from rever.activity import Activity
 from rever.tools import eval_version, indir, hash_url, replace_in_file
 
 
-def convert_feedstock_url(feedstock, protocol='https'):
-    """Convert one type of feedstock url into another"""
-    if feedstock is None:
-        feedstock = $PROJECT + '-feedstock'
-    for start in ['http://github.com/', 'https://github.com/', 'git@github.com:']:
-        if feedstock.startswith(start):
-            feedstock = feedstock.strip(start).split('/')[1]
-    if protocol == 'http':
-        url = 'http://github.com/conda-forge/' + feedstock + '.git'
-    elif protocol == 'https':
-        url = 'https://github.com/conda-forge/' + feedstock + '.git'
-    elif protocol == 'ssh':
-        url = 'git@github.com:conda-forge/' + feedstock + '.git'
-    else:
-        msg = 'Unrecognized github protocol {0!r}, must be ssh, http, or https.'
-        raise ValueError(msg.format(protocol))
-    return url
-
-
 def feedstock_url(feedstock, protocol='ssh'):
     """Returns the URL for a conda-forge feedstock."""
     if feedstock is None:
@@ -123,6 +104,8 @@ class CondaForge(Activity):
         a pull request to the upstream conda-forge feestock, default True.
     :$CONDA_FORGE_RERENDER: bool, whether the activity should rerender the
         feedstock using conda-smithy, default True.
+    :$CONDA_FORGE_FORK: bool, whether the activity should create a new fork of
+        the feedstock, default True.
 
     Other environment variables that affect the behavior are:
 

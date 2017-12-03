@@ -14,6 +14,8 @@ class PushTag(Activity):
     :$PUSH_TAG_REMOTE: str or None, remote URL to push tags to.
     :$PUSH_TAG_TARGET: str or None, remote branch to push to once the tag has been made.
         The default is None, which uses the current branch.
+
+    Other environment variables that affect the behavior are:
     :$GITHUB_ORG str or None, GitHub org to push to if no $TAG_REMOTE
     :$GITHUB_REPO = str or None GitHub repo to push to if no $TAG_REMOTE
     """

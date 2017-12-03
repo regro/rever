@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import requests
 
 from xonsh.tools import print_color
 
@@ -130,6 +131,16 @@ class CondaForge(Activity):
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)
         origin = fork_url(upstream, username)
+        feedstock_reponame = feedstock_repo(feedstock)
+        repo = gh.repository('conda-forge', feedstock_reponame)
+
+        # Check if fork exists
+        request = requests.get(origin)
+        if request.status_code != 200:
+            print("Fork doesn't exist creating feedstock fork...",
+                  file=sys.stderr)
+            repo.create_fork(username)
+
         feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
         recipe_dir = os.path.join(feedstock_dir, 'recipe')
         if not os.path.isdir(feedstock_dir):
@@ -166,8 +177,6 @@ class CondaForge(Activity):
         # lastly make a PR for the feedstock
         if not pull_request:
             return
-        feedstock_reponame = feedstock_repo(feedstock)
-        repo = gh.repository('conda-forge', feedstock_reponame)
         print('Creating conda-forge feedstock pull request...', file=sys.stderr)
         title = $PROJECT + ' v' + $VERSION
         head = username + ':' + $VERSION

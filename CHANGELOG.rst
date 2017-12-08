@@ -4,6 +4,27 @@ Rever Change Log
 
 .. current developments
 
+v0.2.5
+====================
+
+**Added:**
+
+* More robust handling of github tokens. If a credential file is deleted locally,
+  rever will now attempt to find the associated token, delete it, and reissue it.
+* Usage docs for initializing rever
+
+
+**Changed:**
+
+* If fork doesn't exist for conda-forge activity then create one
+* ``$PROJECT`` in use docs example
+* Logger now records version
+* ``compute_activities_completed`` now checks version numbers as well
+* Tagging and pushing the tags up to a remote are now separate activities
+
+
+
+
 v0.2.4
 ====================
 

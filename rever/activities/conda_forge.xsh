@@ -119,7 +119,7 @@ class CondaForge(Activity):
 
     """
 
-    def __init__(self, *, deps=frozenset(('version_bump', 'changelog'))):
+    def __init__(self, *, deps=frozenset(('tag', 'push-tag'))):
         super().__init__(name='conda_forge', deps=deps, func=self._func,
                          desc="Updates conda-forge feedstocks")
 

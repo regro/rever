@@ -40,7 +40,7 @@ There are a couple steps you should take to get the most out of rever.
                                    ]
           $CHANGELOG_FILENAME = 'CHANGELOG.rst'  # Filename for the changelog
           $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'  # Filename for the news template
-          $TAG_REMOTE = 'git@github.com:regro/rever.git'  # Repo to push tags to
+          $PUSH_TAG_REMOTE = 'git@github.com:regro/rever.git'  # Repo to push tags to
 
           $GITHUB_ORG = 'regro'  # Github org for Github releases and conda-forge
           $GITHUB_REPO = 'rever'  # Github repo for Github releases  and conda-forge

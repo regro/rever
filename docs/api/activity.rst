@@ -1,7 +1,7 @@
 .. _rever_activity:
 
 ********************************************************************************
-Activity Base Class (``rever.cctivity``)
+Activity Base Class (``rever.acctivity``)
 ********************************************************************************
 
 .. automodule:: rever.activity

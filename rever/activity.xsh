@@ -265,7 +265,7 @@ class DockerActivity(Activity):
 
     @code.setter
     def code(self, value):
-        self._code = code
+        self._code = value
 
     def __enter__(self):
         self.code = self.macro_block
@@ -296,6 +296,7 @@ class DockerActivity(Activity):
         command.append(code)
         rtn = docker.run_in_container(image, command, env=env, mounts=mounts)
         return rtn
+
 
 def dockeractivity(**kwargs):
     """Returns a new docker activity. This accepts the same keyword arguments

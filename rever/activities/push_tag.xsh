@@ -11,14 +11,17 @@ class PushTag(Activity):
 
     This activity takes the following parameters:
 
-    :$PUSH_TAG_REMOTE: str or None, remote URL to push tags to.
+    :$PUSH_TAG_REMOTE: str or None, remote URL to push tags to. If ``$REVER_VCS`` is
+        set to ``'git'`` and both ``$GITHUB_ORG`` and ``$GITHUB_REPO`` are also set,
+        this variable will default to ``git@github.com:$GITHUB_ORG/$GITHUB_REPO.git``.
     :$PUSH_TAG_TARGET: str or None, remote branch to push to once the tag has been made.
         The default is None, which uses the current branch.
 
     Other environment variables that affect the behavior are:
 
-    :$GITHUB_ORG str or None, GitHub org to push to if no $TAG_REMOTE
-    :$GITHUB_REPO = str or None GitHub repo to push to if no $TAG_REMOTE
+    :$REVER_VCS: str or None, is used to help specify default remote URLs.
+    :$GITHUB_ORG: str or None, GitHub org to push to if no ``$PUSH_TAG_REMOTE``
+    :$GITHUB_REPO: str or None GitHub repo to push to if no ``$PUSH_TAG_REMOTE``
     :$TAG_TEMPLATE: str, the template string to tag the version with,
         by default this is '$VERSION'. This is used in undoing remote tags
     """

@@ -140,7 +140,8 @@ class CondaForge(Activity):
         # Check if fork exists
         if fork:
             fork_repo = gh.repository(username, feedstock_reponame)
-            if fork_repo is None:
+            if fork_repo is None or (hasattr(fork_repo, 'is_null') and
+                                     fork_repo.is_null()):
                 print("Fork doesn't exist creating feedstock fork...",
                       file=sys.stderr)
                 repo.create_fork(username)

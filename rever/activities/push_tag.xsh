@@ -1,5 +1,6 @@
 """Activity for pushing remote tags."""
 import re
+import warnings
 
 from rever import vcsutils
 from rever.activity import Activity
@@ -32,6 +33,12 @@ class PushTag(Activity):
 
     def _func(self, remote=None, target=None):
         if remote is None:
+            remote = ${...}.get('TAG_REMOTE', None)
+            warnings.warn(DeprecationWarning('TAG_REMOTE has been deprecated '
+                                             'in favor of PUSH_TAG_REMOTE, '
+                                             'please change your rever.xsh '
+                                             'accordingly.'))
+        if remote is None:
             # Pull from the org and repo
             org = ${...}.get('GITHUB_ORG', None)
             repo = ${...}.get('GITHUB_REPO', None)
@@ -40,8 +47,8 @@ class PushTag(Activity):
                                                                   repo=repo)
             else:
                 raise ValueError('tag remote cannot be None to push up tags, '
-                                 'try setting $TAG_REMOTE or $GITHUB_ORG and '
-                                 '$GITHUB_REPO in rever.xsh')
+                                 'try setting $PUSH_TAG_REMOTE or $GITHUB_ORG '
+                                 'and $GITHUB_REPO in rever.xsh')
         if target is None:
             target = vcsutils.current_branch()
         vcsutils.push(remote, target)
@@ -58,9 +65,10 @@ class PushTag(Activity):
                 remote = 'git@github.com:{org}/{repo}.git'.format(org=org,
                                                                   repo=repo)
             else:
-                raise ValueError('push tag remote cannot be None to remove remote '
-                                 'tags, try setting $PUSH_TAG_REMOTE or '
-                                 '$GITHUB_ORG and $GITHUB_REPO in rever.xsh')
+                raise ValueError('push tag remote cannot be None to remove '
+                                 'remote tags, try setting $PUSH_TAG_REMOTE '
+                                 'or $GITHUB_ORG and $GITHUB_REPO in '
+                                 'rever.xsh')
         template = ${...}.get('TAG_TEMPLATE', '$VERSION')
         tag = eval_version(template)
 

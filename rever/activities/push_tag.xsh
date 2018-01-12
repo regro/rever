@@ -52,14 +52,14 @@ class PushTag(Activity):
         kwargs = self.all_kwargs()
         remote = kwargs.get('remote', None)
         if remote is None:
-            org = kwargs.get('org')
-            repo = kwargs.ge('repo')
+            org = ${...}.get('GITHUB_ORG', None)
+            repo = ${...}.get('GITHUB_REPO', None)
             if org and repo:
                 remote = 'git@github.com:{org}/{repo}.git'.format(org=org,
                                                                   repo=repo)
             else:
-                raise ValueError('tag remote cannot be None to remove remote '
-                                 'tags, try setting $TAG_REMOTE or '
+                raise ValueError('push tag remote cannot be None to remove remote '
+                                 'tags, try setting $PUSH_TAG_REMOTE or '
                                  '$GITHUB_ORG and $GITHUB_REPO in rever.xsh')
         template = ${...}.get('TAG_TEMPLATE', '$VERSION')
         tag = eval_version(template)

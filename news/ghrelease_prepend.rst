@@ -1,7 +1,7 @@
 **Added:**
 
-* ``$GHRELEASE_PREPEND`` allows users to prepend a string to the GH release
-  notes
+* ``$GHRELEASE_PREPEND`` and ``$GHRELEASE_APPEND`` allows users to
+  prepend/append a string to the GH release notes
 
 **Changed:** None
 

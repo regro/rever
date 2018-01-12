@@ -8,8 +8,6 @@
 
 **Fixed:**
 
-* The ``PushTag`` activity now honors the environment variable ``TAG_REMOTE``
-  for backwards compatibility. If ``TAG_REMOTE`` is used it issues a
-  deprecation warning.
+* If ``TAG_REMOTE`` is used it issues a deprecation warning.
 
 **Security:** None

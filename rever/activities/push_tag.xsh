@@ -32,8 +32,7 @@ class PushTag(Activity):
                          desc="Tags the current version.")
 
     def _func(self, remote=None, target=None):
-        if remote is None:
-            remote = ${...}.get('TAG_REMOTE', None)
+        if 'TAG_REMOTE' in ${...}:
             warnings.warn(DeprecationWarning('TAG_REMOTE has been deprecated '
                                              'in favor of PUSH_TAG_REMOTE, '
                                              'please change your rever.xsh '

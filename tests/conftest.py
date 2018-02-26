@@ -5,6 +5,7 @@ import builtins
 import subprocess
 
 import pytest
+import sys
 
 from rever import environ
 
@@ -19,7 +20,7 @@ def gitrepo(request):
     name = request.node.name
     repo = os.path.join(tempfile.gettempdir(), name)
     if os.path.exists(repo):
-        shutil.rmtree(repo)
+        rmtree(repo)
     subprocess.run(['git', 'init', repo])
     os.chdir(repo)
     with open('README', 'w') as f:
@@ -29,7 +30,7 @@ def gitrepo(request):
     with environ.context():
         yield repo
     os.chdir(cwd)
-    shutil.rmtree(repo)
+    rmtree(repo)
 
 
 @pytest.fixture
@@ -38,3 +39,22 @@ def gitecho(request):
     aliases['git'] = lambda args: 'Would have run: ' + ' '.join(args) + '\n'
     yield None
     del aliases['git']
+
+
+def rmtree(dirname):
+    """Remove a directory, even if it has read-only files (Windows).
+    Git creates read-only files that must be removed on teardown. See
+    https://stackoverflow.com/questions/2656322  for more info.
+
+    Parameters
+    ----------
+    dirname : str
+        Directory to be removed
+    """
+    try:
+        shutil.rmtree(dirname)
+    except PermissionError:
+        if sys.platform == 'win32':
+            subprocess.check_call(['del', '/F/S/Q', dirname], shell=True)
+        else:
+            raise

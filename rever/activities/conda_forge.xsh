@@ -113,6 +113,8 @@ class CondaForge(Activity):
         set in the rever.xsh file
     :$GITHUB_ORG: the github organization that the project belongs to.
     :$GITHUB_REPO: the github repository of the project.
+    :$TAG_TEMPLATE: str, the template string used to tag the version, by default
+        this is '$VERSION'. Used to download project source.
     :$PROJECT: the name of the project being released.
     :$REVER_CONFIG_DIR: the user's config directory for rever, which
       is where the GitHub credential files are stored by default.
@@ -123,11 +125,13 @@ class CondaForge(Activity):
         super().__init__(name='conda_forge', deps=deps, func=self._func,
                          desc="Updates conda-forge feedstocks")
 
-    def _func(self, feedstock=None, protocol='ssh',
-              source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'
-                          '$VERSION.tar.gz'),
+    def _func(self, feedstock=None, protocol='ssh', source_url=None,
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
               pull_request=True, rerender=True, fork=True):
+        if source_url is None:
+            template = ${...}.get('TAG_TEMPLATE', '$VERSION')
+            source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'
+                        '{}.tar.gz'.format(template))
         # first, let's grab the feedstock locally
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)

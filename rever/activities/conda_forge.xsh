@@ -162,7 +162,7 @@ class CondaForge(Activity):
             git pull @(upstream) master
             # make and modify version branch
             with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-                git checkout -b $VERSION master or git checkout $VERSION
+                git checkout $VERSION or git checkout -b $VERSION master
         # now, update the feedstock to the new version
         source_url = eval_version(source_url)
         hash = hash_url(source_url)

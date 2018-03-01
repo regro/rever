@@ -129,9 +129,9 @@ class CondaForge(Activity):
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
               pull_request=True, rerender=True, fork=True):
         if source_url is None:
-            template = ${...}.get('TAG_TEMPLATE', '$VERSION')
+            version_tag = ${...}.get('TAG_TEMPLATE', '$VERSION')
             source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'
-                        '{}.tar.gz'.format(template))
+                        '{}.tar.gz'.format(version_tag))
         # first, let's grab the feedstock locally
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)

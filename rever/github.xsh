@@ -2,6 +2,7 @@
 import os
 import sys
 import socket
+import hashlib
 from functools import wraps
 from getpass import getpass
 
@@ -58,6 +59,15 @@ def two_factor():
     return code
 
 
+def _compid(host=''):
+    """Generates a (nominally) unique id for the computer."""
+    h = hashlib.sha1(host.encode())
+    if sys.platform == 'linux':
+        with open('/proc/cpuinfo', 'rb') as f:
+            h.update(f.read())
+    return h.hexdigest()[:8]
+
+
 @ensure_github
 def write_credfile(credfile=None, username='', password=''):
     """Acquires a github token and writes a credentials file."""
@@ -65,9 +75,10 @@ def write_credfile(credfile=None, username='', password=''):
         username = input('GitHub Username: ')
     while not password:
         password = getpass('GitHub Password for {0}: '.format(username))
-    note = 'rever {org}/{repo} {host}'
+    host = socket.gethostname()
+    note = 'rever {org}/{repo} {host} {compid}'
     note = note.format(org=$GITHUB_ORG, repo=$GITHUB_REPO,
-                       host=socket.gethostname())
+                       host=host, compid=_compid(host))
     note_url = $WEBSITE_URL
     scopes = ['user', 'repo']
     try:

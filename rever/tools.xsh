@@ -117,11 +117,19 @@ _NPONG = 0
 
 
 def progress(count, total=None, prefix='', suffix='', width=60, file=None,
-             fill='`·.,¸,.·*¯`·.,¸,.·*¯', color=None, empty=' '):
+             fill='`·.,¸,.·*¯`·.,¸,.·*¯', color=None, empty=' ', quiet=False):
     """CLI progress bar"""
     # forked from https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
     # under an MIT license, Copyright (c) 2016 Vladimir Ignatev
     global _NPONG
+    orig_file = file
+    quiet = quiet or ${...}.get('REVER_QUIET', False)
+    if not file:
+        if quiet:
+            file = open(os.devnull, 'w')
+        else:
+            file = sys.stdout
+
     file = sys.stdout if file is None else file
     if total is None:
         bar = PONG[_NPONG]
@@ -142,9 +150,12 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
                    suffix=suffix)
     print_color(s, end='', file=file)
     file.flush()
+    if not orig_file and quiet:
+        file.close()
 
 
-def stream_url_progress(url, verb='downloading', chunksize=1024, width=60):
+def stream_url_progress(url, verb='downloading', chunksize=1024, width=60,
+                        quiet=False):
     """Generator yielding successive bytes from a URL.
 
     Parameters
@@ -155,6 +166,8 @@ def stream_url_progress(url, verb='downloading', chunksize=1024, width=60):
         Verb to prefix the url downloading with, default 'downloading'
     chunksize : int
         Number of bytes to return, defaults to 1 kb.
+    quiet : bool, optional
+        If true don't print out progress bar, defaults to False
 
     Returns
     -------
@@ -171,7 +184,7 @@ def stream_url_progress(url, verb='downloading', chunksize=1024, width=60):
             if lenbytes == 0:
                 break
             else:
-                progress(nbytes, totalbytes, width=width)
+                progress(nbytes, totalbytes, width=width, quiet=quiet)
                 yield b
             if totalbytes is None:
                 totalbytes = f.length
@@ -187,10 +200,10 @@ def stream_url_progress(url, verb='downloading', chunksize=1024, width=60):
     progress(nbytes, totalbytes, color=color, suffix=suffix)
 
 
-def hash_url(url, hash='sha256'):
+def hash_url(url, hash='sha256', quiet=False):
     """Hashes a URL, with a progress bar, and returns the hex representation"""
     hasher = getattr(hashlib, hash)()
-    for b in stream_url_progress(url, verb='Hashing'):
+    for b in stream_url_progress(url, verb='Hashing', quiet=quiet):
         hasher.update(b)
     return hasher.hexdigest()
 

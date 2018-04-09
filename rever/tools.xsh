@@ -149,7 +149,7 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
                    suffix=suffix)
     print_color(s, end='', file=file)
     file.flush()
-    if quiet:
+    if not file and quiet:
         file.close()
 
 

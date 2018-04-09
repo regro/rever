@@ -123,7 +123,7 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
     # under an MIT license, Copyright (c) 2016 Vladimir Ignatev
     global _NPONG
     orig_file = file
-    quiet = quiet or {...}.get('REVER_QUIET', False)
+    quiet = quiet or ${...}.get('REVER_QUIET', False)
     if not file:
         if quiet:
             file = open(os.devnull, 'w')

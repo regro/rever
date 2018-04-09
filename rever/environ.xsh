@@ -185,7 +185,7 @@ ENVVARS = {
                 'version that is being released.'),
     'WEBSITE_URL': ('', is_string, str, ensure_string,
                     'Project URL, usually for docs.'),
-    'REVER_QUIET': (False, is_bool, to_bool, bool,
+    'REVER_QUIET': (False, is_bool, bool, to_bool,
                     'If True do not write progress during hashing')
     }
 

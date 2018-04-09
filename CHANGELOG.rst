@@ -4,6 +4,32 @@ Rever Change Log
 
 .. current developments
 
+v0.2.6
+====================
+
+**Added:**
+
+* ``$GHRELEASE_PREPEND`` and ``$GHRELEASE_APPEND`` allows users to
+  prepend/append a string to the GH release notes
+* ``REVER_QUIET`` envvar. If True ``rever`` doesn't print during hashing
+
+
+**Changed:**
+
+* GitHub token notes now have unique identifiers, which prevents issues from arising
+  with hostname clashes.
+
+
+**Fixed:**
+
+* Addressed issue with DockerActivity not being able to set it's code block
+  correctly.
+* Null repo fork creation fix for v1.0.0a4 of github3.py
+* Fixed bugs in push-tag undoer.
+
+
+
+
 v0.2.5
 ====================
 

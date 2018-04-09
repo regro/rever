@@ -122,6 +122,7 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
     # forked from https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
     # under an MIT license, Copyright (c) 2016 Vladimir Ignatev
     global _NPONG
+    orig_file = file
     quiet = quiet or {...}.get('REVER_QUIET', False)
     if not file:
         if quiet:
@@ -149,7 +150,7 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
                    suffix=suffix)
     print_color(s, end='', file=file)
     file.flush()
-    if not file and quiet:
+    if not orig_file and quiet:
         file.close()
 
 

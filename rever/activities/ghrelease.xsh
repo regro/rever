@@ -2,7 +2,7 @@
 import os
 import mimetypes
 
-from xonsh.tools import expand_path
+from xonsh.tools import expand_path, print_color
 
 from rever import github
 from rever.activity import Activity
@@ -105,5 +105,5 @@ class GHRelease(Activity):
         with open(filename, 'rb') as f:
             asset = f.read()
         name = os.path.basename(filename)
-        content_type = mimetypes(name, strict=False)[0]
-        rel.upload_asset(content_type, name, asset)
+        content_type = mimetypes.guess_type(name, strict=False)[0]
+        release.upload_asset(content_type, name, asset)

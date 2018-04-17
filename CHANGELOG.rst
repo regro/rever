@@ -4,6 +4,22 @@ Rever Change Log
 
 .. current developments
 
+v0.2.7
+====================
+
+**Added:**
+
+* GitHub Releases may now attach assets (extra files) to the release.
+
+
+**Fixed:**
+
+* Fix ``$TAG_TEMPLATE`` being ignored by conda_forge activity when defining
+  package URL on GitHub
+
+
+
+
 v0.2.6
 ====================
 

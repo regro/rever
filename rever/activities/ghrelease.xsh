@@ -53,7 +53,7 @@ class GHRelease(Activity):
         upload to the GitHub release. This is ususally a tarball of the source
         code or a binary package. If the asset is a string, it is interpreted
         as a filename (and evalauated in the current environment). If the asset
-        is a function, the function is called with no arguments andshould return
+        is a function, the function is called with no arguments and should return
         either a string filename or a list of string filenames. The asset
         functions will usually generate or acquire the asset.
 

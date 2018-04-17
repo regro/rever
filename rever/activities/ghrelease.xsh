@@ -33,6 +33,16 @@ def find_notes(notes):
     return ''
 
 
+def git_archive_asset():
+    """Provides tarball of the repository as an asset."""
+    template = ${...}.get('TAG_TEMPLATE', '$VERSION')
+    tag = eval_version(template)
+    fname = os.path.join($REVER_DIR, tag + '.tar.gz')
+    print_color('Archiving repository as {INTENSE_CYAN}' + fname + '{NO_COLOR}')
+    ![git archive -9 --format=tar.gz -o @(fname) @(tag)]
+    return fname
+
+
 class GHRelease(Activity):
     """Performs a github release.
 
@@ -49,13 +59,14 @@ class GHRelease(Activity):
         defaults to ''
     :$GHRELEASE_APPEND: str, string to append to the release notes,
         defaults to ''
-    :$GHRELEASE_ASSETS: list of str or functions, Extra assests to
+    :$GHRELEASE_ASSETS: iterable of str or functions, Extra assests to
         upload to the GitHub release. This is ususally a tarball of the source
         code or a binary package. If the asset is a string, it is interpreted
         as a filename (and evalauated in the current environment). If the asset
         is a function, the function is called with no arguments and should return
         either a string filename or a list of string filenames. The asset
-        functions will usually generate or acquire the asset.
+        functions will usually generate or acquire the asset. By default, this
+        a tarball of the release tag will be uploaded.
 
     Other environment variables that affect the behavior are:
 
@@ -66,6 +77,8 @@ class GHRelease(Activity):
         is where the GitHub credential files are stored by default.
     :$CHANGELOG_LATEST: path to the latest release notes file
         created by the changelog activity.
+    :$TAG_TEMPLATE: may used to find the tag name when creating the default
+        asset.
 
     """
 
@@ -73,7 +86,8 @@ class GHRelease(Activity):
         super().__init__(name='ghrelease', deps=frozenset(), func=self._func,
                          desc="Performs a GitHub release")
 
-    def _func(self, name='$VERSION', notes=None, prepend='', append='', assets=()):
+    def _func(self, name='$VERSION', notes=None, prepend='', append='',
+              assets=(git_archive_asset,)):
         name = eval_version(name)
         notes = find_notes(notes)
         notes = prepend + notes + append

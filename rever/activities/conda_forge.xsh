@@ -106,6 +106,8 @@ class CondaForge(Activity):
         feedstock using conda-smithy, default True.
     :$CONDA_FORGE_FORK: bool, whether the activity should create a new fork of
         the feedstock if it doesn't exist already, default True.
+    :$CONDA_FORGE_FORK_ORG: str, the org to fork the recipe to or which holds
+        the fork, if ``''`` use the registered gh username, defaults to ``''``
 
     Other environment variables that affect the behavior are:
 
@@ -127,7 +129,8 @@ class CondaForge(Activity):
 
     def _func(self, feedstock=None, protocol='ssh', source_url=None,
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
-              pull_request=True, rerender=True, fork=True):
+              pull_request=True, rerender=True, fork=True,
+              fork_org=''):
         if source_url is None:
             version_tag = ${...}.get('TAG_TEMPLATE', '$VERSION')
             source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'

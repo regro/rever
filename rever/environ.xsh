@@ -160,8 +160,6 @@ ENVVARS = {
         'the container itself, default $HOME/$PROJECT'),
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
                         'GitHub credential file to use'),
-    'GITHUB_FORK_ORG': ('', is_string, str, ensure_string, 
-                        'GitHub org to fork to during conda-forge PR'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),
     'GITHUB_REPO': ('', is_string, str, ensure_string, 'GitHub repository name'),
     'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,

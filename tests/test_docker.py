@@ -57,6 +57,7 @@ def test_apt_deps(dockerenv, deps, exp):
     ([], ['conda-forge'], ''),
     (['dep1', 'dep0'], [],
 """RUN conda config --set always_yes yes && \\
+    conda update --all --update-deps && \\
     conda update --all && \\
     conda install \\
         dep0 dep1 && \\
@@ -68,6 +69,7 @@ def test_apt_deps(dockerenv, deps, exp):
 """RUN conda config --set always_yes yes && \\
     conda config --add channels my-channel && \\
     conda config --add channels conda-forge && \\
+    conda update --all --update-deps && \\
     conda update --all && \\
     conda install \\
         dep0 dep1 && \\
@@ -135,6 +137,7 @@ RUN apt-get -y update && \\
 RUN conda config --set always_yes yes && \\
     conda config --add channels my-channel && \\
     conda config --add channels conda-forge && \\
+    conda update --all --update-deps && \\
     conda update --all && \\
     conda install \\
         dep0 dep1 && \\

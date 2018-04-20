@@ -78,6 +78,7 @@ def conda_deps(conda=None, conda_channels=None):
     if channels:
         for channel in channels[::-1]:
             s += '    conda config --add channels ' + channel + ' && \\\n'
+    s += '    conda update --all --update-deps && \\\n'
     s += '    conda update --all && \\\n'
     s += '    conda install \\\n'
     s += wrap(' '.join(sorted(conda)), indent=' '*8) + ' && \\\n'

@@ -148,7 +148,10 @@ class CondaForge(Activity):
                                      fork_repo.is_null()):
                 print("Fork doesn't exist creating feedstock fork...",
                       file=sys.stderr)
-                repo.create_fork()
+                if $GITHUB_FORK_ORG:
+                    repo.create_fork($GITHUB_FORK_ORG)
+                else:
+                    repo.create_fork()
 
         feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
         recipe_dir = os.path.join(feedstock_dir, 'recipe')

@@ -106,6 +106,8 @@ class CondaForge(Activity):
         feedstock using conda-smithy, default True.
     :$CONDA_FORGE_FORK: bool, whether the activity should create a new fork of
         the feedstock if it doesn't exist already, default True.
+    :$CONDA_FORGE_FORK_ORG: str, the org to fork the recipe to or which holds
+        the fork, if ``''`` use the registered gh username, defaults to ``''``
 
     Other environment variables that affect the behavior are:
 
@@ -127,7 +129,8 @@ class CondaForge(Activity):
 
     def _func(self, feedstock=None, protocol='ssh', source_url=None,
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
-              pull_request=True, rerender=True, fork=True):
+              pull_request=True, rerender=True, fork=True,
+              fork_org=''):
         if source_url is None:
             version_tag = ${...}.get('TAG_TEMPLATE', '$VERSION')
             source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/'
@@ -143,12 +146,15 @@ class CondaForge(Activity):
 
         # Check if fork exists
         if fork:
-            fork_repo = gh.repository(username, feedstock_reponame)
+            fork_repo = gh.repository(fork_org or username, feedstock_reponame)
             if fork_repo is None or (hasattr(fork_repo, 'is_null') and
                                      fork_repo.is_null()):
                 print("Fork doesn't exist creating feedstock fork...",
                       file=sys.stderr)
-                repo.create_fork(username)
+                if fork_org:
+                    repo.create_fork(fork_org)
+                else:
+                    repo.create_fork()
 
         feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
         recipe_dir = os.path.join(feedstock_dir, 'recipe')

@@ -143,6 +143,7 @@ class CondaForge(Activity):
 
         # Check if fork exists
         if fork:
+            fork_org = $GITHUB_FORK_ORG or username
             fork_repo = gh.repository(username, feedstock_reponame)
             if fork_repo is None or (hasattr(fork_repo, 'is_null') and
                                      fork_repo.is_null()):

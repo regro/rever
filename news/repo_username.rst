@@ -1,4 +1,7 @@
-**Added:** None
+**Added:** 
+
+* ``$GITHUB_FORK_ORG`` variable for conda-forge activity forking to an org
+
 
 **Changed:** None
 

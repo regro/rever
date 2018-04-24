@@ -16,17 +16,29 @@ NEWS_RE = re.compile('\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
                      flags=re.DOTALL)
 
 
-NEWS_TEMPLATE = """**Added:** None
+NEWS_TEMPLATE = """**Added:**
 
-**Changed:** None
+* <news item>
 
-**Deprecated:** None
+**Changed:**
 
-**Removed:** None
+* <news item>
 
-**Fixed:** None
+**Deprecated:**
 
-**Security:** None
+* <news item>
+
+**Removed:**
+
+* <news item>
+
+**Fixed:**
+
+* <news item>
+
+**Security:**
+
+* <news item>
 """
 
 INITIAL_CHANGELOG = """{bars}
@@ -108,7 +120,7 @@ class Changelog(Activity):
                 parts = parts[1:]
             for key, val in zip(parts[::2], parts[1::2]):
                 val = val.strip()
-                if val == 'None':
+                if val == '* <news item>' or val == 'None':
                     continue
                 cats[key] += val + '\n'
         for fname in files:

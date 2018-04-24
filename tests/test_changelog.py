@@ -21,34 +21,54 @@ v42.1.0
 ============
 * And some other stuff happeneded.
 """
-TEMPLATE_RST = """**Added:** None
+TEMPLATE_RST = """**Added:**
 
-**Changed:** None
+* <news item>
 
-**Deprecated:** None
+**Changed:**
 
-**Removed:** None
+* <news item>
 
-**Fixed:** None
+**Deprecated:**
 
-**Security:** None
+* <news item>
+
+**Removed:**
+
+* <news item>
+
+**Fixed:**
+
+* <news item>
+
+**Security:**
+
+* <news item>
 """
 N0_RST = """**Added:**
 
 * from n0
 
-**Changed:** None
+**Changed:**
 
-**Deprecated:** None
+* <news item>
+
+**Deprecated:**
+
+* <news item>
 
 **Removed:**
 
 * here
 * and here
 
-**Fixed:** None
+**Fixed:**
 
-**Security:** None
+* <news item>
+
+**Security:**
+
+* <news item>
 """
 N1_RST = """**Added:**
 
@@ -58,13 +78,17 @@ N1_RST = """**Added:**
 
 * But what martial arts are they mixing?
 
-**Deprecated:** None
+**Deprecated:**
+
+* <news item>
 
 **Removed:**
 
 * There
 
-**Fixed:** None
+**Fixed:**
+
+* <news item>
 
 **Security:** None
 """

@@ -2,8 +2,8 @@
 
 **Changed:**
 
-* Now the ``news`` template uses ``* <add entry>`` instead of ``None`` for 
-  empty news catagories.
+* Now the ``news`` template uses ``* <news item>`` instead of ``None`` for 
+  empty news categories.
 
 **Deprecated:**
 

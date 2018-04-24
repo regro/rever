@@ -23,27 +23,27 @@ v42.1.0
 """
 TEMPLATE_RST = """**Added:**
 
-* <add entry>
+* <news item>
 
 **Changed:**
 
-* <add entry>
+* <news item>
 
 **Deprecated:**
 
-* <add entry>
+* <news item>
 
 **Removed:**
 
-* <add entry>
+* <news item>
 
 **Fixed:**
 
-* <add entry>
+* <news item>
 
 **Security:**
 
-* <add entry>
+* <news item>
 """
 N0_RST = """**Added:**
 
@@ -51,11 +51,11 @@ N0_RST = """**Added:**
 
 **Changed:**
 
-* <add entry>
+* <news item>
 
 **Deprecated:**
 
-* <add entry>
+* <news item>
 
 **Removed:**
 
@@ -64,11 +64,11 @@ N0_RST = """**Added:**
 
 **Fixed:**
 
-* <add entry>
+* <news item>
 
 **Security:**
 
-* <add entry>
+* <news item>
 """
 N1_RST = """**Added:**
 
@@ -80,7 +80,7 @@ N1_RST = """**Added:**
 
 **Deprecated:**
 
-* <add entry>
+* <news item>
 
 **Removed:**
 
@@ -88,7 +88,7 @@ N1_RST = """**Added:**
 
 **Fixed:**
 
-* <add entry>
+* <news item>
 
 **Security:** None
 """

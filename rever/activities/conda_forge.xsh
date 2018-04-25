@@ -134,7 +134,7 @@ class CondaForge(Activity):
         if source_url is None:
             version_tag = ${...}.get('TAG_TEMPLATE', '$VERSION')
             source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO/download/'
-                        '{}/{}.tar.gz'.format(version_tag))
+                        '{}/{}.tar.gz'.format(version_tag, version_tag))
         # first, let's grab the feedstock locally
         gh, username = github.login(return_username=True)
         upstream = feedstock_url(feedstock, protocol=protocol)

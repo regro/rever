@@ -132,7 +132,7 @@ class CondaForge(Activity):
               pull_request=True, rerender=True, fork=True,
               fork_org=''):
         if source_url is None:
-            version_tag = ${...}.get('TAG_TEMPLATE', '$VERSION')
+            version_tag = ${...}.get('TAG_TEMPLATE', $VERSION)
             if version_tag + '.tar.gz' in os.listdir($REVER_DIR):
                 source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO'
                             '/releases/download/{}/'

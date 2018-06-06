@@ -37,5 +37,9 @@ def test_render_authors():
         assert render_authors(a) == b
 
 
-def test_hash_url():
+def test_hash_url_http():
     hash_url('http://python.org')
+
+
+def test_hash_url_ftp():
+    hash_url('ftp://ftp.astron.com/pub/file/file-5.33.tar.gz')

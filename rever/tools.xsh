@@ -176,7 +176,7 @@ def stream_url_progress(url, verb='downloading', chunksize=1024, width=60,
     nbytes = 0
     print(verb + ' ' + url)
     with urllib.request.urlopen(url) as f:
-        totalbytes = f.length
+        totalbytes = getattr(f, 'length', None)
         while True:
             b = f.read(chunksize)
             lenbytes = len(b)
@@ -187,7 +187,7 @@ def stream_url_progress(url, verb='downloading', chunksize=1024, width=60,
                 progress(nbytes, totalbytes, width=width, quiet=quiet)
                 yield b
             if totalbytes is None:
-                totalbytes = f.length
+                totalbytes = getattr(f, 'length', None)
     if totalbytes is None:
         color = 'GREEN'
         suffix = '{GREEN} TOTAL{NO_COLOR}\n'

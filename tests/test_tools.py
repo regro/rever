@@ -42,4 +42,4 @@ def test_hash_url_http():
 
 
 def test_hash_url_ftp():
-    has_url('ftp://ftp.astron.com/pub/file/file-5.33.tar.g')
+    hash_url('ftp://ftp.astron.com/pub/file/file-5.33.tar.g')

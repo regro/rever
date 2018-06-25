@@ -4,6 +4,39 @@ Rever Change Log
 
 .. current developments
 
+v0.2.8
+====================
+
+**Added:**
+
+* ``conda_forge`` activity kwarg for forking to an org
+
+
+**Changed:**
+
+* Conda in a docker container will now update dependencies, too.
+* Now the ``news`` template uses ``* <news item>`` instead of ``None`` for 
+  empty news categories.
+* Use the tarball rever generates for the conda forge URL
+
+
+**Deprecated:**
+
+* ``None`` in the news template (still supported though)
+
+
+**Fixed:**
+
+* Use the actual ``$VERSION`` not the string ``'$VERSION'``
+* Fixed ``rever.tools.hash_url()`` and ``rever.tools.stream_url_progress()``
+  functions to robustly handle FTP URLs, in addition to HTTP ones.
+* ``repo.create_fork`` doesn't need a username
+* Fixed bug preventing ``rever`` from running where version key is not
+  present in history entry.
+
+
+
+
 v0.2.7
 ====================
 

@@ -75,7 +75,4 @@ class DockerPush(Activity):
         # get args
         args = []
         for tag in tags:
-            args.extend(['-t', tag])
-        # run push
-        with indir(context):
-            ![docker push @(args)]
+            ![docker push @(tag)]

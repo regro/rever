@@ -121,7 +121,7 @@ ENVVARS = {
     'DOCKERFILE_TAGS': (('$REVER_USER/$PROJECT:$VERSION',
                          '$REVER_USER/$PROJECT:latest'),
                         is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
-                        'Tag that the $DOCKERFILE should be built and pushed with.
+                        'Tag that the $DOCKERFILE should be built and pushed with. '
                         'The default is ``["$REVER_USER/$PROJECT:$VERSION", '
                         '"$REVER_USER/$PROJECT:latest"]``.'),
     'DOCKER_APT_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,

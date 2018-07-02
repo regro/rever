@@ -43,8 +43,8 @@ class DockerBuild(Activity):
         tags = list(map(expand_path, tags))
         # get args
         args = []
-        for tag is tags:
-            args.expand(['-t', tag])
+        for tag in tags:
+            args.extend(['-t', tag])
         if not cache:
             args.append('--no-cache')
         if fname:
@@ -74,8 +74,8 @@ class DockerPush(Activity):
         tags = list(map(expand_path, tags))
         # get args
         args = []
-        for tag is tags:
-            args.expand(['-t', tag])
+        for tag in tags:
+            args.extend(['-t', tag])
         # run push
         with indir(context):
             ![docker push @(args)]

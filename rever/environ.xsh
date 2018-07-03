@@ -39,6 +39,7 @@ def default_dag():
     from rever.activities.bibtex import BibTex
     from rever.activities.changelog import Changelog
     from rever.activities.conda_forge import CondaForge
+    from rever.activities.docker import DockerBuild, DockerPush
     from rever.activities.ghpages import GHPages
     from rever.activities.ghrelease import GHRelease
     from rever.activities.nose import Nose
@@ -52,6 +53,8 @@ def default_dag():
         'bibtex': BibTex(),
         'changelog': Changelog(),
         'conda_forge': CondaForge(),
+        'docker_build': DockerBuild(),
+        'docker_push': DockerPush(),
         'ghpages': GHPages(),
         'ghrelease': GHRelease(),
         'nose': Nose(),
@@ -108,6 +111,19 @@ ENVVARS = {
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
+    'DOCKERFILE': ('', is_string, str, ensure_string,
+                   'Path to Dockerfile, default is empty string.'),
+    'DOCKERFILE_CONTEXT': ('', is_string, str, ensure_string,
+                           'Context (ie the directory) that the $DOCKERFILE should '
+                           'be built in. The default (an empty string) indicates '
+                           'that the image should be built in directory containing '
+                           'the $DOCKERFILE.'),
+    'DOCKERFILE_TAGS': (('$REVER_USER/$PROJECT:$VERSION',
+                         '$REVER_USER/$PROJECT:latest'),
+                        is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
+                        'Tag that the $DOCKERFILE should be built and pushed with. '
+                        'The default is ``["$REVER_USER/$PROJECT:$VERSION", '
+                        '"$REVER_USER/$PROJECT:latest"]``.'),
     'DOCKER_APT_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                         'Dependencies to install in the base container via apt-get.'),
     'DOCKER_BASE_FROM': ('continuumio/miniconda3', is_string, str, ensure_string,

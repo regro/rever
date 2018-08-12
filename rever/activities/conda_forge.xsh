@@ -3,6 +3,7 @@ import os
 import re
 import sys
 
+from github3.exceptions import NotFoundError
 from xonsh.tools import print_color
 
 from rever import vcsutils
@@ -152,7 +153,11 @@ class CondaForge(Activity):
 
         # Check if fork exists
         if fork:
-            fork_repo = gh.repository(fork_org or username, feedstock_reponame)
+            try:
+                fork_repo = gh.repository(fork_org or username,
+                                          feedstock_reponame)
+            except NotFoundError:
+                fork_repo = None
             if fork_repo is None or (hasattr(fork_repo, 'is_null') and
                                      fork_repo.is_null()):
                 print("Fork doesn't exist creating feedstock fork...",

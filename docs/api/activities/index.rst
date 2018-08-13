@@ -14,6 +14,7 @@ Activities API for the activities that come with rever itself.
     changelog
     command
     conda_forge
+    docker
     ghpages
     ghrelease
     nose

@@ -31,7 +31,10 @@ spec = importlib.util.find_spec('prompt_toolkit')
 if spec is not None:
     # hacky runaround to import PTK-specific events
     builtins.__xonsh_env__ = Env()
-    from xonsh.ptk.shell import events
+    try:
+        from xonsh.ptk2.shell import events
+    except ImportError:
+        from xonsh.ptk.shell import events
 else:
     from xonsh.events import events
 

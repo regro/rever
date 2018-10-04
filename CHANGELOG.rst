@@ -4,6 +4,17 @@ Rever Change Log
 
 .. current developments
 
+v0.2.9
+====================
+
+**Added:**
+
+* New ``docker_build`` and ``docker_push`` activity for building
+  and pushing up Dockerfiles.
+
+
+
+
 v0.2.8
 ====================
 

@@ -127,7 +127,10 @@ commit = make_vcs_dispatcher(COMMIT, name='commit',
 
 def git_push(remote, target):
     """Pushes up to a remote and target branch"""
-    git push @(remote) @(target)
+    args = [remote, target]
+    if $REVER_FORCED:
+        args.insert(0, '--force')
+    git push @(args)
 
 
 push = make_vcs_dispatcher({'git': git_push},
@@ -138,7 +141,10 @@ push = make_vcs_dispatcher({'git': git_push},
 
 def git_push_tags(remote):
     """Pushes up tags to a remote"""
-    git push --tags @(remote)
+    args = [remote]
+    if $REVER_FORCED:
+        args.insert(0, '--force')
+    git push --tags @(args)
 
 
 push_tags = make_vcs_dispatcher({'git': git_push_tags},

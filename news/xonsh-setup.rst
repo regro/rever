@@ -1,6 +1,8 @@
 **Added:** None
 
-**Changed:** None
+**Changed:**
+
+* Updated rever to use ``xonsh.main.setup()`` function for initialization.
 
 **Deprecated:** None
 
@@ -8,6 +10,7 @@
 
 **Fixed:**
 
-* Updated rever to use ``xonsh.main.setup()`` function for initialization.
+* Make ``git push`` and ``git push --tags`` respect the rever ``-f,--force``
+  command line argument.
 
 **Security:** None

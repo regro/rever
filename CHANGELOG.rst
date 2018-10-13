@@ -4,6 +4,22 @@ Rever Change Log
 
 .. current developments
 
+v0.3.0
+====================
+
+**Changed:**
+
+* Updated rever to use ``xonsh.main.setup()`` function for initialization.
+
+
+**Fixed:**
+
+* Make ``git push`` and ``git push --tags`` respect the rever ``-f,--force``
+  command line argument.
+
+
+
+
 v0.2.9
 ====================
 

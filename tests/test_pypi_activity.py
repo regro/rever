@@ -83,7 +83,7 @@ def test_pypi_activity(gitrepo):
     vcsutils.track('.')
     vcsutils.commit('Some versioned files')
     env_main(['42.1.1'])
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     python = env.get('PYTHON')
     out = subprocess.check_output([python, 'setup.py', '--version'],
                                   universal_newlines=True)

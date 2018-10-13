@@ -23,20 +23,7 @@ os.environ['XONSH_DEBUG'] = '1'
 sys.path.insert(0, '..')
 
 from xonsh.environ import Env
-from xonsh.xontribs import xontrib_metadata
-from xonsh import main
 from xonsh.commands_cache import CommandsCache
-
-spec = importlib.util.find_spec('prompt_toolkit')
-if spec is not None:
-    # hacky runaround to import PTK-specific events
-    builtins.__xonsh_env__ = Env()
-    try:
-        from xonsh.ptk2.shell import events
-    except ImportError:
-        from xonsh.ptk.shell import events
-else:
-    from xonsh.events import events
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -403,6 +390,6 @@ with environ.context():
     make_activities()
     make_envvars()
 
-builtins.__xonsh_history__ = None
-builtins.__xonsh_env__ = {}
-builtins.__xonsh_commands_cache__ = CommandsCache()
+builtins.__xonsh__.history = None
+builtins.__xonsh__.env = {}
+builtins.__xonsh__.commands_cache = CommandsCache()

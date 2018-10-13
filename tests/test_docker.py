@@ -14,7 +14,7 @@ from rever.docker import (apt_deps, conda_deps, pip_deps, make_base_dockerfile,
 @pytest.fixture
 def dockerenv(request):
     with environ.context():
-        env = builtins.__xonsh_env__
+        env = builtins.__xonsh__.env
         yield env
 
 

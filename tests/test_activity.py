@@ -16,7 +16,7 @@ def do_tryptophan():
 def test_do_undo(gitrepo):
     """Writes and commits a file and then undoes it."""
     # create and execute activity
-    logger = builtins.__xonsh_env__['LOGGER']
+    logger = builtins.__xonsh__.env['LOGGER']
     act = Activity(name='seratonin', func=do_tryptophan)
     act()
     # Test that the activity ran correctly
@@ -48,7 +48,7 @@ def test_decorator_just_func(gitrepo):
     def collapse():
         """The grade of this collapse"""
         pass
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     dag = env['DAG']
     assert 'collapse' in dag
     act = dag['collapse']
@@ -67,7 +67,7 @@ def test_decorator_with_args(gitrepo):
     def wakeup():
         """Morning time!"""
         pass
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     dag = env['DAG']
     assert 'realname' in dag
     assert 'wakeup' not in dag

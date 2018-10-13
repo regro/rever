@@ -13,22 +13,22 @@ def test_source_rc(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$YOU_DONT = "always"\n')
     env_main(args=['x.y.z'])
-    assert builtins.__xonsh_env__['YOU_DONT'] == 'always'
-    del builtins.__xonsh_env__['YOU_DONT']
+    assert builtins.__xonsh__.env['YOU_DONT'] == 'always'
+    del builtins.__xonsh__.env['YOU_DONT']
 
 
 def test_alt_source_rc(gitrepo):
     with open('rc.xsh', 'w') as f:
         f.write('$YOU_DO = "never"\n')
     env_main(args=['--rc=rc.xsh', 'x.y.z'])
-    assert builtins.__xonsh_env__['YOU_DO'] == 'never'
-    del builtins.__xonsh_env__['YOU_DO']
+    assert builtins.__xonsh__.env['YOU_DO'] == 'never'
+    del builtins.__xonsh__.env['YOU_DO']
 
 
 def test_activities_from_rc(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$ACTIVITIES = ["a", "b", "c"]\n')
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     env['DAG'] = defaultdict(Activity)
     env_main(args=['x.y.z'])
     assert env['ACTIVITIES'] == ["a", "b", "c"]
@@ -38,7 +38,7 @@ def test_activities_from_rc(gitrepo):
 def test_activities_from_cli(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$ACTIVITIES = ["a", "b", "c"]\n')
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     env['DAG'] = defaultdict(Activity)
     env_main(args=['-a', 'e,f,g', 'x.y.z'])
     assert env['ACTIVITIES'] == ["e", "f", "g"]
@@ -49,7 +49,7 @@ def test_activities_from_entrypoint(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write('$ACTIVITIES = ["a", "b", "c"]\n'
                 '$ACTIVITIES_ALT = ["e", "f", "g"]\n')
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     env['DAG'] = defaultdict(Activity)
     env_main(args=['-e', 'alt', 'x.y.z'])
     assert env['ACTIVITIES'] == ["a", "b", "c"]
@@ -73,7 +73,7 @@ def good():
 def test_bad_activities_break(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write(BAD_GOOD)
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     try:
         env_main(args=['x.y.z'])
         completed = True
@@ -90,7 +90,7 @@ def test_dont_redo_deps(gitrepo):
     # This test runs an activity a, then runs an activity b that depends on a
     # During the second run, a should not be rerun since it was already
     # run the first time.
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     dag = env['DAG']
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
@@ -120,7 +120,7 @@ def test_redo_deps_if_reverted(gitrepo):
     # This test runs an activity a, undoes a, then runs an activity b that depends on a
     # During the last run, a should not be rerun since it was already
     # run the first time.
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     dag = env['DAG']
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
@@ -154,7 +154,7 @@ def test_version_act_completed(gitrepo):
     # This test runs an activity a, undoes a, then runs an activity b that depends on a
     # During the last run, a should not be rerun since it was already
     # run the first time.
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     dag = env['DAG']
     a = dag['a'] = Activity(name='a')
     b = dag['b'] = Activity(name='b', deps={'a'})
@@ -191,7 +191,7 @@ with open('ver.txt', 'w') as f:
 def test_version_in_config(gitrepo):
     with open('rever.xsh', 'w') as f:
         f.write(VERSION_IN_CONFIG)
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     vstr = '42.43.44'
     env_main(args=[vstr])
     assert os.path.isfile('ver.txt')
@@ -202,7 +202,7 @@ def test_version_in_config(gitrepo):
 
 def test_compute_activities_completed(gitrepo):
     l = current_logger()
-    env = builtins.__xonsh_env__
+    env = builtins.__xonsh__.env
     env['VERSION'] = 'x.y.z'
     l.log('logging a', activity='a', category='activity-end',
           data={'start_rev': 'hi'})

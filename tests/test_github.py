@@ -12,7 +12,7 @@ from rever.github import credfilename, read_credfile
 @pytest.fixture
 def githubenv(request):
     with environ.context():
-        env = builtins.__xonsh_env__
+        env = builtins.__xonsh__.env
         env['GITHUB_ORG'] = 'wakka'
         env['GITHUB_REPO'] = 'jawaka'
         yield env

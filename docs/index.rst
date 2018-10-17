@@ -2,7 +2,7 @@ Rever: Releaser of Versions!
 ============================
 Rever is a xonsh-powered, cross-platform software release tool.  The
 goal of rever is to provide sofware projects a standard mechanism for dealing with
-code released. Rever aims to make the process of releasing a new version of a code base
+code releases. Rever aims to make the process of releasing a new version of a code base
 as easy as running a single command. Rever...
 
 * has a number of stock tools and utilities that you can mix and match to meet your projects needs,

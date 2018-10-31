@@ -22,7 +22,7 @@ class PushTag(Activity):
     :$PUSH_TAG_TARGET: str or None, remote branch to push to once the tag has been made.
         The default is None, which uses the current branch.
     :$PUSH_TAG_PROTOCOL: str or None, the protocol to use to for the push, if
-        None, use ssh. Available protocols are `http`, `https`, and `ssh`
+        None, use ssh. Available protocols are ``http``, ``https``, and ``ssh``
 
     Other environment variables that affect the behavior are:
 

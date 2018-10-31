@@ -47,7 +47,7 @@ class PushTag(Activity):
                 if not protocol:
                     raw_remote = [r for r in $(git remote -v).split()
                                   if '{}/{}'.format(org, repo) in r][0]
-                    for s, v in PROTOCOLS.values():
+                    for s, v in PROTOCOLS.items():
                         if raw_remote.startswith(v):
                             protocol = s
                             break

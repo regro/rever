@@ -51,7 +51,7 @@ class PushTag(Activity):
                         if raw_remote.startswith(v):
                             protocol = s
                             break
-                    if protocol is None:
+                    if not protocol:
                         protocol = 'ssh'
 
                 remote = '{proto}{org}/{repo}.git'.format(

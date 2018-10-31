@@ -46,15 +46,13 @@ class PushTag(Activity):
                 # If no protocol find it.
                 if not protocol:
                     raw_remote = [r for r in $(git remote -v).split()
-                                  if org in r and repo in r][0]
+                                  if '{}/{}'.format(org, repo) in r][0]
                     for s, v in PROTOCOLS.values():
                         if raw_remote.startswith(v):
                             protocol = s
                             break
                     if protocol is None:
-                        raise RuntimeError('could not find a protocol and'
-                                           'none is set, please set a '
-                                           'protocol')
+                        protocol = 'ssh'
 
                 remote = '{proto}{org}/{repo}.git'.format(
                     proto=PROTOCOLS[protocol], org=org, repo=repo)

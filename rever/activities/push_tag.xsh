@@ -5,6 +5,11 @@ from rever import vcsutils
 from rever.activity import Activity
 from rever.tools import eval_version
 
+PROTOCOLS = {
+    'http': 'http://github.com/',
+    'https': 'https://github.com/',
+    'ssh': 'git@github.com:'}
+
 
 class PushTag(Activity):
     """Pushes the current tag up to a remote repository.
@@ -16,6 +21,8 @@ class PushTag(Activity):
         this variable will default to ``git@github.com:$GITHUB_ORG/$GITHUB_REPO.git``.
     :$PUSH_TAG_TARGET: str or None, remote branch to push to once the tag has been made.
         The default is None, which uses the current branch.
+    :$PUSH_TAG_PROTOCOL: str or None, the protocol to use to for the push, if
+        None, use ssh. Available protocols are ``http``, ``https``, and ``ssh``
 
     Other environment variables that affect the behavior are:
 
@@ -30,14 +37,25 @@ class PushTag(Activity):
         super().__init__(name='push_tag', deps=deps, func=self._func,
                          desc="Tags the current version.")
 
-    def _func(self, remote=None, target=None):
+    def _func(self, remote=None, target=None, protocol=None):
         if remote is None:
             # Pull from the org and repo
             org = ${...}.get('GITHUB_ORG', None)
             repo = ${...}.get('GITHUB_REPO', None)
             if org and repo and ${...}.get('REVER_VCS', None) == 'git':
-                remote = 'git@github.com:{org}/{repo}.git'.format(org=org,
-                                                                  repo=repo)
+                # If no protocol find it.
+                if not protocol:
+                    raw_remote = [r for r in $(git remote -v).split()
+                                  if '{}/{}'.format(org, repo) in r][0]
+                    for s, v in PROTOCOLS.items():
+                        if raw_remote.startswith(v):
+                            protocol = s
+                            break
+                    else:
+                        protocol = 'ssh'
+
+                remote = '{proto}{org}/{repo}.git'.format(
+                    proto=PROTOCOLS[protocol], org=org, repo=repo)
             else:
                 raise ValueError('tag remote cannot be None to push up tags, '
                                  'try setting $TAG_REMOTE or $GITHUB_ORG and '

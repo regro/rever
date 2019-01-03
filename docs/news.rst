@@ -7,98 +7,106 @@ The changelog is written into the repo and can be used in the GitHub
 release activity.
 
 The workflow for using news is:
-  1. When changes are added to the code (usually via a Pull Request) add a 
-     file to the ``news`` directory. 
-     Usually we name the file after the branch that is used to avoid conflicts. 
-     The news files have two formats depending on when the rever template
-     was made.
-     The older templates look like::
 
-       **Added:** None
+1. Go into the ``news/`` directory
+2. Copy the ``TEMPLATE.rst`` file to another file in the ``news/`` directory.
+   We suggest using the branchname::
 
-       **Changed:** None
+      $ cp TEMPLATE.rst branch.rst
 
-       **Deprecated:** None
+3. The news files have two formats depending on when the rever template
+   was made.
+   The first template looks like::
 
-       **Removed:** None
+    **Added:** None
 
-       **Fixed:** None
+    **Changed:** None
 
-       **Security:** None
-     
-     To add a news entry, remove the ``None`` from the category, add a
-     newline and ``* My news entry``.
-     For example::
+    **Deprecated:** None
 
-       **Added:**
+    **Removed:** None
 
-       * News tutorial
+    **Fixed:** None
 
-       **Changed:** None
+    **Security:** None
 
-       **Deprecated:** None
+   To add a news entry, remove the ``None`` from the category, add a
+   newline and ``* My news entry``.
+   For example::
 
-       **Removed:** None
+    **Added:**
 
-       **Fixed:** None
+    * News tutorial
 
-       **Security:** None
+    **Changed:** None
 
-     The new ``news`` template looks like::
+    **Deprecated:** None
 
-        **Added:**
+    **Removed:** None
 
-        * <news item>
+    **Fixed:** None
 
-        **Changed:**
+    **Security:** None
 
-        * <news item>
+   The second ``news`` template looks like::
 
-        **Deprecated:**
+    **Added:**
 
-        * <news item>
+    * <news item>
 
-        **Removed:**
+    **Changed:**
 
-        * <news item>
+    * <news item>
 
-        **Fixed:**
+    **Deprecated:**
 
-        * <news item>
+    * <news item>
 
-        **Security:**
+    **Removed:**
 
-        * <news item>
+    * <news item>
 
-     In this case you can remove the ``* <news item>`` and replace it with your own, eg::
+    **Fixed:**
 
-      **Added:**
+    * <news item>
 
-      * New news template tutorial
+    **Security:**
 
-      **Changed:**
+    * <news item>
 
-      * <news item>
+   In this case you can remove the ``* <news item>`` and replace it with your own, eg::
 
-      **Deprecated:**
+    **Added:**
 
-      * <news item>
+    * New news template tutorial
 
-      **Removed:**
+    **Changed:**
 
-      * <news item>
+    * <news item>
 
-      **Fixed:**
+    **Deprecated:**
 
-      * <news item>
+    * <news item>
 
-      **Security:**
+    **Removed:**
 
-      * <news item>
+    * <news item>
 
+    **Fixed:**
 
-     Note that you can add multiple entries inside a single news file.
+    * <news item>
 
-  2. Once the project is ready for a release when running the ``rever``
-     command all the files, except the template, in the ``news`` folder will
-     be collated and merged into a single changelog file.
+    **Security:**
+
+    * <news item>
+
+4. Commit your ``branch.rst``.
+
+Feel free to update this file whenever you want! Please don't use someone
+else's file name. All of the files in this ``news/`` directory will be merged
+automatically at release time.  The ``None`` entries will be automatically
+filtered out too!
+
+Once the project is ready for a release when running the ``rever``
+command all the files, except the template, in the ``news`` folder will
+be collated and merged into a single changelog file.

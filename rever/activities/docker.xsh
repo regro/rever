@@ -32,7 +32,6 @@ class DockerBuild(Activity):
         # get defaults
         path = $DOCKERFILE if path is None else context
         context = $DOCKERFILE_CONTEXT if context is None else context
-
         tags = $DOCKERFILE_TAGS if tags is None else tags
         # expand paths
         path = expand_path(path)

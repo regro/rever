@@ -16,7 +16,8 @@
 
 **Fixed:**
 
-* <news item>
+* Fixed issue with ``docker_build`` activitiy not correctly setting the build
+  context when the Dockerfile is in the current directory.
 
 **Security:**
 

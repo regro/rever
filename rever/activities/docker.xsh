@@ -32,6 +32,7 @@ class DockerBuild(Activity):
         # get defaults
         path = $DOCKERFILE if path is None else context
         context = $DOCKERFILE_CONTEXT if context is None else context
+
         tags = $DOCKERFILE_TAGS if tags is None else tags
         # expand paths
         path = expand_path(path)
@@ -39,6 +40,7 @@ class DockerBuild(Activity):
         fname = ''
         if not context:
             context, path = os.path.split(path)
+            context = '.' if len(context) == 0 else context
             path, fname = ('.', path) if path == 'Dockerfile' else (path, '')
         tags = list(map(expand_path, tags))
         # get args

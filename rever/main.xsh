@@ -1,8 +1,8 @@
 """Main CLI entry point for rever"""
+import os
 import sys
 import argparse
 from collections import defaultdict
-import os
 
 from lazyasd import lazyobject
 from xonsh.tools import csv_to_set, print_color
@@ -202,7 +202,11 @@ def env_main(args=None):
     $REVER_FORCED = ns.force
     if ns.version == 'setup':
         ns.setup = True
-    source @(ns.rc)
+    if os.path.exists(ns.rc):
+        source @(ns.rc)
+    else:
+        print_color('{RED}WARNING{NO_COLOR} the run control file {GREEN}' +
+                    ns.rc + '{NO_COLOR} does not exist!', file=sys.stderr)
     running_activities(ns)
     # run the command
     if ns.undo:

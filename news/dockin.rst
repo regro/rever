@@ -1,6 +1,6 @@
 **Added:**
 
-* <news item>
+* New ``rever.conda.env_exists()`` function for testing if a conda environment exists.
 
 **Changed:**
 

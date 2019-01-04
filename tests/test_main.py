@@ -116,10 +116,15 @@ def test_dont_redo_deps(gitrepo):
     assert len(b_ends) == 1
 
 
+EMPTY_REVER_XSH = "# empty rever.xsh file for testing\n"
+
+
 def test_redo_deps_if_reverted(gitrepo):
     # This test runs an activity a, undoes a, then runs an activity b that depends on a
     # During the last run, a should not be rerun since it was already
     # run the first time.
+    with open('rever.xsh', 'w') as f:
+        f.write(EMPTY_REVER_XSH)
     env = builtins.__xonsh__.env
     dag = env['DAG']
     a = dag['a'] = Activity(name='a')
@@ -154,6 +159,8 @@ def test_version_act_completed(gitrepo):
     # This test runs an activity a, undoes a, then runs an activity b that depends on a
     # During the last run, a should not be rerun since it was already
     # run the first time.
+    with open('rever.xsh', 'w') as f:
+        f.write(EMPTY_REVER_XSH)
     env = builtins.__xonsh__.env
     dag = env['DAG']
     a = dag['a'] = Activity(name='a')

@@ -39,6 +39,7 @@ class DockerBuild(Activity):
         fname = ''
         if not context:
             context, path = os.path.split(path)
+            context = '.' if len(context) == 0 else context
             path, fname = ('.', path) if path == 'Dockerfile' else (path, '')
         tags = list(map(expand_path, tags))
         # get args

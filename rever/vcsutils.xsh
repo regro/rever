@@ -199,3 +199,15 @@ root = make_vcs_dispatcher({'git': git_root},
     doc="Returns the root repository directory.",
     err = 'no way to find the root repository directory from {!r}')
 
+
+def git_authors_emails():
+    """Returns a set of (author, email) tuples"""
+    lines = $(git log "--format=%aN<%aE>").strip().splitlines()
+    tups = {line[:-1].partition('<')[::2] for line in lines}
+    return tups
+
+
+authors_emails = make_vcs_dispatcher({'git': git_authors_emails},
+    name='authors_emails',
+    doc="Returns a set of (author, email) tuples",
+    err='no way to compute the author/email combos from {!r}')

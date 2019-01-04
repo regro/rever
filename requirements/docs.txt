@@ -6,3 +6,4 @@ Sphinx
 bibtexparser
 github3.py
 pprintpp
+ruamel.yaml

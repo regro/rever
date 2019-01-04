@@ -4,6 +4,28 @@ Rever Change Log
 
 .. current developments
 
+v0.3.1
+====================
+
+**Added:**
+
+* New ``rever.conda.env_exists()`` function for testing if a conda environment exists.
+* ``$PUSH_TAG_PROTOCOL`` for manually specifying the push protocol.
+
+
+**Changed:**
+
+* ``PushTag`` now inspects remotes to find the correct protocol
+
+
+**Fixed:**
+
+* Fixed issue with ``docker_build`` activitiy not correctly setting the build
+  context when the Dockerfile is in the current directory.
+
+
+
+
 v0.3.0
 ====================
 

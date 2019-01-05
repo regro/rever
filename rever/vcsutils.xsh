@@ -211,3 +211,8 @@ authors_emails = make_vcs_dispatcher({'git': git_authors_emails},
     name='authors_emails',
     doc="Returns a set of (author, email) tuples",
     err='no way to compute the author/email combos from {!r}')
+
+
+def git_commits_per_author():
+    """Returns a dictionary mapping author names to commits"""
+    cpa = {}

@@ -17,7 +17,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
     aes = vcsutils.authors_emails()
     msgs = []
     for author, email in aes:
-        if author not in by_names and email not in by_email:
+        if author not in by_names and email not in by_emails:
             # new author
             entry = {'name': author, 'email': email}
             y.append(entry)
@@ -78,26 +78,26 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "    - {email}\n\n"
                     "or remove {author} from " + entry["email"] + ".\n"
                     "\n\n")
-    if not msg:
+    if not msgs:
         # no errors
         return
     # have errors
-    msg = "\n----\n".join(msgs).format(author=author, email=email, filename=filename).strip()
+    msg = "\n\n----\n\n".join(msgs).format(author=author, email=email, filename=filename).strip()
     print(msg, file=sys.stderr)
     raise RuntimeError("Duplicated author/email combos")
 
 
-def update_metadate(filename):
+def update_metadata(filename):
     """Takes a YAML metadata filename and updates it with the current repo
     information, if possible.
     """
     # get the initial YAML
-    y = YAML()
+    yaml = YAML()
     if os.path.exists(filename):
         with open(filename) as f:
-            y.load(f)
+            y = yaml.load(f)
     else:
-        y.load("[]")
+        y = yaml.load("[]")
     # update with content
     by_names = {}
     by_emails = {}
@@ -108,8 +108,8 @@ def update_metadate(filename):
         # emails
         by_emails[x["email"]] = x
         by_emails.update({e: x for e in x.get('alternate_emails', [])})
-    _verify_names_emails_aliases(y, by_names, by_emails)
+    _verify_names_emails_aliases(y, by_names, by_emails, filename)
     # write back out
     with open(filename, 'w') as f:
-        y.dump(f)
+        yaml.dump(y, f)
     return y

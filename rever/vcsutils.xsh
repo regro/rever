@@ -223,10 +223,13 @@ def RE_GIT_CPA():
     return re.compile(r"\s+(\d+)\s+(.*)")
 
 
-def git_commits_per_author():
+def git_commits_per_author(since=None):
     """Returns a dictionary mapping author names to commits"""
     cpa = {}
-    for line in $(git shortlog -s --no-merges).splitlines():
+    args = ['-s', '-e', '--no-merges']
+    if since:
+        args.append(since + "...HEAD")
+    for line in $(git shortlog @(args)).splitlines():
         n, name = RE_GIT_CPA.match(line).groups()
         cpa[name] = int(n)
     return cpa
@@ -243,10 +246,15 @@ def RE_GIT_CPE():
     return re.compile(r"\s+(\d+)\s+[^<]*<([^>]*)>")
 
 
-def git_commits_per_email():
-    """Returns a dictionary mapping emails to commits"""
+def git_commits_per_email(since=None):
+    """Returns a dictionary mapping emails to commits.
+    Accepts a "since" argument, which specifies the lower boundary.
+    """
     cpe = {}
-    for line in $(git shortlog -s -e --no-merges).splitlines():
+    args = ['-s', '-e', '--no-merges']
+    if since:
+        args.append(since + "...HEAD")
+    for line in $(git shortlog @(args)).splitlines():
         n, email = RE_GIT_CPE.match(line).groups()
         cpe[email] = int(n)
     return cpe

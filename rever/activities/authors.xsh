@@ -2,16 +2,28 @@
 import os
 import re
 import sys
+import json
 
 from xonsh.tools import print_color
 
 from rever import vcsutils
 from rever.activity import Activity
 from rever.tools import eval_version, replace_in_file
+from rever.authors import update_metadata, write_mailmap
 
-DEFAULT_HEADER = """All of the people who have made at least one contribution to $PROJECT
+
+DEFAULT_TEMPLATE = """All of the people who have made at least one contribution to $PROJECT.
+Authors are sorted {sorting_text}.
+
+{authors}
 """
-
+DEFAULT_FORMAT = "* {name}\n"
+# flag: (sorter, sorting_text)
+SORTINGS = {
+    "num_commits": (lamda x: -x["num_commits"], "by number of commits"),
+    "first_commit": (lamda x: x["first_commit"], "by date of first commit"),
+    "alpha": (lamda x: x["name"], "alphabetically"),
+    }
 
 class Authors(Activity):
     """Manages keeping a contributors listing up-to-date.
@@ -19,17 +31,28 @@ class Authors(Activity):
     This activity may be configured with the following envionment variables:
 
     :$AUTHORS_FILENAME: str, path to input file. The default is 'AUTHORS'.
-    :$AUTHORS_HEADER: str or callable, This value goes at the top of the
+    :$AUTHORS_TEMPLATE: str or callable, This value goes at the top of the
         authors file. The default value is:
 
         .. code-block:: rst
 
             All of the people who have made at least one contribution to $PROJECT
+            Authors are sorted by {sorting_text}.
 
-        This is evaluated in the current environment.
+            {authors}
+
+        This is evaluated in the current environment and,
+
+        * "{sorting_text}" is a special textual description of the sort method.
+        * "{authors}" is a contcatenated string of all formatted authors.
+
+        which the template is formatted with.
+    :$AUTHORS_FORMAT: str, the string that formats each author in the author file.
+        The default is ``"* {name}\n"``. The valid fields are all of those present
+        in the author metadata (see below).
     :$AUTHORS_LATEST: str, file to write just the latest contribuors to, i.e.
         this is the listing of the contributors for just this release.
-        This defaults to ``$REVER_DIR/LATEST-AUTHORS``. This is evaluated
+        This defaults to ``$REVER_DIR/LATEST-AUTHORS.json``. This is evaluated
         in the current environment.
     :$AUTHORS_METADATA: str, path to YAML file that stores author metadata.
         The default is '.authors.yml'. This is evaluated in the current environment.
@@ -59,6 +82,16 @@ class Authors(Activity):
                 - Dread Pirate Roberts
               alternate_emails:
                 - dpr@pirates.biz
+    :$AUTHORS_SORTBY: str, flag that specifies how authors should be sorted in
+        the authors file. Valid options are:
+
+        * ``"num_commits"``: Number of commits per author
+        * ``"first_commit"``: Sort by first commit.
+        * ``"alpha"``: Alphabetically.
+    :$AUTHORS_MAILMAP: str, bool, or None, If this is a non-empty string,
+        it will be interperted as a file path to a mailmap file that will be
+        generated based on the metadata provided. The default value is  ``".mailmap"``.
+        This is evaluated in the current environment.
     """
 
     def __init__(self, *, deps=frozenset()):
@@ -67,14 +100,44 @@ class Authors(Activity):
                          setup=self.setup_func)
 
     def _func(self, filename='AUTHORS',
-              header=DEFAULT_HEADER,
-              latest='$REVER_DIR/LATEST-AUTHORS',
+              template=DEFAULT_TEMPLATE,
+              format=DEFAULT_FORMAT,
+              latest='$REVER_DIR/LATEST-AUTHORS.json',
               metadata='.authors.yml',
+              sortby="num_commits",
+              mailmap='.mailmap',
               ):
-        header = eval_version(header)
+        template = eval_version(template)
         latest = eval_version(latest)
-        # TODO Update authors
-        vcsutils.commit('Updated AUTHORS for ' + $VERSION)
+        # Update authors file
+        md = update_metadata(metadata)
+        sorting_key, sorting_text = SORTINGS[sortby]
+        md = sorted(md, key=sorting_key)
+        aformated = "".join([format.format(**x) for x in md])
+        s = header.format(sorting_text=sorting_text, authors=aformated) + "\n"
+        with open(filename, 'w') as f:
+            f.write(s)
+        files = [filename]
+        print_color('{YELLOW}wrote authors to {INTENSE_CYAN}' + filename + '{NO_COLOR}', file=sys.stderr)
+        # write latest authors
+        prev_version = vcsutils.latest_tag()
+        commits_since_last = vcsutils.commits_per_email(since=prev_version)
+        emails_since_last = set(commits_since_last.keys())
+        latest_authors = [x["email"] for x in md
+                          if len(set(x["email"] + x.get("alternate_emails", [])) & emails_since_last) > 0]
+        with open(latest, 'w') as f:
+            json.dump(latest_authors, f)
+        files.append(latest)
+        print_color('{YELLOW}wrote authors since ' + prev_version + ' to {INTENSE_CYAN}' + latest + '{NO_COLOR}', file=sys.stderr)
+        # write mailmap
+        if mailmap and isinstance(mailmap, str):
+            mailmap = eval_version(mailmap)
+            write_mailmap(md, mailmap)
+            files.append(mailmap)
+            print_color('{YELLOW}wrote mailmap file to {INTENSE_CYAN}' + mailmap + '{NO_COLOR}', file=sys.stderr)
+        # Commit changes
+        vcsutils.track(files)
+        vcsutils.commit('Updated authorship for ' + $VERSION)
 
     def setup_func(self):
         """Initializes the authors activity by (re-)starting an authors file

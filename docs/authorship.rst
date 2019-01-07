@@ -28,15 +28,15 @@ These filenames can be configured via the ``$AUTHORS_FILENAME``,
 ``rever.xsh`` file, as with other activities.
 
 If you have a long running, project, you may need to seed the ``.authors.yml``
-metadata file with some information that disambiquates your contributors
-before ``rever setup`` will complete sucessfully. Don't worry! This is
+metadata file with some information that disambiguate your contributors
+before ``rever setup`` will complete successfully. Don't worry! This is
 totally normal and rever will present best guesses for you to choose from
 in order to obtain a clean set of metadata.
 
 Metadata Format
 ---------------
 The metadata that is kept about authors is a mix of manually-supplied, optional
-infromation (such as GitHub usernames) and data that can be mined from
+information (such as GitHub usernames) and data that can be mined from
 version control (such as emails, number of commits, etc.).  The YAML file is a
 list of mappings as follows:
 
@@ -124,11 +124,11 @@ And say that Alice and Bob are our contributors, then we would generate:
     These have been sorted alphabetically.
 
 
-Latest Contribuotrs
+Latest Contributors
 -------------------
 Additionally, the authors activity will generate a file that stores the (sorted)
 emails of all of the contributors since the last tag. This file is usually at
-``$REVER_DIR/LATEST-AUTHORS.json``, but may be confugured by ``$AUTHORS_LATEST``.
+``$REVER_DIR/LATEST-AUTHORS.json``, but may be configured by ``$AUTHORS_LATEST``.
 This allows other activities (such as ``changelog``) to access the list of
 all contributors for a particular version. Since this operates from the last
 tag, it is important to run the ``authors`` activity before the ``tag`` activity.

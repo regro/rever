@@ -6,6 +6,7 @@ Rever currently has the following external dependencies,
 
     #. xonsh
     #. lazyasd
+    #. ruamel.yaml
 
 
 Development Dependencies

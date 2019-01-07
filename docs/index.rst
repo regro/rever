@@ -71,6 +71,8 @@ Contents
 
     tutorial
     usepatterns
+    news
+    authorship
 
 **Configuration & Setup:**
 

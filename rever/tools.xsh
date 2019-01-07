@@ -36,7 +36,7 @@ def replace_in_file(pattern, new, fname, leading_whitespace=True):
         raw = f.read()
     lines = raw.splitlines()
     if leading_whitespace:
-        ptn = re.compile('(\s*?)' + pattern)
+        ptn = re.compile(r'(\s*?)' + pattern)
     else:
         ptn = re.compile(pattern)
     for i, line in enumerate(lines):

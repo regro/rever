@@ -1,4 +1,9 @@
 """Some version control utilities for rever"""
+import re
+import datetime
+
+from lazyasd import lazyobject
+
 
 def make_vcs_dispatcher(vcsfuncs, name='vcs_dispatcher',
                         doc='dispatches to a version control function',
@@ -213,6 +218,57 @@ authors_emails = make_vcs_dispatcher({'git': git_authors_emails},
     err='no way to compute the author/email combos from {!r}')
 
 
+@lazyobject
+def RE_GIT_CPA():
+    return re.compile(r"\s+(\d+)\s+(.*)")
+
+
 def git_commits_per_author():
     """Returns a dictionary mapping author names to commits"""
     cpa = {}
+    for line in $(git shortlog -s --no-merges).splitlines():
+        n, name = RE_GIT_CPA.match(line).groups()
+        cpa[name] = int(n)
+    return cpa
+
+
+commits_per_author = make_vcs_dispatcher({'git': git_commits_per_author},
+    name='commits_per_author',
+    doc="Returns a dictionary mapping author names to commits",
+    err='no way to compute the author commits from {!r}')
+
+
+@lazyobject
+def RE_GIT_CPE():
+    return re.compile(r"\s+(\d+)\s+[^<]*<([^>]*)>")
+
+
+def git_commits_per_email():
+    """Returns a dictionary mapping emails to commits"""
+    cpe = {}
+    for line in $(git shortlog -s -e --no-merges).splitlines():
+        n, email = RE_GIT_CPE.match(line).groups()
+        cpe[email] = int(n)
+    return cpe
+
+
+commits_per_email = make_vcs_dispatcher({'git': git_commits_per_email},
+    name='commits_per_email',
+    doc="Returns a dictionary mapping emails to commits",
+    err='no way to compute the email commits from {!r}')
+
+
+def git_first_commit_per_email():
+    """Returns a dictionary mapping emails to the datetime of its first commit"""
+    fcpe = {}
+    for line in $(git log --encoding=utf-8 --full-history --reverse "--format=format:%ae:%at").splitlines():
+        email, _, t = line.partition(':')
+        if email not in fcpe:
+            fcpe[email] = datetime.datetime.fromtimestamp(int(t))
+    return fcpe
+
+
+first_commit_per_email = make_vcs_dispatcher({'git': git_first_commit_per_email},
+    name='first_commit_per_email',
+    doc="Returns a dictionary mapping emails to the datetime of its first commit",
+    err='no way to compute the email first commits from {!r}')

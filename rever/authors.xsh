@@ -1,6 +1,7 @@
 """Utilities for dealing with authorship files."""
 import os
 import sys
+import datetime
 
 from lazyasd import lazyobject
 
@@ -37,7 +38,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  email: person@example.com\n"
                     "  alternate_emails:\n"
                     "    - {email}\n"
-                    "\n\n")
+                    "\n")
             elif entry["name"] != author and author not in entry.get("aliases", []):
                 msgs.append(
                     "The email {email!r} is associated in version control with "
@@ -49,7 +50,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  aliases:\n"
                     "    - {author}\n\n"
                     "or remove {email} from " + entry["name"] + ".\n"
-                    "\n\n")
+                    "\n")
         elif email in by_emails:
             # check that author matches known name
             entry = by_names.get(author, None)
@@ -61,11 +62,11 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "- name: {author}\n"
                     "  email: {email}\n\n"
                     "Or add an alias:\n\n"
-                    "- name: Some Body\n"
+                    "- name: Some Body Else\n"
                     "  email: {email}\n"
                     "  aliases:\n"
                     "    - {author}\n"
-                    "\n\n")
+                    "\n")
             elif entry["email"] != email and email not in entry.get("alternate_emails", []):
                 msgs.append(
                     "The author {author!r} is associated in version control with "
@@ -77,7 +78,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  alternate_emails:\n"
                     "    - {email}\n\n"
                     "or remove {author} from " + entry["email"] + ".\n"
-                    "\n\n")
+                    "\n")
     if not msgs:
         # no errors
         return
@@ -98,7 +99,7 @@ def update_metadata(filename):
             y = yaml.load(f)
     else:
         y = yaml.load("[]")
-    # update with content
+    # verify names and emails
     by_names = {}
     by_emails = {}
     for x in y:
@@ -109,6 +110,18 @@ def update_metadata(filename):
         by_emails[x["email"]] = x
         by_emails.update({e: x for e in x.get('alternate_emails', [])})
     _verify_names_emails_aliases(y, by_names, by_emails, filename)
+    # update with content
+    now = datetime.datetime.now()
+    cpe = vcsutils.commits_per_email()
+    fcpe = None
+    for x in y:
+        x["num_commits"] = cpe.get(x["email"], 0) + sum([cpe.get(a, 0) for a in x.get("alternate_emails", [])])
+        # only compute first commits if needed.
+        if "first_commit" not in x:
+            if fcpe is None:
+                fcpe = vcsutils.first_commit_per_email()
+            fcs = [fcpe.get(x["email"], now)] + [fcpe.get(a, now) for a in x.get("alternate_emails", [])]
+            x["first_commit"] = min(fcs)
     # write back out
     with open(filename, 'w') as f:
         yaml.dump(y, f)

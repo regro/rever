@@ -32,7 +32,7 @@ class Authors(Activity):
     This activity may be configured with the following envionment variables:
 
     :$AUTHORS_FILENAME: str, path to input file. The default is 'AUTHORS'.
-    :$AUTHORS_TEMPLATE: str or callable, This value goes at the top of the
+    :$AUTHORS_TEMPLATE: str, This value goes at the top of the
         authors file. The default value is:
 
         .. code-block:: rst
@@ -83,6 +83,7 @@ class Authors(Activity):
                 - Dread Pirate Roberts
               alternate_emails:
                 - dpr@pirates.biz
+
     :$AUTHORS_SORTBY: str, flag that specifies how authors should be sorted in
         the authors file. Valid options are:
 
@@ -148,13 +149,10 @@ class Authors(Activity):
         mailmap = ${...}.get('AUTHORS_MAILMAP', '.mailmap')
         # run saftey checks
         filename_exists = os.path.isfile(filename)
-        metadata_exists = os.path.isfile(metadata)
         mailmap_exists = os.path.isfile(mailmap)
         msgs = []
         if filename_exists:
             msgs.append('Authors file {0!r} exists'.format(filename))
-        if metadata_exists:
-            msgs.append('Rever authors metadata file {0!r} exists'.format(metadata))
         if mailmap_exists:
             msgs.append('Mailmap file {0!r} exists'.format(mailmap))
         if len(msgs) > 0:

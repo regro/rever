@@ -33,3 +33,4 @@ For those of you who want the gritty details.
     conda
     docker
     github
+    authors

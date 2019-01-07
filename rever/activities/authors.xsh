@@ -20,10 +20,11 @@ Authors are sorted {sorting_text}.
 DEFAULT_FORMAT = "* {name}\n"
 # flag: (sorter, sorting_text)
 SORTINGS = {
-    "num_commits": (lamda x: -x["num_commits"], "by number of commits"),
-    "first_commit": (lamda x: x["first_commit"], "by date of first commit"),
-    "alpha": (lamda x: x["name"], "alphabetically"),
+    "num_commits": (lambda x: -x["num_commits"], "by number of commits"),
+    "first_commit": (lambda x: x["first_commit"], "by date of first commit"),
+    "alpha": (lambda x: x["name"], "alphabetically"),
     }
+
 
 class Authors(Activity):
     """Manages keeping a contributors listing up-to-date.
@@ -107,10 +108,9 @@ class Authors(Activity):
               sortby="num_commits",
               mailmap='.mailmap',
               ):
-        template = eval_version(template)
         latest = eval_version(latest)
         # Update authors file
-        md = self._update_authors(filename, metadata, sortby)
+        md = self._update_authors(filename, template, format, metadata, sortby)
         files = [filename, metadata]
         print_color('{YELLOW}wrote authors to {INTENSE_CYAN}' + filename + '{NO_COLOR}', file=sys.stderr)
         # write latest authors
@@ -118,10 +118,12 @@ class Authors(Activity):
         commits_since_last = vcsutils.commits_per_email(since=prev_version)
         emails_since_last = set(commits_since_last.keys())
         latest_authors = [x["email"] for x in md
-                          if len(set(x["email"] + x.get("alternate_emails", [])) & emails_since_last) > 0]
+                          if len(set([x["email"]] + x.get("alternate_emails", [])) & emails_since_last) > 0]
         with open(latest, 'w') as f:
             json.dump(latest_authors, f)
-        files.append(latest)
+        if not latest.startswith($REVER_DIR):
+            # commit the latest file
+            files.append(latest)
         print_color('{YELLOW}wrote authors since ' + prev_version + ' to {INTENSE_CYAN}' + latest + '{NO_COLOR}', file=sys.stderr)
         # write mailmap
         if mailmap and isinstance(mailmap, str):
@@ -139,12 +141,14 @@ class Authors(Activity):
         """
         # get vars from env
         filename = ${...}.get('AUTHORS_FILENAME', 'AUTHORS')
+        template = ${...}.get('AUTHORS_TEMPLATE', DEFAULT_TEMPLATE)
+        format = ${...}.get('AUTHORS_FORMAT', DEFAULT_FORMAT)
         metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
         sortby = ${...}.get('AUTHORS_SORTBY', 'num_commits')
         mailmap = ${...}.get('AUTHORS_MAILMAP', '.mailmap')
         # run saftey checks
         filename_exists = os.path.isfile(filename)
-        metadata_exists = os.path.isfile(metdata)
+        metadata_exists = os.path.isfile(metadata)
         mailmap_exists = os.path.isfile(mailmap)
         msgs = []
         if filename_exists:
@@ -165,19 +169,20 @@ class Authors(Activity):
                             file=sys.stderr)
                 return False
         # actually create files
-        md = self._update_authors(filename, metadata, sortby)
+        md = self._update_authors(filename, template, format, metadata, sortby)
         if mailmap and isinstance(mailmap, str):
             mailmap = eval_version(mailmap)
             write_mailmap(md, mailmap)
         return True
 
-    def _update_authors(self, filename, metadata, sortby):
+    def _update_authors(self, filename, template, format, metadata, sortby):
         """helper fucntion for updating / writing authors file"""
         md = update_metadata(metadata)
+        template = eval_version(template)
         sorting_key, sorting_text = SORTINGS[sortby]
         md = sorted(md, key=sorting_key)
         aformated = "".join([format.format(**x) for x in md])
-        s = header.format(sorting_text=sorting_text, authors=aformated) + "\n"
+        s = template.format(sorting_text=sorting_text, authors=aformated) + "\n"
         with open(filename, 'w') as f:
             f.write(s)
         return md

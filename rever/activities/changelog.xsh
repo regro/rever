@@ -12,7 +12,7 @@ from rever.tools import eval_version, replace_in_file
 
 NEWS_CATEGORIES = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
                    'Security']
-NEWS_RE = re.compile('\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
+NEWS_RE = re.compile(r'\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
                      flags=re.DOTALL)
 
 

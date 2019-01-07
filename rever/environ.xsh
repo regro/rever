@@ -36,6 +36,7 @@ def detype_logger(x):
 
 def default_dag():
     """Creates a default activity DAG."""
+    from rever.activities.authors import Authors
     from rever.activities.bibtex import BibTex
     from rever.activities.changelog import Changelog
     from rever.activities.conda_forge import CondaForge
@@ -50,6 +51,7 @@ def default_dag():
     from rever.activities.push_tag import PushTag
     from rever.activities.version_bump import VersionBump
     dag = {
+        'authors': Authors(),
         'bibtex': BibTex(),
         'changelog': Changelog(),
         'conda_forge': CondaForge(),

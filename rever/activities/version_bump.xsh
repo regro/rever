@@ -7,7 +7,7 @@ from rever.tools import eval_version, replace_in_file
 
 
 class VersionBump(Activity):
-    """Changes the version to the value of $VERSION.
+    r"""Changes the version to the value of $VERSION.
 
     This activity is parameterized by the following environment
     variable:

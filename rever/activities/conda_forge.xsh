@@ -58,14 +58,14 @@ def fork_url(feedstock_url, username):
 DEFAULT_PATTERNS = (
     # filename, pattern, new
     # set the version
-    ('meta.yaml', '  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
+    ('meta.yaml', r'  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
     ('meta.yaml', '{% set version = ".*" %}', '{% set version = "$VERSION" %}'),
     # reset the build number to 0
     ('meta.yaml', '  number:.*', '  number: 0'),
     # set the hash
     ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}',
                   '{% set $HASH_TYPE = "$HASH" %}'),
-    ('meta.yaml', '  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
+    ('meta.yaml', r'  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
     )
 
 

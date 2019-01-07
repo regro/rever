@@ -110,14 +110,8 @@ class Authors(Activity):
         template = eval_version(template)
         latest = eval_version(latest)
         # Update authors file
-        md = update_metadata(metadata)
-        sorting_key, sorting_text = SORTINGS[sortby]
-        md = sorted(md, key=sorting_key)
-        aformated = "".join([format.format(**x) for x in md])
-        s = header.format(sorting_text=sorting_text, authors=aformated) + "\n"
-        with open(filename, 'w') as f:
-            f.write(s)
-        files = [filename]
+        md = self._update_authors(filename, metadata, sortby)
+        files = [filename, metadata]
         print_color('{YELLOW}wrote authors to {INTENSE_CYAN}' + filename + '{NO_COLOR}', file=sys.stderr)
         # write latest authors
         prev_version = vcsutils.latest_tag()
@@ -144,18 +138,21 @@ class Authors(Activity):
         from the current repo.
         """
         # get vars from env
-        news = ${...}.get('AUTHORS_METADATA', '.authors.yml')
-        template_file = ${...}.get('CHANGELOG_TEMPLATE', 'TEMPLATE')
-        template_file = os.path.join(news, template_file)
-        changelog_file = ${...}.get('CHANGELOG_FILENAME', 'CHANGELOG')
+        filename = ${...}.get('AUTHORS_FILENAME', 'AUTHORS')
+        metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
+        sortby = ${...}.get('AUTHORS_SORTBY', 'num_commits')
+        mailmap = ${...}.get('AUTHORS_MAILMAP', '.mailmap')
         # run saftey checks
-        template_exists = os.path.isfile(template_file)
-        changelog_exists = os.path.isfile(changelog_file)
+        filename_exists = os.path.isfile(filename)
+        metadata_exists = os.path.isfile(metdata)
+        mailmap_exists = os.path.isfile(mailmap)
         msgs = []
-        if template_exists:
-            msgs.append('Template file {0!r} exists'.format(template_file))
-        if changelog_exists:
-            msgs.append('Changelog file {0!r} exists'.format(changelog_file))
+        if filename_exists:
+            msgs.append('Authors file {0!r} exists'.format(filename))
+        if metadata_exists:
+            msgs.append('Rever authors metadata file {0!r} exists'.format(metadata))
+        if mailmap_exists:
+            msgs.append('Mailmap file {0!r} exists'.format(mailmap))
         if len(msgs) > 0:
             print_color('{RED}' + ' AND '.join(msgs) + '{NO_COLOR}',
                         file=sys.stderr)
@@ -168,11 +165,19 @@ class Authors(Activity):
                             file=sys.stderr)
                 return False
         # actually create files
-        os.makedirs(news, exist_ok=True)
-        with open(template_file, 'w') as f:
-            f.write(NEWS_TEMPLATE)
-        with open(changelog_file, 'w') as f:
-            s = INITIAL_CHANGELOG.format(PROJECT=$PROJECT,
-                                         bars='='*(len($PROJECT) + 11))
-            f.write(s)
+        md = self._update_authors(filename, metadata, sortby)
+        if mailmap and isinstance(mailmap, str):
+            mailmap = eval_version(mailmap)
+            write_mailmap(md, mailmap)
         return True
+
+    def _update_authors(self, filename, metadata, sortby):
+        """helper fucntion for updating / writing authors file"""
+        md = update_metadata(metadata)
+        sorting_key, sorting_text = SORTINGS[sortby]
+        md = sorted(md, key=sorting_key)
+        aformated = "".join([format.format(**x) for x in md])
+        s = header.format(sorting_text=sorting_text, authors=aformated) + "\n"
+        with open(filename, 'w') as f:
+            f.write(s)
+        return md

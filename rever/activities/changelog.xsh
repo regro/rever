@@ -16,32 +16,6 @@ DEFAULT_CATEGORY_TITLE_FORMAT = "**{category}:**\n\n"
 NEWS_RE = re.compile(r'\*\*({0}):\*\*'.format('|'.join(DEFAULT_CATEGORIES)),
                      flags=re.DOTALL)
 
-
-NEWS_TEMPLATE = """**Added:**
-
-* <news item>
-
-**Changed:**
-
-* <news item>
-
-**Deprecated:**
-
-* <news item>
-
-**Removed:**
-
-* <news item>
-
-**Fixed:**
-
-* <news item>
-
-**Security:**
-
-* <news item>
-"""
-
 INITIAL_CHANGELOG = """{bars}
 {PROJECT} Change Log
 {bars}
@@ -107,16 +81,18 @@ class Changelog(Activity):
         ignore = [template] if ignore is None else ignore
         header = eval_version(header)
         latest = eval_version(latest)
-        merged = self.merge_news(news=news, ignore=ignore)
+        merged = self.merge_news(news=news, ignore=ignore, categories=categories,
+                                 category_title_format=category_title_format)
         with open(latest, 'w') as f:
             f.write(merged)
         n = header + merged
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)
 
-    def merge_news(self, news='news', ignore=('TEMPLATE',)):
+    def merge_news(self, news='news', ignore=('TEMPLATE',), categories=DEFAULT_CATEGORIES,
+                   category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT):
         """Reads news files and merges them."""
-        cats = {c: '' for c in NEWS_CATEGORIES}
+        cats = {c: '' for c in categories}
         files = [os.path.join(news, f) for f in os.listdir(news)
                  if self.keep_file(f, ignore)]
         files.sort()
@@ -125,7 +101,7 @@ class Changelog(Activity):
                 raw = f.read()
             raw = raw.strip()
             parts = NEWS_RE.split(raw)
-            while len(parts) > 0 and parts[0] not in NEWS_CATEGORIES:
+            while len(parts) > 0 and parts[0] not in categories:
                 parts = parts[1:]
             for key, val in zip(parts[::2], parts[1::2]):
                 val = val.strip()
@@ -135,11 +111,11 @@ class Changelog(Activity):
         for fname in files:
             os.remove(fname)
         s = ''
-        for c in NEWS_CATEGORIES:
+        for c in categories:
             val = cats[c]
             if len(val) == 0:
                 continue
-            s += '**' + c + ':**\n\n' + val + '\n\n'
+            s += self._format_category_title(category_title_format, c) + val + '\n\n'
         return s
 
     def keep_file(self, filename, ignore):
@@ -189,8 +165,23 @@ class Changelog(Activity):
             f.write(s)
         return True
 
+    def _format_category_title(self, title_format, category):
+        if isinstance(title_format, str):
+            rtn = title_format.format(category=category))
+        elif callable(title_format):
+            rtn = title_format(category=category))
+        else:
+            raise RuntimeError("$CHANGELOG_CATEGORY_TITLE_FORMAT must be "
+                               "string or callable")
+        return rtn
+
     def _generate_template(self, filename, categories, category_title_format):
         """Helper function for generating template file."""
-
+        news_item = "* <news item>\n\n"
+        lines = []
+        for category in categories:
+            lines.append(self._format_category_title(category_title_format, category))
+            lines.append(news_item)
+        s = "".join(lines)
         with open(filename, 'w') as f:
             f.write(s)

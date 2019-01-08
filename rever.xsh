@@ -1,6 +1,6 @@
 $PROJECT = 'rever'
 $REVER_DIR = 'rever-tmp'
-$ACTIVITIES = ['version_bump', 'changelog', 'pytest',
+$ACTIVITIES = ['version_bump', 'authors', 'changelog', 'pytest',
                'sphinx', 'tag', 'push_tag', 'pypi', 'conda_forge',
                'ghpages', 'ghrelease']
 

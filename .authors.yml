@@ -12,10 +12,12 @@
   first_commit: 2017-06-23 14:44:39
 - name: Christopher J. Wright
   email: cjwright4242gh@gmail.com
-  num_commits: 3
+  num_commits: 118
   first_commit: 2017-07-25 20:41:13
   alternate_emails:
-    - cjwright4242@gmail.com
+  - cjwright4242@gmail.com
+  aliases:
+  - christopher
 - name: Dougal J. Sutherland
   email: dougal@gmail.com
   num_commits: 1

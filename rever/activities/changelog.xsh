@@ -100,9 +100,10 @@ class Changelog(Activity):
                 raw = f.read()
             raw = raw.strip()
             parts = news_re.split(raw)
+            parts = [part for part in parts if part is not None]
             while len(parts) > 0 and parts[0] not in categories:
                 parts = parts[1:]
-            for key, val in zip(parts[::2], parts[1::2]):
+            for key, val in zip(parts[::3], parts[1::3]):
                 val = val.strip()
                 if val == '* <news item>' or val == 'None':
                     continue
@@ -136,6 +137,8 @@ class Changelog(Activity):
         template_file = ${...}.get('CHANGELOG_TEMPLATE', 'TEMPLATE')
         template_file = os.path.join(news, template_file)
         changelog_file = ${...}.get('CHANGELOG_FILENAME', 'CHANGELOG')
+        categories = ${...}.get('CHANGELOG_CATEGORIES', DEFAULT_CATEGORIES)
+        category_title_format = ${...}.get('CHANGELOG_CATEGORY_TITLE_FORMAT', DEFAULT_CATEGORY_TITLE_FORMAT)
         # run saftey checks
         template_exists = os.path.isfile(template_file)
         changelog_exists = os.path.isfile(changelog_file)
@@ -166,9 +169,9 @@ class Changelog(Activity):
 
     def _format_category_title(self, title_format, category):
         if isinstance(title_format, str):
-            rtn = title_format.format(category=category))
+            rtn = title_format.format(category=category)
         elif callable(title_format):
-            rtn = title_format(category=category))
+            rtn = title_format(category=category)
         else:
             raise RuntimeError("$CHANGELOG_CATEGORY_TITLE_FORMAT must be "
                                "string or callable")
@@ -185,19 +188,22 @@ class Changelog(Activity):
         with open(filename, 'w') as f:
             f.write(s)
 
-    _regex_special = ".^$*+?()[]{}|\\"
+    # this cannot contain "[" "]" or "\"
+    _regex_special = ".^$*+?(){}|"
 
     def _news_re(self, categories, category_title_format):
         """generate parser expression based on categories"""
         pats = []
         for category in categories:
             # start with the formatted title
-            pat = self._format_category_title(category_title_format, category)
+            pat = self._format_category_title(category_title_format, category).strip()
             # escape regex special characters
+            pat = pat.replace("\\", "\\\\").replace("[", r"\[").replace("]", r"\]")
             for char in self._regex_special:
-                pat = pat.replace(char, "\\" + char)
+                pat = pat.replace(char, "[" + char + "]")
             # capture category name
-            pat.replace(category, "(" + category + ")")
+            pat = pat.replace(category, "(" + category + ")")
             pats.append(pat)
-        p = "|".join(pats)
+        p = "(" + ")|(".join(pats) + ")"
         return re.compile(p, flags=re.DOTALL)
+

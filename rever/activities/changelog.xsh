@@ -10,9 +10,10 @@ from rever.activity import Activity
 from rever.tools import eval_version, replace_in_file
 
 
-NEWS_CATEGORIES = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
-                   'Security']
-NEWS_RE = re.compile(r'\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
+DEFAULT_CATEGORIES = ('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
+                      'Security')
+DEFAULT_CATEGORY_TITLE_FORMAT = "**{category}:**\n\n"
+NEWS_RE = re.compile(r'\*\*({0}):\*\*'.format('|'.join(DEFAULT_CATEGORIES)),
                      flags=re.DOTALL)
 
 
@@ -82,6 +83,12 @@ class Changelog(Activity):
         in the current environment.
     :$CHANGELOG_TEMPLATE: str, filename of the template file in the
         news directory. The default is ``'TEMPLATE'``.
+    :$CHANGELOG_CATEGORIES: iterable of str, the news categories that are used.
+        Default:``('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security')``
+    :$CHANGELOG_CATEGORY_TITLE_FORMAT: str or callable, a format string with ``{category}``
+        entry for formatting changelog and template category titles. If this is a callable,
+        it is a function which takes a single category argument and returns the title string.
+        The default is ``"**{category}:**\n\n"``.
     """
 
     def __init__(self, *, deps=frozenset()):
@@ -94,7 +101,9 @@ class Changelog(Activity):
               header='.. current developments\n\nv$VERSION\n'
                      '====================\n\n',
               news='news', ignore=None,
-              latest='$REVER_DIR/LATEST', template='TEMPLATE'):
+              latest='$REVER_DIR/LATEST', template='TEMPLATE',
+              categories=DEFAULT_CATEGORIES,
+              category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT):
         ignore = [template] if ignore is None else ignore
         header = eval_version(header)
         latest = eval_version(latest)
@@ -173,10 +182,15 @@ class Changelog(Activity):
                 return False
         # actually create files
         os.makedirs(news, exist_ok=True)
-        with open(template_file, 'w') as f:
-            f.write(NEWS_TEMPLATE)
         with open(changelog_file, 'w') as f:
             s = INITIAL_CHANGELOG.format(PROJECT=$PROJECT,
                                          bars='='*(len($PROJECT) + 11))
             f.write(s)
         return True
+
+    def _generate_template(self, filename, categories, category_title_format):
+        """Helper function for generating template file."""
+
+        with open(filename, 'w') as f:
+            f.write(NEWS_TEMPLATE)
+

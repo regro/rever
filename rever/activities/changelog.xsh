@@ -2,12 +2,14 @@
 import os
 import re
 import sys
+import json
 
 from xonsh.tools import print_color
 
 from rever import vcsutils
 from rever.activity import Activity
 from rever.tools import eval_version, replace_in_file
+from rever.authors import load_metadata
 
 
 DEFAULT_CATEGORIES = ('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
@@ -61,6 +63,15 @@ class Changelog(Activity):
         entry for formatting changelog and template category titles. If this is a callable,
         it is a function which takes a single category argument and returns the title string.
         The default is ``"**{category}:**\n\n"``.
+    :$CHANGELOG_AUTHORS_TITLE: str or bool, If this is a non-empty string and the ``authors``
+        activitiy is being run, this will append an authors section to this changelog entry
+        that contains all of the authors that contributed to this version. This string is
+        the section title and is formatted as if it were a category with
+        ``$CHANGELOG_CATEGORY_TITLE_FORMAT``. The default is ``"Authors"``.
+    :$CHANGELOG_AUTHORS_FORMAT: str, this is a format string that formats each author who
+        contributed to this release, if an authors section will be appened. This is
+        evaluated in the context of the authors, see the ``authors`` activity for more
+        details on the available fields. The default is ``"* {name}\n"``.
     """
 
     def __init__(self, *, deps=frozenset()):
@@ -75,15 +86,19 @@ class Changelog(Activity):
               news='news', ignore=None,
               latest='$REVER_DIR/LATEST', template='TEMPLATE',
               categories=DEFAULT_CATEGORIES,
-              category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT):
+              category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT,
+              authors_title="Authors",
+              authors_format="* {name}\n"):
         ignore = [template] if ignore is None else ignore
         header = eval_version(header)
         latest = eval_version(latest)
         merged = self.merge_news(news=news, ignore=ignore, categories=categories,
                                  category_title_format=category_title_format)
+        authors = self.generate_authors(title_format=category_title_format,
+                                        title=authors_title, format=authors_format)
         with open(latest, 'w') as f:
             f.write(merged)
-        n = header + merged
+        n = header + merged + authors
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)
 
@@ -115,7 +130,7 @@ class Changelog(Activity):
             val = cats[c]
             if len(val) == 0:
                 continue
-            s += self._format_category_title(category_title_format, c) + val + '\n\n'
+            s += self._format_category_title(category_title_format, c) + val + '\n'
         return s
 
     def keep_file(self, filename, ignore):
@@ -127,6 +142,21 @@ class Changelog(Activity):
             if p.match(filename):
                 return False
         return True
+
+    def generate_authors(self, title_format, title, format):
+        """Generates author portion of changelog."""
+        if not title or "authors" not in $RUNNING_ACTIVITIES:
+            return ""
+        md = load_metadata($AUTHORS_METADATA)
+        by_email = {x["email"]: x for x in md}
+        with open(eval_version($AUTHORS_LATEST)) as f:
+            emails = json.load(f)
+        lines = [self._format_category_title(title_format, title)]
+        for email in emails:
+            lines.append(format.format(**by_email[email]))
+        lines.append("\n")
+        s = "".join(lines)
+        return s
 
     def setup_func(self):
         """Initializes the changelog activity by starting a news dir, making
@@ -206,4 +236,3 @@ class Changelog(Activity):
             pats.append(pat)
         p = "(" + ")|(".join(pats) + ")"
         return re.compile(p, flags=re.DOTALL)
-

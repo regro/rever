@@ -89,17 +89,26 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
     raise RuntimeError("Duplicated author/email combos")
 
 
-def update_metadata(filename):
-    """Takes a YAML metadata filename and updates it with the current repo
-    information, if possible.
-    """
-    # get the initial YAML
+def load_metadata(filename, return_yaml=False):
+    """Loads author metadata file."""
     yaml = YAML()
     if os.path.exists(filename):
         with open(filename) as f:
             y = yaml.load(f)
     else:
         y = yaml.load("[]")
+    if return_yaml:
+        return y, yaml
+    else:
+        return y
+
+
+def update_metadata(filename):
+    """Takes a YAML metadata filename and updates it with the current repo
+    information, if possible.
+    """
+    # get the initial YAML
+    y, yaml = load_metadata(filename, return_yaml=True)
     # verify names and emails
     by_names = {}
     by_emails = {}

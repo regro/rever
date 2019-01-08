@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import getpass
+import datetime
 from ast import literal_eval
 from contextlib import contextmanager
 from collections.abc import MutableMapping
@@ -91,6 +92,17 @@ def is_dict_str_str_or_none(x):
         if not isinstance(key, str) or not isinstance(value, str):
             return False
     return True
+
+
+def is_date(x):
+    """Checks if x is a datetime.date object."""
+    return isinstance(x, datetime.date)
+
+
+def str_to_date(s):
+    """Converts a string in YYYY-MM-DD format to a date."""
+    nums = list(map(int, s.split('-', 2)))
+    return datetime.date(*nums)
 
 
 def rever_config_dir():
@@ -187,6 +199,9 @@ ENVVARS = {
     'PYTHON': (sys.executable if sys.executable else 'python', is_string, str,
                ensure_string, 'Path to Python executable that rever is run '
                               'with or "python".'),
+    'RELEASE_DATE': (datetime.date.today, is_date, str_to_date, str,
+                     'The date of the release, defaults to today, string '
+                     'representations have "YYYY-MM-DD" format.'),
     'REVER_CONFIG_DIR': (rever_config_dir, is_string, str, ensure_string,
                          'Path to rever configuration directory'),
     'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '

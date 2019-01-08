@@ -85,7 +85,7 @@ def compute_activities_completed():
     return done
 
 
-def compute_activities_to_run(activities=None):
+def compute_activities_to_run(activities=None, force=False):
     """Computes which activities to execute based on the DAG, which activities
     the user requested, and which activites the log file says are already done.
     Returns the list of needed activities and the list of completed ones.
@@ -95,7 +95,7 @@ def compute_activities_to_run(activities=None):
     order, already_done = find_path($DAG, set(activities), done)
     path = []
     for a in activities:
-        if a not in already_done:
+        if a not in already_done or force:
             path.append(a)
         else:
             continue
@@ -127,10 +127,15 @@ def compute_setup_completed():
 
 def run_activities(ns):
     """Actually run activities."""
-    need, done = compute_activities_to_run()
+    need, done = compute_activities_to_run(force=ns.force)
     for name in done:
-        print_color("{GREEN}Activity '" + name + "' has already been "
-                    "completed!{NO_COLOR}")
+        if ns.force:
+            msg = ("{YELLOW}Re-doing activity '" + name + "' which has already been "
+                   "completed!{NO_COLOR}")
+        else:
+            msg = ("{GREEN}Activity '" + name + "' has already been "
+                   "completed!{NO_COLOR}")
+        print_color(msg)
     for name in need:
         act = $DAG[name]
         act.ns = ns
@@ -162,9 +167,13 @@ def setup_activities(ns):
     done = compute_setup_completed()
     for name in $RUNNING_ACTIVITIES:
         if name in done:
-            print_color("{GREEN}Activity '" + name + "' has already been "
-                        "setup!{NO_COLOR}")
-            continue
+            if ns.force:
+                print_color("{YELLOW}Re-doing acctivity '" + name + "' which has "
+                            "already been setup!{NO_COLOR}")
+            else:
+                print_color("{GREEN}Activity '" + name + "' has already been "
+                            "setup!{NO_COLOR}")
+                continue
         act = $DAG[name]
         act.ns = ns
         status = act.setup()

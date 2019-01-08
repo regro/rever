@@ -182,6 +182,7 @@ class Changelog(Activity):
                 return False
         # actually create files
         os.makedirs(news, exist_ok=True)
+        self._generate_template(template_file, categories, category_title_format)
         with open(changelog_file, 'w') as f:
             s = INITIAL_CHANGELOG.format(PROJECT=$PROJECT,
                                          bars='='*(len($PROJECT) + 11))
@@ -192,5 +193,4 @@ class Changelog(Activity):
         """Helper function for generating template file."""
 
         with open(filename, 'w') as f:
-            f.write(NEWS_TEMPLATE)
-
+            f.write(s)

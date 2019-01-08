@@ -13,8 +13,6 @@ from rever.tools import eval_version, replace_in_file
 DEFAULT_CATEGORIES = ('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
                       'Security')
 DEFAULT_CATEGORY_TITLE_FORMAT = "**{category}:**\n\n"
-NEWS_RE = re.compile(r'\*\*({0}):\*\*'.format('|'.join(DEFAULT_CATEGORIES)),
-                     flags=re.DOTALL)
 
 INITIAL_CHANGELOG = """{bars}
 {PROJECT} Change Log
@@ -93,6 +91,7 @@ class Changelog(Activity):
                    category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT):
         """Reads news files and merges them."""
         cats = {c: '' for c in categories}
+        news_re = self._news_re(categories, category_title_format)
         files = [os.path.join(news, f) for f in os.listdir(news)
                  if self.keep_file(f, ignore)]
         files.sort()
@@ -100,7 +99,7 @@ class Changelog(Activity):
             with open(fname) as f:
                 raw = f.read()
             raw = raw.strip()
-            parts = NEWS_RE.split(raw)
+            parts = news_re.split(raw)
             while len(parts) > 0 and parts[0] not in categories:
                 parts = parts[1:]
             for key, val in zip(parts[::2], parts[1::2]):
@@ -185,3 +184,20 @@ class Changelog(Activity):
         s = "".join(lines)
         with open(filename, 'w') as f:
             f.write(s)
+
+    _regex_special = ".^$*+?()[]{}|\\"
+
+    def _news_re(self, categories, category_title_format):
+        """generate parser expression based on categories"""
+        pats = []
+        for category in categories:
+            # start with the formatted title
+            pat = self._format_category_title(category_title_format, category)
+            # escape regex special characters
+            for char in self._regex_special:
+                pat = pat.replace(char, "\\" + char)
+            # capture category name
+            pat.replace(category, "(" + category + ")")
+            pats.append(pat)
+        p = "|".join(pats)
+        return re.compile(p, flags=re.DOTALL)

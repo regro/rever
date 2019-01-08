@@ -1,0 +1,30 @@
+- name: Marius van Niekerk
+  email: marius.v.niekerk@gmail.com
+  num_commits: 0
+  first_commit: 2018-10-13 11:39:05
+- name: Igor T. Ghisi
+  email: igor.ghisi@gmail.com
+  num_commits: 4
+  first_commit: 2018-02-26 18:09:46
+- name: Aaron Meurer
+  email: asmeurer@gmail.com
+  num_commits: 34
+  first_commit: 2017-06-23 14:44:39
+- name: Christopher J. Wright
+  email: cjwright4242gh@gmail.com
+  num_commits: 3
+  first_commit: 2017-07-25 20:41:13
+  alternate_emails:
+    - cjwright4242@gmail.com
+- name: Dougal J. Sutherland
+  email: dougal@gmail.com
+  num_commits: 1
+  first_commit: 2018-08-11 13:07:29
+- name: Anthony Scopatz
+  email: scopatz@gmail.com
+  num_commits: 215
+  first_commit: 2017-05-16 14:52:07
+- name: Christoph Deil
+  email: Deil.Christoph@gmail.com
+  num_commits: 1
+  first_commit: 2018-10-17 16:35:00

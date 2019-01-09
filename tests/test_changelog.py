@@ -181,7 +181,6 @@ def test_changelog_setup(gitrepo):
         gi = f.read()
     assert '\n# Rever\nrvr/\n' in gi
 
-##############
 
 CONDA_BUILD_REVER_XSH = """
 $ACTIVITIES = ['changelog']

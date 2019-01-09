@@ -2,44 +2,19 @@
 import os
 import re
 import sys
+import json
 
 from xonsh.tools import print_color
 
 from rever import vcsutils
 from rever.activity import Activity
 from rever.tools import eval_version, replace_in_file
+from rever.authors import load_metadata
 
 
-NEWS_CATEGORIES = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
-                   'Security']
-NEWS_RE = re.compile(r'\*\*({0}):\*\*'.format('|'.join(NEWS_CATEGORIES)),
-                     flags=re.DOTALL)
-
-
-NEWS_TEMPLATE = """**Added:**
-
-* <news item>
-
-**Changed:**
-
-* <news item>
-
-**Deprecated:**
-
-* <news item>
-
-**Removed:**
-
-* <news item>
-
-**Fixed:**
-
-* <news item>
-
-**Security:**
-
-* <news item>
-"""
+DEFAULT_CATEGORIES = ('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed',
+                      'Security')
+DEFAULT_CATEGORY_TITLE_FORMAT = "**{category}:**\n\n"
 
 INITIAL_CHANGELOG = """{bars}
 {PROJECT} Change Log
@@ -82,6 +57,21 @@ class Changelog(Activity):
         in the current environment.
     :$CHANGELOG_TEMPLATE: str, filename of the template file in the
         news directory. The default is ``'TEMPLATE'``.
+    :$CHANGELOG_CATEGORIES: iterable of str, the news categories that are used.
+        Default:``('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security')``
+    :$CHANGELOG_CATEGORY_TITLE_FORMAT: str or callable, a format string with ``{category}``
+        entry for formatting changelog and template category titles. If this is a callable,
+        it is a function which takes a single category argument and returns the title string.
+        The default is ``"**{category}:**\n\n"``.
+    :$CHANGELOG_AUTHORS_TITLE: str or bool, If this is a non-empty string and the ``authors``
+        activitiy is being run, this will append an authors section to this changelog entry
+        that contains all of the authors that contributed to this version. This string is
+        the section title and is formatted as if it were a category with
+        ``$CHANGELOG_CATEGORY_TITLE_FORMAT``. The default is ``"Authors"``.
+    :$CHANGELOG_AUTHORS_FORMAT: str, this is a format string that formats each author who
+        contributed to this release, if an authors section will be appened. This is
+        evaluated in the context of the authors, see the ``authors`` activity for more
+        details on the available fields. The default is ``"* {name}\n"``.
     """
 
     def __init__(self, *, deps=frozenset()):
@@ -94,20 +84,29 @@ class Changelog(Activity):
               header='.. current developments\n\nv$VERSION\n'
                      '====================\n\n',
               news='news', ignore=None,
-              latest='$REVER_DIR/LATEST', template='TEMPLATE'):
+              latest='$REVER_DIR/LATEST', template='TEMPLATE',
+              categories=DEFAULT_CATEGORIES,
+              category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT,
+              authors_title="Authors",
+              authors_format="* {name}\n"):
         ignore = [template] if ignore is None else ignore
         header = eval_version(header)
         latest = eval_version(latest)
-        merged = self.merge_news(news=news, ignore=ignore)
+        merged = self.merge_news(news=news, ignore=ignore, categories=categories,
+                                 category_title_format=category_title_format)
+        authors = self.generate_authors(title_format=category_title_format,
+                                        title=authors_title, format=authors_format)
         with open(latest, 'w') as f:
             f.write(merged)
-        n = header + merged
+        n = header + merged + authors
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)
 
-    def merge_news(self, news='news', ignore=('TEMPLATE',)):
+    def merge_news(self, news='news', ignore=('TEMPLATE',), categories=DEFAULT_CATEGORIES,
+                   category_title_format=DEFAULT_CATEGORY_TITLE_FORMAT):
         """Reads news files and merges them."""
-        cats = {c: '' for c in NEWS_CATEGORIES}
+        cats = {c: '' for c in categories}
+        news_re = self._news_re(categories, category_title_format)
         files = [os.path.join(news, f) for f in os.listdir(news)
                  if self.keep_file(f, ignore)]
         files.sort()
@@ -115,10 +114,11 @@ class Changelog(Activity):
             with open(fname) as f:
                 raw = f.read()
             raw = raw.strip()
-            parts = NEWS_RE.split(raw)
-            while len(parts) > 0 and parts[0] not in NEWS_CATEGORIES:
+            parts = news_re.split(raw)
+            parts = [part for part in parts if part is not None]
+            while len(parts) > 0 and parts[0] not in categories:
                 parts = parts[1:]
-            for key, val in zip(parts[::2], parts[1::2]):
+            for key, val in zip(parts[::3], parts[1::3]):
                 val = val.strip()
                 if val == '* <news item>' or val == 'None':
                     continue
@@ -126,11 +126,11 @@ class Changelog(Activity):
         for fname in files:
             os.remove(fname)
         s = ''
-        for c in NEWS_CATEGORIES:
+        for c in categories:
             val = cats[c]
             if len(val) == 0:
                 continue
-            s += '**' + c + ':**\n\n' + val + '\n\n'
+            s += self._format_category_title(category_title_format, c) + val + '\n'
         return s
 
     def keep_file(self, filename, ignore):
@@ -143,6 +143,21 @@ class Changelog(Activity):
                 return False
         return True
 
+    def generate_authors(self, title_format, title, format):
+        """Generates author portion of changelog."""
+        if not title or "authors" not in $RUNNING_ACTIVITIES:
+            return ""
+        md = load_metadata($AUTHORS_METADATA)
+        by_email = {x["email"]: x for x in md}
+        with open(eval_version($AUTHORS_LATEST)) as f:
+            emails = json.load(f)
+        lines = [self._format_category_title(title_format, title)]
+        for email in emails:
+            lines.append(format.format(**by_email[email]))
+        lines.append("\n")
+        s = "".join(lines)
+        return s
+
     def setup_func(self):
         """Initializes the changelog activity by starting a news dir, making
         a template file, and starting a changlog file.
@@ -152,6 +167,8 @@ class Changelog(Activity):
         template_file = ${...}.get('CHANGELOG_TEMPLATE', 'TEMPLATE')
         template_file = os.path.join(news, template_file)
         changelog_file = ${...}.get('CHANGELOG_FILENAME', 'CHANGELOG')
+        categories = ${...}.get('CHANGELOG_CATEGORIES', DEFAULT_CATEGORIES)
+        category_title_format = ${...}.get('CHANGELOG_CATEGORY_TITLE_FORMAT', DEFAULT_CATEGORY_TITLE_FORMAT)
         # run saftey checks
         template_exists = os.path.isfile(template_file)
         changelog_exists = os.path.isfile(changelog_file)
@@ -173,10 +190,49 @@ class Changelog(Activity):
                 return False
         # actually create files
         os.makedirs(news, exist_ok=True)
-        with open(template_file, 'w') as f:
-            f.write(NEWS_TEMPLATE)
+        self._generate_template(template_file, categories, category_title_format)
         with open(changelog_file, 'w') as f:
             s = INITIAL_CHANGELOG.format(PROJECT=$PROJECT,
                                          bars='='*(len($PROJECT) + 11))
             f.write(s)
         return True
+
+    def _format_category_title(self, title_format, category):
+        if isinstance(title_format, str):
+            rtn = title_format.format(category=category)
+        elif callable(title_format):
+            rtn = title_format(category=category)
+        else:
+            raise RuntimeError("$CHANGELOG_CATEGORY_TITLE_FORMAT must be "
+                               "string or callable")
+        return rtn
+
+    def _generate_template(self, filename, categories, category_title_format):
+        """Helper function for generating template file."""
+        news_item = "* <news item>\n\n"
+        lines = []
+        for category in categories:
+            lines.append(self._format_category_title(category_title_format, category))
+            lines.append(news_item)
+        s = "".join(lines)
+        with open(filename, 'w') as f:
+            f.write(s)
+
+    # this cannot contain "[" "]" or "\"
+    _regex_special = ".^$*+?(){}|"
+
+    def _news_re(self, categories, category_title_format):
+        """generate parser expression based on categories"""
+        pats = []
+        for category in categories:
+            # start with the formatted title
+            pat = self._format_category_title(category_title_format, category).strip()
+            # escape regex special characters
+            pat = pat.replace("\\", "\\\\").replace("[", r"\[").replace("]", r"\]")
+            for char in self._regex_special:
+                pat = pat.replace(char, "[" + char + "]")
+            # capture category name
+            pat = pat.replace(category, "(" + category + ")")
+            pats.append(pat)
+        p = "(" + ")|(".join(pats) + ")"
+        return re.compile(p, flags=re.DOTALL)

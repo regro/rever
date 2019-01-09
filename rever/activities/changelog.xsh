@@ -96,9 +96,10 @@ class Changelog(Activity):
                                  category_title_format=category_title_format)
         authors = self.generate_authors(title_format=category_title_format,
                                         title=authors_title, format=authors_format)
+        merged += authors
         with open(latest, 'w') as f:
             f.write(merged)
-        n = header + merged + authors
+        n = header + merged
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)
 

@@ -147,9 +147,11 @@ class Changelog(Activity):
         """Generates author portion of changelog."""
         if not title or "authors" not in $RUNNING_ACTIVITIES:
             return ""
-        md = load_metadata($AUTHORS_METADATA)
+        metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
+        latest = ${...}.get('AUTHORS_LATEST', '$REVER_DIR/LATEST-AUTHORS.json')
+        md = load_metadata(metadata)
         by_email = {x["email"]: x for x in md}
-        with open(eval_version($AUTHORS_LATEST)) as f:
+        with open(eval_version(latest)) as f:
             emails = json.load(f)
         lines = [self._format_category_title(title_format, title)]
         for email in emails:

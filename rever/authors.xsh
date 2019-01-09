@@ -39,7 +39,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  email: person@example.com\n"
                     "  alternate_emails:\n"
                     "    - {email}\n"
-                    "\n")
+                    "\n".format(author=author, email=email, filename=filename))
             elif entry["name"] != author and author not in entry.get("aliases", []):
                 msgs.append(
                     "The email {email!r} is associated in version control with "
@@ -51,7 +51,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  aliases:\n"
                     "    - {author}\n\n"
                     "or remove {email} from " + entry["name"] + ".\n"
-                    "\n")
+                    "\n".format(author=author, email=email, filename=filename))
         elif email in by_emails:
             # check that author matches known name
             entry = by_names.get(author, None)
@@ -67,7 +67,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  email: {email}\n"
                     "  aliases:\n"
                     "    - {author}\n"
-                    "\n")
+                    "\n".format(author=author, email=email, filename=filename))
             elif entry["email"] != email and email not in entry.get("alternate_emails", []):
                 msgs.append(
                     "The author {author!r} is associated in version control with "
@@ -79,12 +79,12 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  alternate_emails:\n"
                     "    - {email}\n\n"
                     "or remove {author} from " + entry["email"] + ".\n"
-                    "\n")
+                    "\n".format(author=author, email=email, filename=filename))
     if not msgs:
         # no errors
         return
     # have errors
-    msg = "\n\n----\n\n".join(msgs).format(author=author, email=email, filename=filename).strip()
+    msg = "\n\n----\n\n".join(msgs).strip()
     print(msg, file=sys.stderr)
     raise RuntimeError("Duplicated author/email combos")
 

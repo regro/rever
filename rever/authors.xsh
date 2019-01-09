@@ -51,7 +51,8 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  aliases:\n"
                     "    - {author}\n\n"
                     "or remove {email} from " + entry["name"] + ".\n"
-                    "\n".format(author=author, email=email, filename=filename))
+                    "\n")
+                msgs[-1] = msgs[-1].format(author=author, email=email, filename=filename)
         elif email in by_emails:
             # check that author matches known name
             entry = by_names.get(author, None)
@@ -79,7 +80,8 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                     "  alternate_emails:\n"
                     "    - {email}\n\n"
                     "or remove {author} from " + entry["email"] + ".\n"
-                    "\n".format(author=author, email=email, filename=filename))
+                    "\n")
+                msgs[-1] = msgs[-1].format(author=author, email=email, filename=filename)
     if not msgs:
         # no errors
         return

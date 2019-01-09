@@ -4,6 +4,47 @@ Rever Change Log
 
 .. current developments
 
+v0.3.2
+====================
+
+**Added:**
+
+* New ``'authors'`` activitiy for keeping an author listing and mailmap files
+  up-to-date.
+* New ``rever.authors`` module for managing author metadata and writing
+  mailmap files.
+* New version control (``rever.vcsutils``) functions:
+
+  * ``commits_per_author()``
+  * ``commits_per_email()``
+  * ``first_commit_per_email()``
+* New ``$RELEASE_DATE`` environment variable has been added, which is a
+  ``datetime.date`` object. This defaults to the current date when
+  rever is executed.
+* New ``rever.authors.load_metadata()`` function for loading author
+  metadata.
+
+**Changed:**
+
+* The changelog activity now is now more custmizable, allowing for user-specified
+  categories, custom formatting of the category titles, and the ability to append
+  authors for the current release.
+* A newline between categories in merged news has been removed, reducing
+  the whitespace from two blank lines to one.
+
+**Fixed:**
+
+* Fixed the ``--force`` command line option to rerun on activities
+  and setup.
+* Removed string escape warnings
+
+**Authors:**
+
+* Anthony Scopatz
+* Christopher J. Wright
+
+
+
 v0.3.1
 ====================
 

@@ -4,6 +4,7 @@ import re
 import sys
 import datetime
 import itertools
+from collections import defaultdict
 from collections.abc import Set
 
 from lazyasd import lazyobject
@@ -171,15 +172,26 @@ def _update_github(metadata):
             m = _github_pr_re.match(body)
             if m is None:
                 continue
-            commits_github[commits[0]] = m.group(1)
+            print(commits[0], m.group(1))
+            commits_github[tuple(commits)] = m.group(1)
         else:
             continue
-    emails_github = {}
-    for commit, github in commits_github.items():
-        email = commits_emails.get(commit, None)
-        if email is None:
+    githubs_emails = defaultdict(lambda: defaultdict(int))
+    for (commit0, commit1), github in commits_github.items():
+        email0 = commits_emails.get(commit0, None)
+        email1 = commits_emails.get(commit1, None)
+        if email0 is None and email1 is None:
             continue
+        gh = githubs_emails[github]
+        if email0 is not None:
+            gh[email0] += 1
+        if email1 is not None:
+            gh[email1] += 1
+    emails_github = {}
+    for github, emails in githubs_emails.items():
+        email, _ = max(emails.items(), key=lambda x: x[1])
         emails_github[email] = github
+    print(emails_github)
     for x in metadata:
         if 'github' in x:
             # skip folks that have github ids already

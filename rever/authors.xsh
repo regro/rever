@@ -1,8 +1,10 @@
 """Utilities for dealing with authorship files."""
 import os
+import re
 import sys
 import datetime
 import itertools
+from collections.abc import Set
 
 from lazyasd import lazyobject
 
@@ -84,11 +86,44 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
                 msgs[-1] = msgs[-1].format(author=author, email=email, filename=filename)
     if not msgs:
         # no errors
-        return
+        return True
     # have errors
-    msg = "\n\n----\n\n".join(msgs).strip()
+    msg = "\n----------\n".join(msgs).strip()
     print(msg, file=sys.stderr)
-    raise RuntimeError("Duplicated author/email combos")
+    return False
+
+
+def metadata_is_valid(metadata, emails=None, fields=None):
+    """Returns whether the author metadata is valid."""
+    by_names = {}
+    by_emails = {}
+    for x in metadata:
+        # names
+        by_names[x["name"]] = x
+        by_names.update({a: x for a in x.get('aliases', [])})
+        # emails
+        by_emails[x["email"]] = x
+        by_emails.update({e: x for e in x.get('alternate_emails', [])})
+    status = _verify_names_emails_aliases(metadata, by_names, by_emails, filename):
+    # now check that authors have all the relevant fields
+    if not fields:
+        return status
+    elif not isinstance(fields, Set):
+         fields = set(fields)
+    if emails is None:
+        entries_to_check = y
+    else:
+        if not isinstance(emails, Set):
+            emails = set(emails)
+        entries_to_check = {x for x in metadata if x["email"] in emails}
+    msg = "The author {name} <{email}> is missing the following fields: {missing}"
+    for entry in entries_to_check:
+        missing = fields - set(entry.keys())
+        if len(missing) > 0:
+            print(msg.format(name=entry["name"], email=entry["email"],
+                             missing=", ".join(missing)))
+            status = False
+    return status
 
 
 def load_metadata(filename, return_yaml=False):
@@ -105,6 +140,56 @@ def load_metadata(filename, return_yaml=False):
         return y
 
 
+@lazyobject
+def _github_log_re():
+    return re.compile(r"<REVER-COMMITS>(.*?)<REVER-EMAIL>(.*?)"
+                      r"<REVER-BODY>(.*?)<REVER-END>", flags=re.DOTALL)
+
+
+@lazyobject
+def _github_pr_re():
+    return re.compile(r"Merge pull request [#]\d+ from (\w+)/")
+
+
+def _update_github(metadata)
+    """Guesses GitHub username from git log, if needed."""
+    if 'GITHUB_ORG' not in ${...} and 'GITHUB_REPO' not in ${...}:
+        # not using github
+        return
+    if all(['github' in x for x in metadata]):
+        # all entries have github ids, no need to update.
+        return
+    log = $(git log "--format=<REVER-COMMITS>%P<REVER-EMAIL>%aE<REVER-BODY>%B<REVER-END>")
+    commits_emails = {}
+    commits_github = {}
+    for commits, email, body in _github_log_re.finditer(s):
+        commits = commits.split()
+        if len(commits) == 1:
+            commits_emails[commits[0]] = email
+        elif len(commits) == 2:
+            m = _github_pr_re.match(body)
+            if m is None:
+                continue
+            commits_github[commits[0]] = m.group(1)
+        else:
+            continue
+    emails_github = {}
+    for commit, github in commits_github.items():
+        email = commits_emails.get(commit, None)
+        if email is None:
+            continue
+        emails_github[email] = github
+    for x in metadata:
+        if 'github' in x:
+            # skip folks that have github ids already
+            continue
+        emails = [x["email"]] + x.get("alternate_emails", [])
+        for email in emails:
+            if email in emails_github:
+                x['github'] = emails_github[email]
+                break
+
+
 def update_metadata(filename):
     """Takes a YAML metadata filename and updates it with the current repo
     information, if possible.
@@ -112,16 +197,8 @@ def update_metadata(filename):
     # get the initial YAML
     y, yaml = load_metadata(filename, return_yaml=True)
     # verify names and emails
-    by_names = {}
-    by_emails = {}
-    for x in y:
-        # names
-        by_names[x["name"]] = x
-        by_names.update({a: x for a in x.get('aliases', [])})
-        # emails
-        by_emails[x["email"]] = x
-        by_emails.update({e: x for e in x.get('alternate_emails', [])})
-    _verify_names_emails_aliases(y, by_names, by_emails, filename)
+    if not metadata_is_valid(y):
+        raise RuntimeError("Duplicated author/email combos")
     # update with content
     now = datetime.datetime.now()
     cpe = vcsutils.commits_per_email()
@@ -134,6 +211,8 @@ def update_metadata(filename):
                 fcpe = vcsutils.first_commit_per_email()
             fcs = [fcpe.get(x["email"], now)] + [fcpe.get(a, now) for a in x.get("alternate_emails", [])]
             x["first_commit"] = min(fcs)
+    # add optional fields
+    _update_github(y)
     # write back out
     with open(filename, 'w') as f:
         yaml.dump(y, f)

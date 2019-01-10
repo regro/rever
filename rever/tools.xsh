@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import string
 import getpass
 import hashlib
 import urllib.request
@@ -230,3 +231,10 @@ def user_group(filename, return_ids=False):
         return uname, gname, uid, gid
     else:
         return uname, gname
+
+
+def get_format_field_names(s):
+    """Returns the set of field names in a format string."""
+    formatter = string.Formatter()
+    return {field_name for literal_text, field_name, format_spec, conversion in
+            formatter.parse(s)}

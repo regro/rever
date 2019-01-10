@@ -8,8 +8,9 @@ from xonsh.tools import print_color
 
 from rever import vcsutils
 from rever.activity import Activity
-from rever.tools import eval_version, replace_in_file
-from rever.authors import update_metadata, write_mailmap
+from rever.tools import eval_version, replace_in_file, get_format_field_names
+from rever.authors import (update_metadata, write_mailmap,
+    metadata_is_valid, load_metadata)
 
 
 DEFAULT_TEMPLATE = """All of the people who have made at least one contribution to $PROJECT.
@@ -97,9 +98,11 @@ class Authors(Activity):
     """
 
     def __init__(self, *, deps=frozenset()):
+        requires = {"imports": {"ruamel.yaml": "ruamel.yaml"}}
         super().__init__(name='authors', deps=deps, func=self._func,
                          desc="Manages keeping a contributors listing up-to-date.",
-                         setup=self.setup_func)
+                         setup=self.setup_func, check=self.check_func,
+                         requires=requires)
 
     def _func(self, filename='AUTHORS',
               template=DEFAULT_TEMPLATE,
@@ -184,3 +187,11 @@ class Authors(Activity):
         with open(filename, 'w') as f:
             f.write(s)
         return md
+
+    def check_func(self):
+        """Checks that authors can be run."""
+        format = ${...}.get('AUTHORS_FORMAT', DEFAULT_FORMAT)
+        metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
+        md = load_metadata(metadata)
+        fields = get_format_field_names(format)
+        return metadata_is_valid(metadata_is_valid, fields=fields)

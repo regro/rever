@@ -93,7 +93,7 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
     return False
 
 
-def metadata_is_valid(metadata, emails=None, fields=None):
+def metadata_is_valid(metadata, emails=None, fields=None, filename='the authors file'):
     """Returns whether the author metadata is valid."""
     by_names = {}
     by_emails = {}
@@ -104,7 +104,7 @@ def metadata_is_valid(metadata, emails=None, fields=None):
         # emails
         by_emails[x["email"]] = x
         by_emails.update({e: x for e in x.get('alternate_emails', [])})
-    status = _verify_names_emails_aliases(metadata, by_names, by_emails, filename):
+    status = _verify_names_emails_aliases(metadata, by_names, by_emails, filename)
     # now check that authors have all the relevant fields
     if not fields:
         return status
@@ -151,7 +151,7 @@ def _github_pr_re():
     return re.compile(r"Merge pull request [#]\d+ from (\w+)/")
 
 
-def _update_github(metadata)
+def _update_github(metadata):
     """Guesses GitHub username from git log, if needed."""
     if 'GITHUB_ORG' not in ${...} and 'GITHUB_REPO' not in ${...}:
         # not using github
@@ -162,7 +162,8 @@ def _update_github(metadata)
     log = $(git log "--format=<REVER-COMMITS>%P<REVER-EMAIL>%aE<REVER-BODY>%B<REVER-END>")
     commits_emails = {}
     commits_github = {}
-    for commits, email, body in _github_log_re.finditer(s):
+    for m in _github_log_re.finditer(log):
+        commits, email, body  = m.groups()
         commits = commits.split()
         if len(commits) == 1:
             commits_emails[commits[0]] = email

@@ -194,4 +194,4 @@ class Authors(Activity):
         metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
         md = load_metadata(metadata)
         fields = get_format_field_names(format)
-        return metadata_is_valid(metadata_is_valid, fields=fields)
+        return metadata_is_valid(md, fields=fields, filename=metadata)

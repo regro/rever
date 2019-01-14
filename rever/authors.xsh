@@ -160,6 +160,7 @@ def _update_github(metadata):
     if all(['github' in x for x in metadata]):
         # all entries have github ids, no need to update.
         return
+    # get raw data from log
     log = $(git log "--format=<REVER-COMMITS>%P<REVER-EMAIL>%aE<REVER-BODY>%B<REVER-END>")
     commits_emails = {}
     commits_github = {}
@@ -176,31 +177,53 @@ def _update_github(metadata):
             commits_github[tuple(commits)] = m.group(1)
         else:
             continue
-    githubs_emails = defaultdict(lambda: defaultdict(int))
+    # set-up email mapping
+    by_emails = {}
+    for x in metadata:
+        # emails
+        by_emails[x["email"]] = x
+        by_emails.update({e: x for e in x.get('alternate_emails', [])})
+    # setup 2-SAT problem
+    from rever.sat import Variable, Clause, solve_2sat
+    githubs = {x['github'] for x in metadata if 'github' in x}
+    githubs.update(commits_github.values())
+    known = set()
+    for x in metadata:
+        if 'github' not in x:
+            continue
+        known.add(Variable((x['email'], x['github'])))
+        non_matches = githubs - {x['github']}
+        known.update({Variable((x['email'], nm), assignment=False)
+                      for nm in non_matches})
+    clauses = set()
     for (commit0, commit1), github in commits_github.items():
         email0 = commits_emails.get(commit0, None)
+        email0 = by_emails.get(email0, {'email': None})['email']
         email1 = commits_emails.get(commit1, None)
-        if email0 is None and email1 is None:
+        email1 = by_emails.get(email1, {'email': None})['email']
+        if email0 is None or email1 is None:
             continue
-        gh = githubs_emails[github]
-        if email0 is not None:
-            gh[email0] += 1
-        if email1 is not None:
-            gh[email1] += 1
-    emails_github = {}
-    for github, emails in githubs_emails.items():
-        email, _ = max(emails.items(), key=lambda x: x[1])
-        emails_github[email] = github
+        elif email0 == email1:
+            known.add(Variable((email0, github)))
+            continue
+        a = Variable((email0, github))
+        b = Variable((email1, github))
+        clauses.add(Clause(a, b))
+        clauses.add(Clause(~a, ~b))
+    # solve SAT problems
+    emails_github = solve_2sat(clauses, known=known)
     print(emails_github)
-    for x in metadata:
+    # add github to metadata
+    for var in emails_github:
+        if not var:
+            # skip negative matches
+            continue
+        email, github = var.value
+        x = by_emails[email]
         if 'github' in x:
             # skip folks that have github ids already
             continue
-        emails = [x["email"]] + x.get("alternate_emails", [])
-        for email in emails:
-            if email in emails_github:
-                x['github'] = emails_github[email]
-                break
+        x['github'] = github
 
 
 def update_metadata(filename):

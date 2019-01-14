@@ -37,3 +37,11 @@ def test_solve_2sat_infer():
     exp = {a, ~b, c}
     assert obs == exp
 
+
+def test_solve_2sat_remove_a_or_not_a():
+    a = Variable('a')
+    known = {a}
+    clauses = {Clause(a, ~a)}
+    obs = solve_2sat(clauses, known=known)
+    exp = {a}
+    assert obs == exp

@@ -173,7 +173,6 @@ def _update_github(metadata):
             m = _github_pr_re.match(body)
             if m is None:
                 continue
-            print(commits[0], m.group(1))
             commits_github[tuple(commits)] = m.group(1)
         else:
             continue
@@ -184,7 +183,7 @@ def _update_github(metadata):
         by_emails[x["email"]] = x
         by_emails.update({e: x for e in x.get('alternate_emails', [])})
     # setup 2-SAT problem
-    from rever.sat import Variable, Clause, solve_2sat
+    from rever.sat import Variable, Clause, solve_2sat, _format_clauses_known
     githubs = {x['github'] for x in metadata if 'github' in x}
     githubs.update(commits_github.values())
     known = set()
@@ -211,8 +210,12 @@ def _update_github(metadata):
         clauses.add(Clause(a, b))
         clauses.add(Clause(~a, ~b))
     # solve SAT problems
-    emails_github = solve_2sat(clauses, known=known)
-    print(emails_github)
+    remaining, emails_github = solve_2sat(clauses, known=known, always_return=True)
+    if len(remaining) > 0:
+        msg = "Not enough information to determine github identifiers!\n"
+        msg += _format_clauses_known(remaining, {k for k in emails_github if k})
+        raise RuntimeError(msg)
+    #print(emails_github)
     # add github to metadata
     for var in emails_github:
         if not var:

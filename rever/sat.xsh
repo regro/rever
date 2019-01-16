@@ -136,11 +136,10 @@ def _solve_2sat(clauses, known=None, _last_clauses=None):
     # check contraditions in known
     try:
         _check_contraditions(known)
-    except RecursionError as e:
+    except (RecursionError, ValueError) as e:
         e.clauses = clauses
         e.known = known
-        print(_format_clauses_known(clauses, known), file=sys.stderr)
-        raise from e
+        raise e
     if len(clauses) == 0:
         return clauses, known
     # update from true clauses
@@ -202,7 +201,7 @@ def solve_2sat(clauses, known=None, always_return=False):
             return (e.clauses, e.known)
         else:
             raise from e
-    except RuntimeError as e:
+    except (RecursionError, RuntimeError, ValueError) as e:
         if always_return:
             return (e.clauses, e.known)
         else:

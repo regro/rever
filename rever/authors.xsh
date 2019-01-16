@@ -143,7 +143,7 @@ def load_metadata(filename, return_yaml=False):
 
 @lazyobject
 def _github_log_re():
-    return re.compile(r"<REVER-COMMITS>(.*?)<REVER-EMAIL>(.*?)"
+    return re.compile(r"<REVER-COMMIT>(.*?)<REVER-PARENTS>(.*?)<REVER-EMAIL>(.*?)"
                       r"<REVER-BODY>(.*?)<REVER-END>", flags=re.DOTALL)
 
 
@@ -152,30 +152,57 @@ def _github_pr_re():
     return re.compile(r"Merge pull request [#]\d+ from (\w+)/")
 
 
+def _get_data_from_log(commits_emails=None, commits_github=None, refs='HEAD'):
+    fmt = ("--format=<REVER-COMMIT>%H<REVER-PARENTS>%P"
+           "<REVER-EMAIL>%aE<REVER-BODY>%B<REVER-END>")
+    log = $(git log --sparse --full-history @(fmt) @(refs))
+    all_commits = set()
+    commits_emails = {} if commits_emails is None else commits_emails
+    commits_github = {} if commits_github is None else commits_github
+    for m in _github_log_re.finditer(log):
+        commit, parents, email, body  = m.groups()
+        parents = parents.split()
+        all_commits.add(commit)
+        all_commits.update(parents)
+        commits_emails[commit] = email
+        if len(parents) == 2:
+            m = _github_pr_re.match(body)
+            if m is None:
+                continue
+            ghuser = m.group(1)
+            if ghuser == $GITHUB_ORG:
+                # PR came from a branch on the main repo
+                # or a form from within the org, not a user's fork.
+                continue
+            commits_github[tuple(parents)] = ghuser
+        else:
+            continue
+    needed_commits = set()#commits_emails.keys()) - all_commits
+    for (commit0, commit1), github in commits_github.items():
+        email0 = commits_emails.get(commit0, None)
+        if email0 is None:
+            needed_commits.add(commit0)
+        email1 = commits_emails.get(commit1, None)
+        if email1 is None:
+            needed_commits.add(commit1)
+    if len(needed_commits) == 0:
+        return commits_emails, commits_github
+    else:
+        return _get_data_from_log(commits_emails=commits_emails,
+                                  commits_github=commits_github,
+                                  refs=list(needed_commits))
+
+
 def _update_github(metadata):
     """Guesses GitHub username from git log, if needed."""
-    if 'GITHUB_ORG' not in ${...} and 'GITHUB_REPO' not in ${...}:
+    if 'GITHUB_ORG' not in ${...}:
         # not using github
         return
     if all(['github' in x for x in metadata]):
         # all entries have github ids, no need to update.
         return
     # get raw data from log
-    log = $(git log "--format=<REVER-COMMITS>%P<REVER-EMAIL>%aE<REVER-BODY>%B<REVER-END>")
-    commits_emails = {}
-    commits_github = {}
-    for m in _github_log_re.finditer(log):
-        commits, email, body  = m.groups()
-        commits = commits.split()
-        if len(commits) == 1:
-            commits_emails[commits[0]] = email
-        elif len(commits) == 2:
-            m = _github_pr_re.match(body)
-            if m is None:
-                continue
-            commits_github[tuple(commits)] = m.group(1)
-        else:
-            continue
+    commits_emails, commits_github = _get_data_from_log()
     # set-up email mapping
     by_emails = {}
     for x in metadata:
@@ -203,7 +230,6 @@ def _update_github(metadata):
         if email0 is None or email1 is None:
             continue
         elif email0 == email1:
-            known.add(Variable((email0, github)))
             continue
         a = Variable((email0, github))
         b = Variable((email1, github))
@@ -214,8 +240,10 @@ def _update_github(metadata):
     if len(remaining) > 0:
         msg = "Not enough information to determine github identifiers!\n"
         msg += _format_clauses_known(remaining, {k for k in emails_github if k})
+        known_githubs = {k.value[1] for k in emails_github if k}
+        unknown_githubs = githubs - known_githubs
+        msg += "\n\nPlease assign:\n\n* " + "\n* ".join(sorted(unknown_githubs))
         raise RuntimeError(msg)
-    #print(emails_github)
     # add github to metadata
     for var in emails_github:
         if not var:
@@ -229,7 +257,7 @@ def _update_github(metadata):
         x['github'] = github
 
 
-def update_metadata(filename):
+def update_metadata(filename, write=True):
     """Takes a YAML metadata filename and updates it with the current repo
     information, if possible.
     """
@@ -253,8 +281,9 @@ def update_metadata(filename):
     # add optional fields
     _update_github(y)
     # write back out
-    with open(filename, 'w') as f:
-        yaml.dump(y, f)
+    if write:
+        with open(filename, 'w') as f:
+            yaml.dump(y, f)
     return y
 
 

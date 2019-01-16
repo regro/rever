@@ -237,4 +237,4 @@ def get_format_field_names(s):
     """Returns the set of field names in a format string."""
     formatter = string.Formatter()
     return {field_name for literal_text, field_name, format_spec, conversion in
-            formatter.parse(s)}
+            formatter.parse(s) if field_name is not None}

@@ -112,7 +112,7 @@ def metadata_is_valid(metadata, emails=None, fields=None, filename='the authors 
     elif not isinstance(fields, Set):
          fields = set(fields)
     if emails is None:
-        entries_to_check = y
+        entries_to_check = metadata
     else:
         if not isinstance(emails, Set):
             emails = set(emails)
@@ -120,6 +120,7 @@ def metadata_is_valid(metadata, emails=None, fields=None, filename='the authors 
     msg = "The author {name} <{email}> is missing the following fields: {missing}"
     for entry in entries_to_check:
         missing = fields - set(entry.keys())
+        missing.discard(None)
         if len(missing) > 0:
             print(msg.format(name=entry["name"], email=entry["email"],
                              missing=", ".join(missing)))
@@ -237,11 +238,32 @@ def _update_github(metadata):
         clauses.add(Clause(~a, ~b))
     # solve SAT problems
     remaining, emails_github = solve_2sat(clauses, known=known, always_return=True)
-    if len(remaining) > 0:
-        msg = "Not enough information to determine github identifiers!\n"
-        msg += _format_clauses_known(remaining, {k for k in emails_github if k})
+    known_githubs = {k.value[1] for k in emails_github if k}
+    unknown_githubs = githubs - known_githubs
+    if len(remaining) > 0 and len(unknown_githubs) > 0:
+        # guess based on names, emails, and aliases
+        # this is too dangerous to do before the first SAT solve
+        by_aliases = {}
+        for x in metadata:
+            by_aliases[x['name'].lower()] = x
+            by_aliases[x['email'].partition('@')[0].lower()] = x
+            by_aliases.update({a.lower(): x for a in x.get('aliases', ())})
+            by_aliases.update({a.partition('@')[0].lower(): x for a in x.get('alternate_emails', ())})
+        guessed = {g for g in unknown_githubs if g.lower() in by_aliases}
+        for g in guessed:
+            x = by_aliases[g.lower()]
+            if 'github' in x:
+                continue
+            known.add(Variable((x['email'], g)))
+            non_matches = githubs - {g}
+            known.update({Variable((x['email'], nm), assignment=False)
+                          for nm in non_matches})
+        remaining, emails_github = solve_2sat(remaining, known=known, always_return=True)
         known_githubs = {k.value[1] for k in emails_github if k}
         unknown_githubs = githubs - known_githubs
+    if len(remaining) > 0 and len(unknown_githubs) > 0:
+        msg = "Not enough information to determine github identifiers!\n"
+        msg += _format_clauses_known(remaining, {k for k in emails_github if k})
         msg += "\n\nPlease assign:\n\n* " + "\n* ".join(sorted(unknown_githubs))
         raise RuntimeError(msg)
     # add github to metadata

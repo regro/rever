@@ -50,6 +50,7 @@ list of mappings as follows:
 
     # optional fields
       github: bcup
+      is_org: False
       aliases:
         - Buttercup
         - beecup
@@ -66,6 +67,11 @@ list of mappings as follows:
         - Dread Pirate Roberts
       alternate_emails:
         - dpr@pirates.biz
+    - name: Florin
+      email: help@florin.gov
+      github: florin
+      is_org: True
+
 
 Feel free to edit this file as much as you want, especially for ``aliases``
 and ``alternate_email``. It is the source of all downstream information.

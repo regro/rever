@@ -152,14 +152,18 @@ class Activity:
 
     def check_requirements(self):
         """Checks that an activities requirements are actually available."""
+        orig = $RAISE_SUBPROC_ERROR
+        $RAISE_SUBPROC_ERROR = False
         msgs = []
         # First check the implicit dependncy of the version control.
+        p = !(which $REVER_VCS)
         if $REVER_VCS is None or $REVER_VCS == "None":
             pass
-        elif not !(which $REVER_VCS):
+        elif not p:
+            import pdb; pdb.set_trace()
             msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
                         '{YELLOW}' + $REVER_VCS + '{NO_COLOR} cannot be found. '
-                        'Please make sure that the {INTENSE_CYAN}' + $REVER_VCS + '{NO_COLOR}'
+                        'Please make sure that the {INTENSE_CYAN}' + $REVER_VCS + '{NO_COLOR} '
                         'package is installed in your environment.')
         # now check CLI availability
         for cmd, pkg in self.requires.get("commands", {}).items():
@@ -177,7 +181,7 @@ class Activity:
             except ImportError:
                 pass
             msgs.append('{RED}ERROR:{NO_COLOR} the module '
-                        '{YELLOW}' + mod + '{NO_COLOR} cannot be found. '
+                        '{YELLOW}' + mod + '{NO_COLOR} cannot be imported. '
                         'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR}'
                         'package is installed in your environment.')
         # print mesages and return
@@ -188,6 +192,7 @@ class Activity:
             msg = "\n{INTENSE_WHITE}----------{NO_COLOR}\n".join(msgs)
             status = False
         print_color(msg)
+        $RAISE_SUBPROC_ERROR = orig
         return status
 
     @property

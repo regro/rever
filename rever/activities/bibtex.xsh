@@ -3,14 +3,17 @@ import datetime
 import os
 
 from xonsh.tools import expand_path
+from lazyasd import lazyobject
 
 from rever import vcsutils
 from rever.activity import Activity
 from rever.tools import render_authors
-try:
-    import bibtexparser
-except ImportError:
-    bibtexparser = None
+
+
+@lazyobject
+def bibtexparser():
+    import bibtexparser as b
+    return b
 
 
 class BibTex(Activity):
@@ -38,15 +41,14 @@ class BibTex(Activity):
 
     def __init__(self, *, deps=frozenset(('version_bump', )),
                  ):
+        requires = {"imports": {"bibtexparser": "bibtexparser"}}
         super().__init__(name='bibtex', deps=deps, func=self._func,
-                         desc="Write BibTex file for version")
+                         desc="Write BibTex file for version", requires=requires)
 
     def _func(self, bibfile='bibtex.bib', project_name='$PROJECT', authors=(),
               url='$WEBSITE_URL'):
         project_name = expand_path(project_name)
         url = expand_path(url)
-        if bibtexparser is None:
-            return None
         if os.path.exists(bibfile):
             with open(bibfile) as bibtex_file:
                 bibtex_str = bibtex_file.read()

@@ -1,5 +1,6 @@
 from rever.activity import Activity
 
+
 class Command(Activity):
     """Runs a command
 
@@ -11,7 +12,7 @@ class Command(Activity):
        :func:`rever.activities.command.command` function.
 
     """
-    def __init__(self, name, command, undo_command=None, **kwargs):
+    def __init__(self, name, command, undo_command=None, requires=None, **kwargs):
         """
         Parameters
         ----------
@@ -21,10 +22,13 @@ class Command(Activity):
             The command to be run. Should be a valid xonsh command.
         undo_command : str, optional
             Command to undo the activity. Should be a valid xonsh command.
+        requires : dict or None, optional
+            The requirements for this command.
         """
         self.command = command
         self.undo_command = undo_command
-        super().__init__(name=name, func=self._func, undo=self._undo, **kwargs)
+        super().__init__(name=name, func=self._func, undo=self._undo,
+                         requires=requires, **kwargs)
 
     def _func(self):
         print('Running command {command!r}'.format(command=self.command))
@@ -35,7 +39,8 @@ class Command(Activity):
             print("Running undo command {undo_command!r}".format(undo_command=self.undo_command))
             evalx(self.undo_command)
 
-def command(name, command, undo_command=None, **kwargs):
+
+def command(name, command, undo_command=None, requires=None, **kwargs):
     """Create a command activity
 
     Parameters
@@ -46,6 +51,8 @@ def command(name, command, undo_command=None, **kwargs):
         The command to be run. Should be a valid xonsh command.
     undo_command : str, optional
         Command to undo the activity. Should be a valid xonsh command.
+    requires : dict or None, optional
+        The requirements for this command.
 
     Examples
     --------
@@ -59,5 +66,6 @@ def command(name, command, undo_command=None, **kwargs):
         $ACTIVITIES = ['mycommand']
 
     """
-    command = Command(name, command, undo_command=undo_command, **kwargs)
+    command = Command(name, command, undo_command=undo_command,
+                      requires=requires, **kwargs)
     $DAG[name] = command

@@ -1,8 +1,10 @@
 """Some version control utilities for rever"""
+import os
 import re
 import datetime
 
 from lazyasd import lazyobject
+from xonsh.lib.os import rmtree, indir
 
 
 def make_vcs_dispatcher(vcsfuncs, name='vcs_dispatcher',
@@ -280,3 +282,27 @@ first_commit_per_email = make_vcs_dispatcher({'git': git_first_commit_per_email}
     name='first_commit_per_email',
     doc="Returns a dictionary mapping emails to the datetime of its first commit",
     err='no way to compute the email first commits from {!r}')
+
+
+def git_have_push_permissions(remote):
+    """Checks that we have push permission to a remote repository."""
+    tempd = os.path.join($REVER_DIR, 'git-have-push-perm')
+    if os.path.exists(tempd):
+        rmtree(tempd, force=True)
+    ![git init @(tempd)]
+    with indir(tempd):
+        try:
+            ![git checkout -b __rever__]
+            ![git commit --allow-empty -m 'Checking rever permissions']
+            ![git push --force @(remote) __rever__:__rever__]
+            ![git push --force @(remote) :__rever__]
+        except Exception:
+            return False
+    rmtree(tempd, force=True)
+    return True
+
+
+have_push_permissions = make_vcs_dispatcher({'git': git_have_push_permissions},
+    name='have_push_permissions',
+    doc="Checks that we have push permission to a remote repository.",
+    err='Cannot tell if we have push permisions from {!r}')

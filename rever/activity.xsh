@@ -160,7 +160,6 @@ class Activity:
         if $REVER_VCS is None or $REVER_VCS == "None":
             pass
         elif not p:
-            import pdb; pdb.set_trace()
             msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
                         '{YELLOW}' + $REVER_VCS + '{NO_COLOR} cannot be found. '
                         'Please make sure that the {INTENSE_CYAN}' + $REVER_VCS + '{NO_COLOR} '
@@ -186,7 +185,8 @@ class Activity:
                         'package is installed in your environment.')
         # print mesages and return
         if len(msgs) == 0:
-            msg = '{PURPLE}All requirements met for ' + self.name + ' activity{NO_COLOR}'
+            msg = ('{PURPLE}All CLI and import requirements met for ' +
+                   self.name + ' activity{NO_COLOR}')
             status = True
         else:
             msg = "\n{INTENSE_WHITE}----------{NO_COLOR}\n".join(msgs)

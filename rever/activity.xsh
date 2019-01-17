@@ -286,8 +286,8 @@ class DockerActivity(Activity):
     __xonsh_block__ = str
 
     def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None,
-                 desc=None, image=None, lang='xonsh', run_args=('-c',),
-                 code=None, env=True, mounts=()):
+                 requires=None, check=None, desc=None, image=None, lang='xonsh',
+                 run_args=('-c',), code=None, env=True, mounts=()):
         """
         Parameters
         ----------
@@ -301,6 +301,24 @@ class DockerActivity(Activity):
             (called).  The default _func method is good enough for most cases.
         undo : callable, optional
             Function to undo this activities behaviour and reset the repo state.
+        check : callable, optional
+            Function to check if the activity can be run sucessfully on the
+            user's machine, with their credentials, etc. This function
+            should return True if the activity can be run, and False otherwise.
+        requires : dict or None, optional
+            A dict of dicts of the following form that specifies the command line
+            utility and import requirements for this activity.
+
+            .. code-block:: python
+
+                {
+                    "commands": {"<cli name>": "<package name>", ...}
+                    "imports": {"<module name>": "<package name>", ...}
+                }
+
+            The top-level keys are both optional, and this will default
+            to an empty dict.  The docker command will be automatically
+            added to the commands dict.
         desc : str, optional
             A short description of this activity
         image : str or None, optional
@@ -327,8 +345,14 @@ class DockerActivity(Activity):
             does not mount anything.
 
         """
+        if requires is None:
+            requires = {"commands": {"docker": "docker"}}
+        elif "commands" not in requires:
+            requires["commands"] = {"docker": "docker"}
+        elif "docker" not in requires["commands"]:
+            requires["commands"]["docker"] = "docker"
         super().__init__(name=name, deps=deps, func=func or self._func,
-                         undo=undo, desc=desc)
+                         undo=undo, check=check, requires=requires, desc=desc)
         self.image = image
         self.lang = lang
         self.run_args = run_args

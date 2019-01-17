@@ -6,12 +6,14 @@ import hashlib
 from functools import wraps
 from getpass import getpass
 
-try:
-  import github3
-except ImportError:
-  github3 = None
-
+from lazyasd import lazyobject
 from xonsh.tools import print_color
+
+
+@lazyobject
+def github3():
+    import github3 as gh3
+    return gh3
 
 
 def ensure_github(f):

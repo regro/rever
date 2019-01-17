@@ -131,7 +131,7 @@ class CondaForge(Activity):
     """
 
     def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
-        requires = {"imports": {"github3.exceptions": "github3"}}
+        requires = {"imports": {"github3.exceptions": "github3.py"}}
         super().__init__(name='conda_forge', deps=deps, func=self._func,
                          desc="Updates conda-forge feedstocks",
                          requires=requires, check=self.check_func)
@@ -226,12 +226,4 @@ class CondaForge(Activity):
 
     def check_func(self):
         """Checks that we can login"""
-        try:
-            gh, username = github.login(return_username=True)
-        except Exception as e:
-            print_color("{RED}Unable to login to GitHub{NO_COLOR}\n", file=sys.stderr)
-            print(str(e), file=sys.stderr)
-            return False
-        print_color("GitHub login as {GREEN}" + username + "{NO_COLOR} works!",
-                    file=sys.stderr)
-        return True
+        return github.can_login()

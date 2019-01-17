@@ -15,7 +15,7 @@ class Nose(DockerActivity):
     def __init__(self):
         super().__init__(name='nose', deps=frozenset(), func=self._func,
                          desc="Runs nose inside of a docker container",
-                         lang='sh', code='nosetests')
+                         lang='sh', code='nosetests', check=self.check_func)
 
     def _func(self, command='nosetests', args=()):
         code = command
@@ -23,3 +23,9 @@ class Nose(DockerActivity):
             code += ' '
             code += args if isinstance(args, str) else ' '.join(args)
         super()._func(code=code)
+
+    def check_func(self):
+        """Check that the actual nose command exists"""
+        command = ${...}.get('NOSE_COMMAND', 'nosetests')
+        self.requires = {"commands": {command: "nose"}}
+        return self.check_requirements()

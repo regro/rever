@@ -5,6 +5,7 @@ from rever import vcsutils
 from rever.activity import Activity
 from rever.tools import eval_version
 
+
 PROTOCOLS = {
     'http': 'http://github.com/',
     'https': 'https://github.com/',
@@ -35,9 +36,9 @@ class PushTag(Activity):
 
     def __init__(self, *, deps=frozenset(('tag', ))):
         super().__init__(name='push_tag', deps=deps, func=self._func,
-                         desc="Tags the current version.")
+                         desc="Tags the current version.", check=self.check_func)
 
-    def _func(self, remote=None, target=None, protocol=None):
+    def _find_remote(self, remote=None, protocol=None):
         if remote is None:
             # Pull from the org and repo
             org = ${...}.get('GITHUB_ORG', None)
@@ -60,6 +61,10 @@ class PushTag(Activity):
                 raise ValueError('tag remote cannot be None to push up tags, '
                                  'try setting $TAG_REMOTE or $GITHUB_ORG and '
                                  '$GITHUB_REPO in rever.xsh')
+        return remote
+
+    def _func(self, remote=None, target=None, protocol=None):
+        remote = self._find_remote(remote=remote, protocol=protocol)
         if target is None:
             target = vcsutils.current_branch()
         vcsutils.push(remote, target)
@@ -69,19 +74,17 @@ class PushTag(Activity):
         """Undoes the tagging operation."""
         kwargs = self.all_kwargs()
         remote = kwargs.get('remote', None)
-        if remote is None:
-            org = ${...}.get('GITHUB_ORG', None)
-            repo = ${...}.get('GITHUB_REPO', None)
-            if org and repo:
-                remote = 'git@github.com:{org}/{repo}.git'.format(org=org,
-                                                                  repo=repo)
-            else:
-                raise ValueError('push tag remote cannot be None to remove remote '
-                                 'tags, try setting $PUSH_TAG_REMOTE or '
-                                 '$GITHUB_ORG and $GITHUB_REPO in rever.xsh')
+        protocol = kwargs.get('protocol', None)
+        remote = self._find_remote(remote=remote, protocol=protocol)
         template = ${...}.get('TAG_TEMPLATE', '$VERSION')
         tag = eval_version(template)
 
         vcsutils.del_remote_tag(tag, remote)
         msg = 'Removed remote tag {0!r}'.format(tag)
         log -a @(self.name) -c activity-undo @(msg)
+
+    def check_func(self):
+        remote = ${...}.get('PUSH_TAG_REMOTE', None)
+        protocol = ${...}.get('PUSH_TAG_PROTOCOL', None)
+        remote = self._find_remote(remote=remote, protocol=protocol)
+        return vcsutils.have_push_permissions

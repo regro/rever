@@ -6,12 +6,17 @@ import hashlib
 from functools import wraps
 from getpass import getpass
 
-try:
-  import github3
-except ImportError:
-  github3 = None
-
+from lazyasd import lazyobject
 from xonsh.tools import print_color
+
+
+@lazyobject
+def github3():
+    try:
+        import github3 as gh3
+    except ImportError:
+        gh3 = None
+    return gh3
 
 
 def ensure_github(f):
@@ -130,6 +135,19 @@ def login(credfile=None, return_username=False):
         return gh, username
     else:
         return gh
+
+
+def can_login():
+    """Checks that we can login to GitHub"""
+    try:
+        gh, username = github.login(return_username=True)
+    except Exception as e:
+        print_color("{RED}Unable to login to GitHub{NO_COLOR}\n", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return False
+    print_color("GitHub login as {GREEN}" + username + "{NO_COLOR} works!",
+                file=sys.stderr)
+    return True
 
 
 def authorizations(gh, number=-1, etag=None):

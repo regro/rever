@@ -8,8 +8,9 @@ from xonsh.tools import print_color
 
 from rever import vcsutils
 from rever.activity import Activity
-from rever.tools import eval_version, replace_in_file
-from rever.authors import update_metadata, write_mailmap
+from rever.tools import eval_version, replace_in_file, get_format_field_names
+from rever.authors import (update_metadata, write_mailmap,
+    metadata_is_valid, load_metadata)
 
 
 DEFAULT_TEMPLATE = """All of the people who have made at least one contribution to $PROJECT.
@@ -67,6 +68,7 @@ class Authors(Activity):
 
               # optional fields
               github: bcup
+              is_org: False
               aliases:
                 - Buttercup
                 - beecup
@@ -83,6 +85,10 @@ class Authors(Activity):
                 - Dread Pirate Roberts
               alternate_emails:
                 - dpr@pirates.biz
+            - name: Florin
+              email: help@florin.gov
+              github: florin
+              is_org: True
 
     :$AUTHORS_SORTBY: str, flag that specifies how authors should be sorted in
         the authors file. Valid options are:
@@ -90,6 +96,8 @@ class Authors(Activity):
         * ``"num_commits"``: Number of commits per author
         * ``"first_commit"``: Sort by first commit.
         * ``"alpha"``: Alphabetically.
+    :$AUTHORS_INCLUDE_ORGS: bool, Whether or not to include organizations in
+        the authors file, defaults to False.
     :$AUTHORS_MAILMAP: str, bool, or None, If this is a non-empty string,
         it will be interperted as a file path to a mailmap file that will be
         generated based on the metadata provided. The default value is  ``".mailmap"``.
@@ -97,9 +105,11 @@ class Authors(Activity):
     """
 
     def __init__(self, *, deps=frozenset()):
+        requires = {"imports": {"ruamel.yaml": "ruamel.yaml"}}
         super().__init__(name='authors', deps=deps, func=self._func,
                          desc="Manages keeping a contributors listing up-to-date.",
-                         setup=self.setup_func)
+                         setup=self.setup_func, check=self.check_func,
+                         requires=requires)
 
     def _func(self, filename='AUTHORS',
               template=DEFAULT_TEMPLATE,
@@ -107,18 +117,23 @@ class Authors(Activity):
               latest='$REVER_DIR/LATEST-AUTHORS.json',
               metadata='.authors.yml',
               sortby="num_commits",
+              include_orgs=False,
               mailmap='.mailmap',
               ):
         latest = eval_version(latest)
         # Update authors file
-        md = self._update_authors(filename, template, format, metadata, sortby)
+        md = self._update_authors(filename, template, format, metadata, sortby,
+                                  include_orgs)
         files = [filename, metadata]
         print_color('{YELLOW}wrote authors to {INTENSE_CYAN}' + filename + '{NO_COLOR}', file=sys.stderr)
         # write latest authors
         prev_version = vcsutils.latest_tag()
         commits_since_last = vcsutils.commits_per_email(since=prev_version)
         emails_since_last = set(commits_since_last.keys())
-        latest_authors = [x["email"] for x in md
+        latest_authors = md
+        if not include_orgs:
+            md = [x for x in latest_authors if not x.get("is_org", False)]
+        latest_authors = [x["email"] for x in latest_authors
                           if len(set([x["email"]] + x.get("alternate_emails", [])) & emails_since_last) > 0]
         with open(latest, 'w') as f:
             json.dump(latest_authors, f)
@@ -146,6 +161,7 @@ class Authors(Activity):
         format = ${...}.get('AUTHORS_FORMAT', DEFAULT_FORMAT)
         metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
         sortby = ${...}.get('AUTHORS_SORTBY', 'num_commits')
+        include_orgs = ${...}.get('AUTHORS_INCLUDE_ORGS', False)
         mailmap = ${...}.get('AUTHORS_MAILMAP', '.mailmap')
         # run saftey checks
         filename_exists = os.path.isfile(filename)
@@ -167,20 +183,40 @@ class Authors(Activity):
                             file=sys.stderr)
                 return False
         # actually create files
-        md = self._update_authors(filename, template, format, metadata, sortby)
+        md = self._update_authors(filename, template, format, metadata, sortby,
+                                  include_orgs)
         if mailmap and isinstance(mailmap, str):
             mailmap = eval_version(mailmap)
             write_mailmap(md, mailmap)
         return True
 
-    def _update_authors(self, filename, template, format, metadata, sortby):
-        """helper fucntion for updating / writing authors file"""
+    def _update_authors(self, filename, template, format, metadata, sortby, include_orgs):
+        """helper function for updating / writing authors file"""
         md = update_metadata(metadata)
         template = eval_version(template)
         sorting_key, sorting_text = SORTINGS[sortby]
         md = sorted(md, key=sorting_key)
+        if not include_orgs:
+            md = [x for x in md if not x.get("is_org", False)]
         aformated = "".join([format.format(**x) for x in md])
         s = template.format(sorting_text=sorting_text, authors=aformated) + "\n"
         with open(filename, 'w') as f:
             f.write(s)
         return md
+
+    def check_func(self):
+        """Checks that authors can be run."""
+        format = ${...}.get('AUTHORS_FORMAT', DEFAULT_FORMAT)
+        metadata = ${...}.get('AUTHORS_METADATA', '.authors.yml')
+        md = load_metadata(metadata)
+        fields = get_format_field_names(format)
+        # first check validity
+        if not metadata_is_valid(md, fields=fields, filename=metadata):
+            return False
+        # now check that we can update
+        res = True
+        try:
+            update_metadata(metadata, write=False, check=False)
+        except Exception:
+            res = False
+        return True

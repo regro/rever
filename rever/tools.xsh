@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import string
 import getpass
 import hashlib
 import urllib.request
@@ -208,6 +209,18 @@ def hash_url(url, hash='sha256', quiet=False):
     return hasher.hexdigest()
 
 
+def download_bytes(url, **kwargs):
+    """Gets the bytes from a URL"""
+    return b"".join([b for b in stream_url_progress(url, **kwargs)])
+
+
+def download(url, encoding=None, errors=None, **kwargs):
+    """Gets a URL in a given encoding."""
+    encoding = $XONSH_ENCODING if encoding is None else encoding
+    errors = $XONSH_ENCODING_ERRORS if errors is None else errors
+    return download_bytes(url, **kwargs).decode(encoding=encoding, errors=errors)
+
+
 def user_group(filename, return_ids=False):
     """Returns the user and group name for a file, and optionally ids too.
     returns (user_name, group_name) if return_ids is False. If True, returns
@@ -230,3 +243,10 @@ def user_group(filename, return_ids=False):
         return uname, gname, uid, gid
     else:
         return uname, gname
+
+
+def get_format_field_names(s):
+    """Returns the set of field names in a format string."""
+    formatter = string.Formatter()
+    return {field_name for literal_text, field_name, format_spec, conversion in
+            formatter.parse(s) if field_name is not None}

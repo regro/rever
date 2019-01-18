@@ -1,5 +1,6 @@
 """Activities for building and uploading to Dockerfiles."""
 import os
+import sys
 
 from xonsh.tools import expand_path, print_color
 
@@ -25,8 +26,9 @@ class DockerBuild(Activity):
     """
 
     def __init__(self, *, deps=frozenset()):
+        requires = {"commands": {"docker": "docker"}}
         super().__init__(name='docker_build', deps=deps, func=self._func,
-                         desc="Builds a Dockerfile.")
+                         desc="Builds a Dockerfile.", requires=requires)
 
     def _func(self, path=None, context=None, tags=None, cache=False):
         # get defaults
@@ -67,13 +69,59 @@ class DockerPush(Activity):
     """
 
     def __init__(self, *, deps=frozenset()):
+        requires = {"commands": {"docker": "docker"}}
         super().__init__(name='docker_push', deps=deps, func=self._func,
-                         desc="Pushed a Dockerfile.")
+                         desc="Pushed a Dockerfile.", requires=requires,
+                         check=self.check_func)
 
-    def _func(self, tags=None):
+    def _expand_tags(self, tags):
         tags = $DOCKERFILE_TAGS if tags is None else tags
         tags = list(map(expand_path, tags))
+        return tags
+
+    def _func(self, tags=None):
+        tags = self._expand_tags(tags)
         # get args
         args = []
         for tag in tags:
             ![docker push @(tag)]
+
+    def check_func(self):
+        """Checks that we can push a docker container"""
+        import json
+        import uuid
+        import tempfile
+        tags = ${...}.get('DOCKER_PUSH_TAGS', None)
+        tags = self._expand_tags(tags)
+        # There is no Docker API for checking that we have push
+        # permissions. So instead, let's build a tiny image and
+        # push it to a special rever tag.
+        bases = {tag.rpartition(":")[0] for tag in tags}
+        tags = [base + ":__rever__" for base in bases]
+        data = {
+            "tags": tags,
+            "user": $REVER_USER,
+            "check_id": str(uuid.uuid4()),
+            }
+        df = ("FROM scratch\n"
+              "ADD rever.json /\n")
+        print("Docker push check-id: {check_id}\nDocker push tags: {tags}".format(**data),
+              file=sys.stderr)
+        with tempfile.TemporaryDirectory() as d, indir(d):
+            with open('Dockerfile', 'w') as f:
+                f.write(df)
+            with open('rever.json', 'w') as f:
+                json.dump(data, f)
+            args = []
+            for tag in tags:
+                args.extend(['-t', tag])
+            ![docker build @(args) .]
+        # now try to push the tags
+        for tag in tags:
+            try:
+                ![docker push @(tag)]
+            except Exception:
+                print_color("{RED}Check failure!{NO_COLOR} Cannot push to docker " +
+                            tag.rpartition(":")[0], file=sys.stderr)
+                return False
+        return True

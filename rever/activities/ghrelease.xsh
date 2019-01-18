@@ -83,8 +83,10 @@ class GHRelease(Activity):
     """
 
     def __init__(self):
+        requires = {"imports": {"github3": "github3.py"}}
         super().__init__(name='ghrelease', deps=frozenset(), func=self._func,
-                         desc="Performs a GitHub release")
+                         desc="Performs a GitHub release", requires=requires,
+                         check=self.check_func)
 
     def _func(self, name='$VERSION', notes=None, prepend='', append='',
               assets=(git_archive_asset,)):
@@ -121,3 +123,6 @@ class GHRelease(Activity):
         name = os.path.basename(filename)
         content_type = mimetypes.guess_type(name, strict=False)[0]
         release.upload_asset(content_type, name, asset)
+
+    def check_func(self):
+        return github.can_login()

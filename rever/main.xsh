@@ -29,6 +29,8 @@ def PARSER():
                    dest='force', help='Forces rever actions which might otherwise be safe.')
     p.add_argument('-s', '--setup', default=False, action='store_true',
                    dest='setup', help='Iniatilaizes the activities, if needed.')
+    p.add_argument('-c', '--check', default=False, action='store_true',
+                   dest='check', help='Checks that the activities can be executed.')
     p.add_argument('--docker-base', default=False, action='store_true',
                    dest='docker_base', help='Forces (re-)build of the '
                                             'base docker container.')
@@ -181,6 +183,16 @@ def setup_activities(ns):
             sys.exit(1)
 
 
+def check_activities(ns):
+    """Check activities."""
+    for name in $RUNNING_ACTIVITIES:
+        act = $DAG[name]
+        act.ns = ns
+        status = act.check()
+        if not status:
+            sys.exit(1)
+
+
 def undo_activities(ns):
     """Run undoer for specified activities."""
     done = compute_activities_completed()
@@ -211,6 +223,8 @@ def env_main(args=None):
     $REVER_FORCED = ns.force
     if ns.version == 'setup':
         ns.setup = True
+    elif ns.version == 'check':
+        ns.check = True
     if os.path.exists(ns.rc):
         source @(ns.rc)
     else:
@@ -223,6 +237,8 @@ def env_main(args=None):
     elif ns.setup:
         setup_project(ns)
         setup_activities(ns)
+    elif ns.check:
+        check_activities(ns)
     else:
         run_activities(ns)
 

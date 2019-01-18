@@ -1,5 +1,5 @@
 """A simple SAT solver, and helper utilites."""
-from collections import namedtuple
+import sys
 
 
 class Variable:
@@ -37,6 +37,9 @@ class Variable:
         return self._hash
 
     def __invert__(self):
+        _hash = hash((self._value, not self._assignment))
+        if _hash in self.__cache:
+            return self.__cache[_hash]
         return self.__class__(self._value, assignment=not self._assignment)
 
     def __str__(self):
@@ -92,7 +95,13 @@ class Clause:
 
 
 def _check_contraditions(vars):
-    contras = {var for var in vars if ~var in vars and var}
+    contras = set()
+    for var in vars:
+        if not var:
+            continue
+        not_var = ~var
+        if not_var in vars:
+            contras.add(var)
     if len(contras) == 0:
         # everything is kosher
         return
@@ -101,16 +110,39 @@ def _check_contraditions(vars):
     raise ValueError("Contraditions found:\n" + msg)
 
 
-def solve_2sat(clauses, known=None):
+def _format_clauses_known(clauses, known):
+    s = "CLAUSES:\n"  + "\n".join(map(str, clauses))
+    s += "\n\nKNOWN:\n"  + "\n".join(map(str, known))
+    return s
+
+
+def _solve_2sat(clauses, known=None, _last_clauses=None, _last_known=None):
     """Solves a 2-SAT problem with a set of clauses that must all be true (ANDed, ∧) together.
     An initial set of known variable assignment may also be provided. Returns known assignments
     """
+    if _last_clauses is not None and clauses == _last_clauses and \
+       _last_known is not None and known == _last_known:
+        msg = "System not satisfiable! Please provide more information!\n"
+        msg += _format_clauses_known(clauses, known)
+        e = RuntimeError(msg)
+        e.clauses = clauses
+        e.known = known
+        raise e
+    orig_clauses = set(clauses)
     if known is None:
+        orig_known = None
         known = set()
+    else:
+        orig_known = set(known)
     # check contraditions in known
-    _check_contraditions(known)
+    try:
+        _check_contraditions(known)
+    except (RecursionError, ValueError) as e:
+        e.clauses = clauses
+        e.known = known
+        raise e
     if len(clauses) == 0:
-        return known
+        return clauses, known
     # update from true clauses
     found = {clause for clause in clauses if len(clause) == 1 or clause.vars <= known}
     if len(found) > 0:
@@ -120,7 +152,7 @@ def solve_2sat(clauses, known=None):
     clauses -= found
     known.update(found_vars)
     if len(clauses) == 0:
-        return solve_2sat(clauses, known=known)
+        return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses, _last_known=orig_known)
     # Check if ~known are in any clauses, and add the remaining var to known.
     found = set()
     found_vars = set()
@@ -133,7 +165,7 @@ def solve_2sat(clauses, known=None):
     clauses -= found
     known.update(found_vars)
     if len(clauses) == 0:
-        return solve_2sat(clauses, known=known)
+        return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses, _last_known=orig_known)
     # infer new clauses from (a ∨ b) ∧ (¬b ∨ ¬c) ⇒ (a ∨ ¬c)
     inferred = set()
     for first in clauses:
@@ -148,4 +180,36 @@ def solve_2sat(clauses, known=None):
                 not_c = list(second.vars - {not_b})[0]
                 inferred.add(Clause(a, not_c))
     clauses |= inferred
-    return solve_2sat(clauses, known=known)
+    # remove identically true clauses of the form (a ∨ ¬a)
+    found = set()
+    for clause in clauses:
+        vars = list(clause.vars)
+        if len(vars) == 1:
+            # infering might have reduced some clauses
+            found.add(clause)
+            known.add(vars[0])
+            continue
+        a, b = vars
+        if a is ~b:
+            found.add(clause)
+    clauses -= found
+    return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses, _last_known=orig_known)
+
+
+def solve_2sat(clauses, known=None, always_return=False):
+    """Solves a 2-SAT problem with a set of clauses that must all be true (ANDed, ∧) together.
+    An initial set of known variable assignment may also be provided. Returns known assignments
+    """
+    try:
+        return _solve_2sat(clauses, known=known)
+    except RecursionError as e:
+        print("Could not solve in reasonable number of iterations!", file=sys.stderr)
+        if always_return:
+            return (e.clauses, e.known)
+        else:
+            raise e
+    except (RuntimeError, ValueError) as e:
+        if always_return:
+            return (e.clauses, e.known)
+        else:
+            raise e

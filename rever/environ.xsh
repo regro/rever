@@ -210,8 +210,9 @@ ENVVARS = {
                      'used for storing rever temporary files.'),
     'REVER_USER': (getpass.getuser(), is_string, to_bool, bool_to_str,
                    "Name of the user who ran the rever command."),
-    'REVER_VCS': ('git', is_string, to_bool, bool_to_str, "Whether or not to "
-                  "force potentially unsafe activities in rever."),
+    'REVER_VCS': ('git', is_string, str, ensure_string, "Version control "
+                  "system used by rever. May be 'None' to not use "
+                  "version control."),
     'RUNNING_ACTIVITIES': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                            'List of activity names that rever is actually executing.'),
     'VERSION': ('x.y.z', is_string, str, ensure_string, 'Version string of new '

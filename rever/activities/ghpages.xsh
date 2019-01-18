@@ -7,6 +7,7 @@ from xonsh.tools import expand_path, print_color
 
 from rever.tools import indir
 from rever.activity import Activity
+from rever import vcsutils
 
 
 def branch_name(repo, branch=None):
@@ -70,7 +71,8 @@ class GHPages(Activity):
 
     def __init__(self):
         super().__init__(name='ghpages', deps=frozenset(),
-                         func=self._func, desc="Pushes docs up to GitHub pages.")
+                         func=self._func, desc="Pushes docs up to GitHub pages.",
+                         check=self.check_func)
 
     def _func(self, repo, branch=None, copy=DEFAULT_COPY):
         repo_dir = $GHPAGES_REPO_DIR = os.path.join($REVER_DIR, 'ghpages-repo')
@@ -105,3 +107,6 @@ class GHPages(Activity):
             msg = "GitHub pages update for " + $VERSION
             git commit -am @(msg)
             git push @(repo) @(branch)
+
+    def check_func(self):
+        return vcsutils.have_push_permissions($GHPAGES_REPO)

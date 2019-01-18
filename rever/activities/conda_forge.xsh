@@ -3,13 +3,19 @@ import os
 import re
 import sys
 
-from github3.exceptions import NotFoundError
+from lazyasd import lazyobject
 from xonsh.tools import print_color
 
 from rever import vcsutils
 from rever import github
 from rever.activity import Activity
 from rever.tools import eval_version, indir, hash_url, replace_in_file
+
+
+@lazyobject
+def github3():
+    import github3 as gh3
+    return gh3
 
 
 def feedstock_url(feedstock, protocol='ssh'):
@@ -125,8 +131,11 @@ class CondaForge(Activity):
     """
 
     def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
+        requires = {"imports": {"github3.exceptions": "github3.py"},
+                    "commands": {"conda": "conda", "conda-smithy": "conda-smithy"}}
         super().__init__(name='conda_forge', deps=deps, func=self._func,
-                         desc="Updates conda-forge feedstocks")
+                         desc="Updates conda-forge feedstocks",
+                         requires=requires, check=self.check_func)
 
     def _func(self, feedstock=None, protocol='ssh', source_url=None,
               hash_type='sha256', patterns=DEFAULT_PATTERNS,
@@ -156,7 +165,7 @@ class CondaForge(Activity):
             try:
                 fork_repo = gh.repository(fork_org or username,
                                           feedstock_reponame)
-            except NotFoundError:
+            except github3.exceptions.NotFoundError:
                 fork_repo = None
             if fork_repo is None or (hasattr(fork_repo, 'is_null') and
                                      fork_repo.is_null()):
@@ -215,3 +224,7 @@ class CondaForge(Activity):
         else:
             print_color('{GREEN}Pull request created at ' + pr.html_url + \
                         '{NO_COLOR}')
+
+    def check_func(self):
+        """Checks that we can login"""
+        return github.can_login()

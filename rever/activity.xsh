@@ -1,6 +1,7 @@
 """Provides basic activity funtionality."""
 import sys
 import inspect
+import importlib
 import traceback
 
 from xonsh.tools import expand_path, print_color
@@ -13,7 +14,8 @@ class Activity:
     """Activity representing a node in DAG of release tasks."""
 
     def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None,
-                 setup=None, args=None, kwargs=None, desc=None):
+                 setup=None, check=None, requires=None, args=None, kwargs=None,
+                 desc=None):
         """
         Parameters
         ----------
@@ -28,6 +30,23 @@ class Activity:
             Function to undo this activities behaviour and reset the repo state.
         setup : callable, optional
             Function to help initialize the activity.
+        check : callable, optional
+            Function to check if the activity can be run sucessfully on the
+            user's machine, with their credentials, etc. This function
+            should return True if the activity can be run, and False otherwise.
+        requires : dict or None, optional
+            A dict of dicts of the following form that specifies the command line
+            utility and import requirements for this activity.
+
+            .. code-block:: python
+
+                {
+                    "commands": {"<cli name>": "<package name>", ...}
+                    "imports": {"<module name>": "<package name>", ...}
+                }
+
+            The top-level keys are both optional, and this will default
+            to an empty dict.
         args : tuple, optional
             Arguments to be supplied to the ``func(*args)``, if needed.
         kwargs : mapping, optional
@@ -40,6 +59,8 @@ class Activity:
         self.func = func
         self._undo = undo
         self._setup = setup
+        self._check = check
+        self.requires = {} if requires is None else requires
         self.args = args
         self.kwargs = kwargs
         self.desc = desc
@@ -96,7 +117,7 @@ class Activity:
         return undo
 
     def setup(self):
-        """Calls this activities setup() initialization function."""
+        """Calls this activity's setup() initialization function."""
         if self._setup is None:
             print_color('{PURPLE}No setup needed for ' + self.name + ' activity{NO_COLOR}')
             return True
@@ -111,6 +132,68 @@ class Activity:
         """Decorator that sets the setup function for this activity."""
         self._setup = setup
         return setup
+
+    def check(self):
+        """Calls this activity's check() function."""
+        if self._check is None and not self.requires:
+            print_color('{PURPLE}No checks needed for ' + self.name + ' activity{NO_COLOR}')
+            return True
+        status = self.check_requirements() and self._check()
+        if not status:
+            return status
+        msg = 'Checked activity {activity}'.format(activity=self.name)
+        log -a @(self.name) -c activity-check @(msg)
+        return True
+
+    def checker(self, check):
+        """Decorator that sets the check function for this activity."""
+        self._check = check
+        return check
+
+    def check_requirements(self):
+        """Checks that an activities requirements are actually available."""
+        orig = $RAISE_SUBPROC_ERROR
+        $RAISE_SUBPROC_ERROR = False
+        msgs = []
+        # First check the implicit dependncy of the version control.
+        p = !(which $REVER_VCS)
+        if $REVER_VCS is None or $REVER_VCS == "None":
+            pass
+        elif not p:
+            msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
+                        '{YELLOW}' + $REVER_VCS + '{NO_COLOR} cannot be found. '
+                        'Please make sure that the {INTENSE_CYAN}' + $REVER_VCS + '{NO_COLOR} '
+                        'package is installed in your environment.')
+        # now check CLI availability
+        for cmd, pkg in self.requires.get("commands", {}).items():
+            if !(which @(cmd)):
+                continue
+            msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
+                        '{YELLOW}' + cmd + '{NO_COLOR} cannot be found. '
+                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR}'
+                        'package is installed in your environment.')
+        # now check package imports
+        for mod, pkg in self.requires.get("imports", {}).items():
+            try:
+                importlib.import_module(mod)
+                continue
+            except ImportError:
+                pass
+            msgs.append('{RED}ERROR:{NO_COLOR} the module '
+                        '{YELLOW}' + mod + '{NO_COLOR} cannot be imported. '
+                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR}'
+                        'package is installed in your environment.')
+        # print mesages and return
+        if len(msgs) == 0:
+            msg = ('{PURPLE}All CLI and import requirements met for ' +
+                   self.name + ' activity{NO_COLOR}')
+            status = True
+        else:
+            msg = "\n{INTENSE_WHITE}----------{NO_COLOR}\n".join(msgs)
+            status = False
+        print_color(msg)
+        $RAISE_SUBPROC_ERROR = orig
+        return status
 
     @property
     def env_names(self):
@@ -147,7 +230,8 @@ class Activity:
         return kwargs
 
 
-def activity(name=None, deps=frozenset(), undo=None, desc=None):
+def activity(name=None, deps=frozenset(), undo=None, setup=None, check=None,
+             desc=None):
     """A decorator that turns the function into an activity. The arguments here have the
     same meaning as they do in the Activity class constructor. This decorator also
     registers the activity in the $DAG.
@@ -157,7 +241,8 @@ def activity(name=None, deps=frozenset(), undo=None, desc=None):
         members = dict(inspect.getmembers(f))
         true_name = name or members['__name__']
         act = Activity(name=true_name, deps=deps, func=f,
-                       undo=undo, desc=desc or members['__doc__'])
+                       undo=undo, setup=setup, check=check,
+                       desc=desc or members['__doc__'])
         $DAG[true_name] = act
         return act
     if callable(name):
@@ -201,8 +286,8 @@ class DockerActivity(Activity):
     __xonsh_block__ = str
 
     def __init__(self, *, name=None, deps=frozenset(), func=None, undo=None,
-                 desc=None, image=None, lang='xonsh', run_args=('-c',),
-                 code=None, env=True, mounts=()):
+                 requires=None, check=None, desc=None, image=None, lang='xonsh',
+                 run_args=('-c',), code=None, env=True, mounts=()):
         """
         Parameters
         ----------
@@ -216,6 +301,24 @@ class DockerActivity(Activity):
             (called).  The default _func method is good enough for most cases.
         undo : callable, optional
             Function to undo this activities behaviour and reset the repo state.
+        check : callable, optional
+            Function to check if the activity can be run sucessfully on the
+            user's machine, with their credentials, etc. This function
+            should return True if the activity can be run, and False otherwise.
+        requires : dict or None, optional
+            A dict of dicts of the following form that specifies the command line
+            utility and import requirements for this activity.
+
+            .. code-block:: python
+
+                {
+                    "commands": {"<cli name>": "<package name>", ...}
+                    "imports": {"<module name>": "<package name>", ...}
+                }
+
+            The top-level keys are both optional, and this will default
+            to an empty dict.  The docker command will be automatically
+            added to the commands dict.
         desc : str, optional
             A short description of this activity
         image : str or None, optional
@@ -242,8 +345,14 @@ class DockerActivity(Activity):
             does not mount anything.
 
         """
+        if requires is None:
+            requires = {"commands": {"docker": "docker"}}
+        elif "commands" not in requires:
+            requires["commands"] = {"docker": "docker"}
+        elif "docker" not in requires["commands"]:
+            requires["commands"]["docker"] = "docker"
         super().__init__(name=name, deps=deps, func=func or self._func,
-                         undo=undo, desc=desc)
+                         undo=undo, check=check, requires=requires, desc=desc)
         self.image = image
         self.lang = lang
         self.run_args = run_args

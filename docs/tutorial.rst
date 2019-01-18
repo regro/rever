@@ -116,6 +116,7 @@ follows:
             self.name = 'tarball'
             self.deps = {'install'}
             self.desc = "Creates a source tarball"
+            self.requires = {"commands": {"tar": "tar"}}
 
         def __call__(self, filename='project.tar.gz'):
             tar czf @(filename) src/

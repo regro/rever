@@ -16,7 +16,5 @@ Then, run rever from this directory to execute the release actions you specified
 
 .. code-block:: sh
 
+    $ rever check
     $ rever 1.42
-
-
-

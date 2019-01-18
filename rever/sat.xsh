@@ -11,11 +11,8 @@ class Variable:
         # this interns the objects in the __cache,
         # so that only one instance of a particular Variable ever exists
         _hash = hash((value, assignment))
-        try:
-            if _hash in cls.__cache:
-                return cls.__cache[_hash]
-        except:
-            import pdb; pdb.set_trace()
+        if _hash in cls.__cache:
+            return cls.__cache[_hash]
         inst = object.__new__(cls)
         inst.__init__(value, assignment=assignment, _hash=_hash)
         cls.__cache[_hash] = inst

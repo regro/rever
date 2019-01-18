@@ -48,8 +48,9 @@ There are a couple steps you should take to get the most out of rever.
 3. After setting up the ``rever.xsh`` file run ``rever setup`` in the root
    directory of your source repository. This will setup files and other things
    needed for rever to operate.
-
-4. When you are ready to release run ``rever <new_version_number>`` and rever
+4. It is always a good idea to check that you have permissions and the proper
+   libraries installed, so it is best to run ``rever check`` before every release.
+5. When you are ready to release run ``rever <new_version_number>`` and rever
    will take care of the rest.
 
 =========

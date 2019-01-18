@@ -131,7 +131,8 @@ class CondaForge(Activity):
     """
 
     def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
-        requires = {"imports": {"github3.exceptions": "github3.py"}}
+        requires = {"imports": {"github3.exceptions": "github3.py"},
+                    "commands": {"conda": "conda", "conda-smithy": "conda-smithy"}}
         super().__init__(name='conda_forge', deps=deps, func=self._func,
                          desc="Updates conda-forge feedstocks",
                          requires=requires, check=self.check_func)

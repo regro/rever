@@ -138,7 +138,7 @@ class Activity:
         if self._check is None and not self.requires:
             print_color('{PURPLE}No checks needed for ' + self.name + ' activity{NO_COLOR}')
             return True
-        status = self.check_requirements() and self._check()
+        status = self.check_requirements() and (self._check is None or self._check())
         if not status:
             return status
         msg = 'Checked activity {activity}'.format(activity=self.name)

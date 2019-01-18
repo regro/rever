@@ -11,6 +11,7 @@
   email: asmeurer@gmail.com
   num_commits: 34
   first_commit: 2017-06-23 14:44:39
+  github: asmeurer
 - name: Christopher J. Wright
   email: cjwright4242gh@gmail.com
   num_commits: 119
@@ -26,7 +27,7 @@
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
-  num_commits: 225
+  num_commits: 252
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
@@ -35,5 +36,7 @@
   first_commit: 2018-10-17 16:35:00
 - name: ERGS
   email: scopatz@cec.sc.edu
-  is_org: True
+  is_org: true
   github: ergs
+  num_commits: 0
+  first_commit: 2019-01-18 16:18:54.253827

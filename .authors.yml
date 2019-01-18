@@ -5,6 +5,7 @@
 - name: Igor T. Ghisi
   email: igor.ghisi@gmail.com
   num_commits: 4
+  github: igortg
   first_commit: 2018-02-26 18:09:46
 - name: Aaron Meurer
   email: asmeurer@gmail.com
@@ -21,6 +22,7 @@
 - name: Dougal J. Sutherland
   email: dougal@gmail.com
   num_commits: 1
+  github: dougalsutherland
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
@@ -28,5 +30,10 @@
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
+  github: cdeil
   num_commits: 1
   first_commit: 2018-10-17 16:35:00
+- name: ERGS
+  email: scopatz@cec.sc.edu
+  is_org: True
+  github: ergs

@@ -30,10 +30,10 @@ class VersionBump(Activity):
 
             $VERSION_BUMP_PATTERNS = [
                 # replace __version__ in init file
-                ('src/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
+                ('src/__init__.py', r'__version__\s*=.*', "__version__ = '$VERSION'"),
 
                 # replace version in appveyor
-                ('.appveyor.yml', 'version:\s*',
+                ('.appveyor.yml', r'version:\s*',
                   (lambda ver: 'version: {0}.{{build}}'.format(ver))),
               ...
             ]

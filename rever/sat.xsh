@@ -119,11 +119,12 @@ def _format_clauses_known(clauses, known):
     return s
 
 
-def _solve_2sat(clauses, known=None, _last_clauses=None):
+def _solve_2sat(clauses, known=None, _last_clauses=None, _last_known=None):
     """Solves a 2-SAT problem with a set of clauses that must all be true (ANDed, ∧) together.
     An initial set of known variable assignment may also be provided. Returns known assignments
     """
-    if _last_clauses is not None and clauses == _last_clauses:
+    if _last_clauses is not None and clauses == _last_clauses and \
+       _last_known is not None and known == _last_known:
         msg = "System not satisfiable! Please provide more information!\n"
         msg += _format_clauses_known(clauses, known)
         e = RuntimeError(msg)
@@ -132,7 +133,10 @@ def _solve_2sat(clauses, known=None, _last_clauses=None):
         raise e
     orig_clauses = set(clauses)
     if known is None:
+        orig_known = None
         known = set()
+    else:
+        orig_known = set(known)
     # check contraditions in known
     try:
         _check_contraditions(known)
@@ -151,7 +155,7 @@ def _solve_2sat(clauses, known=None, _last_clauses=None):
     clauses -= found
     known.update(found_vars)
     if len(clauses) == 0:
-        return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses)
+        return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses, _last_known=orig_known)
     # Check if ~known are in any clauses, and add the remaining var to known.
     found = set()
     found_vars = set()
@@ -164,7 +168,7 @@ def _solve_2sat(clauses, known=None, _last_clauses=None):
     clauses -= found
     known.update(found_vars)
     if len(clauses) == 0:
-        return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses)
+        return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses, _last_known=orig_known)
     # infer new clauses from (a ∨ b) ∧ (¬b ∨ ¬c) ⇒ (a ∨ ¬c)
     inferred = set()
     for first in clauses:
@@ -182,11 +186,17 @@ def _solve_2sat(clauses, known=None, _last_clauses=None):
     # remove identically true clauses of the form (a ∨ ¬a)
     found = set()
     for clause in clauses:
-        a, b = list(clause.vars)
+        vars = list(clause.vars)
+        if len(vars) == 1:
+            # infering might have reduced some clauses
+            found.add(clause)
+            known.add(vars[0])
+            continue
+        a, b = vars
         if a is ~b:
             found.add(clause)
     clauses -= found
-    return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses)
+    return _solve_2sat(clauses, known=known, _last_clauses=orig_clauses, _last_known=orig_known)
 
 
 def solve_2sat(clauses, known=None, always_return=False):
@@ -200,9 +210,9 @@ def solve_2sat(clauses, known=None, always_return=False):
         if always_return:
             return (e.clauses, e.known)
         else:
-            raise from e
-    except (RecursionError, RuntimeError, ValueError) as e:
+            raise e
+    except (RuntimeError, ValueError) as e:
         if always_return:
             return (e.clauses, e.known)
         else:
-            raise from e
+            raise e

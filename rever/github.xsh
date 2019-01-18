@@ -140,9 +140,9 @@ def login(credfile=None, return_username=False):
 def can_login():
     """Checks that we can login to GitHub"""
     try:
-        gh, username = github.login(return_username=True)
+        gh, username = login(return_username=True)
     except Exception as e:
-        print_color("{RED}Unable to login to GitHub{NO_COLOR}\n", file=sys.stderr)
+        print_color("{RED}Unable to login to GitHub{NO_COLOR}", file=sys.stderr)
         print(str(e), file=sys.stderr)
         return False
     print_color("GitHub login as {GREEN}" + username + "{NO_COLOR} works!",

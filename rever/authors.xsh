@@ -178,7 +178,7 @@ def _get_data_from_log(commits_emails=None, commits_github=None, refs='HEAD'):
             commits_github[tuple(parents)] = ghuser
         else:
             continue
-    needed_commits = set()#commits_emails.keys()) - all_commits
+    needed_commits = set()
     for (commit0, commit1), github in commits_github.items():
         email0 = commits_emails.get(commit0, None)
         if email0 is None:
@@ -279,14 +279,16 @@ def _update_github(metadata):
         x['github'] = github
 
 
-def update_metadata(filename, write=True):
+def update_metadata(filename, write=True, validation_error=True):
     """Takes a YAML metadata filename and updates it with the current repo
-    information, if possible.
+    information, if possible. If validation_error is True, this will fail
+    if the information is not consistent
     """
     # get the initial YAML
     y, yaml = load_metadata(filename, return_yaml=True)
     # verify names and emails
-    if not metadata_is_valid(y):
+    is_valid = metadata_is_valid(y)
+    if validation_error and not is_valid:
         raise RuntimeError("Duplicated author/email combos")
     # update with content
     now = datetime.datetime.now()

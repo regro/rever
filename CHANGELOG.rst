@@ -4,6 +4,21 @@ Rever Change Log
 
 .. current developments
 
+v0.3.4
+====================
+
+**Changed:**
+
+* ``rever.authors.update_metadata()`` has a new ``validation_error``
+  keyword argument that will cause the updating to fail if not valid.
+  Deafults to True.
+
+**Authors:**
+
+* Anthony Scopatz
+
+
+
 v0.3.3
 ====================
 

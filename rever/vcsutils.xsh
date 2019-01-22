@@ -232,7 +232,10 @@ def git_commits_per_author(since=None):
     if since:
         args.append(since + "...HEAD")
     for line in $(git shortlog @(args)).splitlines():
-        n, name = RE_GIT_CPA.match(line).groups()
+        m = RE_GIT_CPA.match(line)
+        if m is None:
+            continue
+        n, name = m.groups()
         cpa[name] = int(n)
     return cpa
 

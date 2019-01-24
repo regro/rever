@@ -232,7 +232,10 @@ def git_commits_per_author(since=None):
     if since:
         args.append(since + "...HEAD")
     for line in $(git shortlog @(args)).splitlines():
-        n, name = RE_GIT_CPA.match(line).groups()
+        m = RE_GIT_CPA.match(line)
+        if m is None:
+            continue
+        n, name = m.groups()
         cpa[name] = int(n)
     return cpa
 
@@ -272,8 +275,14 @@ def git_first_commit_per_email():
     """Returns a dictionary mapping emails to the datetime of its first commit"""
     fcpe = {}
     for line in $(git log --encoding=utf-8 --full-history --reverse "--format=format:%ae:%at").splitlines():
-        email, _, t = line.partition(':')
-        if email not in fcpe:
+        email, _, t = line.rpartition(':')
+        if '@' not in email:
+            # not a real email address
+            continue
+        elif not t:
+            # appearently, you can have a commit without a timestamp
+            continue
+        elif email not in fcpe:
             fcpe[email] = datetime.datetime.fromtimestamp(int(t))
     return fcpe
 

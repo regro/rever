@@ -196,12 +196,13 @@ def _get_data_from_log(commits_emails=None, commits_github=None, refs='HEAD'):
 
 def _update_github(metadata):
     """Guesses GitHub username from git log, if needed."""
+    status = True
     if 'GITHUB_ORG' not in ${...}:
         # not using github
-        return
+        return status
     if all(['github' in x for x in metadata]):
         # all entries have github ids, no need to update.
-        return
+        return status
     # get raw data from log
     commits_emails, commits_github = _get_data_from_log()
     # set-up email mapping
@@ -265,7 +266,8 @@ def _update_github(metadata):
         msg = "Not enough information to determine github identifiers!\n"
         msg += _format_clauses_known(remaining, {k for k in emails_github if k})
         msg += "\n\nPlease assign:\n\n* " + "\n* ".join(sorted(unknown_githubs))
-        raise RuntimeError(msg)
+        print(msg, file=sys.stderr)
+        status = False
     # add github to metadata
     for var in emails_github:
         if not var:
@@ -277,6 +279,7 @@ def _update_github(metadata):
             # skip folks that have github ids already
             continue
         x['github'] = github
+    return status
 
 
 def update_metadata(filename, write=True, validation_error=True):
@@ -289,6 +292,9 @@ def update_metadata(filename, write=True, validation_error=True):
     # verify names and emails
     is_valid = metadata_is_valid(y)
     if validation_error and not is_valid:
+        if write:
+            with open(filename, 'w') as f:
+                yaml.dump(y, f)
         raise RuntimeError("Duplicated author/email combos")
     # update with content
     now = datetime.datetime.now()
@@ -303,11 +309,13 @@ def update_metadata(filename, write=True, validation_error=True):
             fcs = [fcpe.get(x["email"], now)] + [fcpe.get(a, now) for a in x.get("alternate_emails", [])]
             x["first_commit"] = min(fcs)
     # add optional fields
-    _update_github(y)
+    is_valid = _update_github(y)
     # write back out
     if write:
         with open(filename, 'w') as f:
             yaml.dump(y, f)
+    if validation_error and not is_valid:
+        raise RuntimeError("Could not compute all GitHub IDs for authors")
     return y
 
 

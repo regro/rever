@@ -14,41 +14,8 @@ The workflow for using news is:
 
       $ cp TEMPLATE.rst branch.rst
 
-3. The news files have two formats depending on when the rever template
-   was made.
-   The first template looks like::
-
-    **Added:** None
-
-    **Changed:** None
-
-    **Deprecated:** None
-
-    **Removed:** None
-
-    **Fixed:** None
-
-    **Security:** None
-
-   To add a news entry, remove the ``None`` from the category, add a
-   newline and ``* My news entry``.
-   For example::
-
-    **Added:**
-
-    * News tutorial
-
-    **Changed:** None
-
-    **Deprecated:** None
-
-    **Removed:** None
-
-    **Fixed:** None
-
-    **Security:** None
-
-   The second ``news`` template looks like::
+3. The news files are customizable in the ``rever.xsh`` files. However, the
+   default template looks like::
 
     **Added:**
 
@@ -74,7 +41,8 @@ The workflow for using news is:
 
     * <news item>
 
-   In this case you can remove the ``* <news item>`` and replace it with your own, eg::
+   In this case you can remove the ``* <news item>`` and replace it with your own
+   news entries, e.g.::
 
     **Added:**
 
@@ -104,8 +72,8 @@ The workflow for using news is:
 
 Feel free to update this file whenever you want! Please don't use someone
 else's file name. All of the files in this ``news/`` directory will be merged
-automatically at release time.  The ``None`` entries will be automatically
-filtered out too!
+automatically at release time.  The ``<news item>`` entries will be
+automatically filtered out too!
 
 Once the project is ready for a release when running the ``rever``
 command all the files, except the template, in the ``news`` folder will

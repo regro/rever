@@ -34,8 +34,8 @@ class DeploytoGCloud(Activity):
     This activity may be configured with the following environment variables:
 
     :$GCLOUD_PROJECT_ID: str, the gcloud project id
-    :$GCLOUD_ZONE: str, the gcloud zone
     :$GCLOUD_CLUSTER: str the kubernetes cluster to deploy to
+    :$GCLOUD_ZONE: str, the gcloud zone
     :$GCLOUD_CONTAINER_NAME: str, the name of the container image to deploy to
     :$GCLOUD_DOCKER_ORG: str, the name of the docker org to pull the container
         from
@@ -54,8 +54,13 @@ class DeploytoGCloud(Activity):
         _ensure_default_credentials()
         account = _ensure_account()
 
-    def _func(self, project_id, cluster, zone, container_name, docker_org,
-              docker_repo):
+    def _func(self,
+              project_id='$$GCLOUD_PROJECT_ID',
+              cluster='$GCLOUD_CLUSTER',
+              zone='$GCLOUD_ZONE',
+              container_name='$GCLOUD_CONTAINER_NAME',
+              docker_org='$GCLOUD_DOCKER_ORG',
+              docker_repo='$GCLOUD_DOCKER_REPO'):
         """Deploys the build docker container to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
@@ -86,7 +91,8 @@ class DeploytoGCloudApp(Activity):
         _ensure_default_credentials()
         account = _ensure_account()
 
-    def _func(self, project_id, zone):
+    def _func(self, project_id='$$GCLOUD_PROJECT_ID',
+              zone='$GCLOUD_ZONE'):
         """Deploys the build docker container to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()

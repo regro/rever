@@ -44,7 +44,7 @@ def gitecho(request):
 @pytest.fixture
 def gcloudecho(request):
     aliases = builtins.aliases
-    aliases['gcloud'] = lambda args: 'Would have run: ' + ' '.join(args) + '\n'
+    aliases['gcloud'] = lambda args: 'Would have run: ' + ' '.join(args) + '@\n'
     yield None
     del aliases['gcloud']
 

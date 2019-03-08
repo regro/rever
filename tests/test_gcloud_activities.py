@@ -13,14 +13,14 @@ $GCLOUD_DOCKER_REPO = 'hello-world-repo'
 
 
 GCLOUD_APP_REVER_XSH = """
-$ACTIVITIES = ['deploy_to_gcloud']
+$ACTIVITIES = ['deploy_to_gcloud_app']
 $PROJECT = 'rever'
 $GCLOUD_PROJECT_ID = 'hello-world'
 $GCLOUD_ZONE = 'us-central1-a'
 """
 
 
-def test_deploy_to_gcloud(gcloudecho, kubectlecho):
+def test_deploy_to_gcloud(gitrepo, gcloudecho, kubectlecho):
     files = [('rever.xsh', GCLOUD_REVER_XSH),
              ]
     for filename, body in files:
@@ -29,7 +29,7 @@ def test_deploy_to_gcloud(gcloudecho, kubectlecho):
     env_main(['0.1.0'])
 
 
-def test_deploy_to_gcloud_app(gcloudecho):
+def test_deploy_to_gcloud_app(gitrepo, gcloudecho):
     files = [('rever.xsh', GCLOUD_APP_REVER_XSH),
              ]
     for filename, body in files:

@@ -62,6 +62,10 @@ class DeployToGCloud(Activity):
             print(s)
             raise RuntimeError(s)
 
+        # make sure we are logged in
+        _ensure_default_credentials()
+        account = _ensure_account()
+
     def _func(self, project_id, cluster, zone, container_name, docker_org,
               docker_repo):
         """Deploys the build docker containter to the google cloud"""
@@ -101,12 +105,14 @@ class DeployTOGCloudApp(Activity):
                 s += f'Could not find {cli}! Try installing:\n  $ conda install {package}'
             print(s)
             raise RuntimeError(s)
+        # make sure we are logged in
+        _ensure_default_credentials()
+        account = _ensure_account()
 
     def _func(self, project_id, zone):
         """Deploys the build docker containter to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
         account = _ensure_account()
-        # get cluster credentials
         ![gcloud app deploy app.yaml index.yaml --account @(account) \
           --zone=$GCLOUD_ZONE --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]

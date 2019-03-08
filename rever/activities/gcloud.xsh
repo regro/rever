@@ -46,6 +46,21 @@ class DeployToGCloud(Activity):
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='deploy_to_gcloud', deps=deps, func=self._func,
                          desc="Deploys a docker container to the google cloud",)
+    def check_func(self):
+        clis = [
+            ('gcloud', 'google-cloud-sdk'),
+            ('kubectl', 'kubernetes'),
+            ]
+        bad = []
+        for cli, package in clis:
+            if not !(which @(cli)):
+                bad.append((cli, package))
+        if bad:
+            s = ''
+            for cli, package in bad:
+                s += f'Could not find {cli}! Try installing:\n  $ conda install {package}'
+            print(s)
+            raise RuntimeError(s)
 
     def _func(self, project_id, cluster, zone, container_name, docker_org,
               docker_repo):
@@ -72,6 +87,20 @@ class DeployTOGCloudApp(Activity):
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='deploy_to_gcloud_app', deps=deps, func=self._func,
                          desc="Deploys an app to the google cloud via the app engine", )
+    def check_func(self):
+        clis = [
+            ('gcloud', 'google-cloud-sdk'),
+            ]
+        bad = []
+        for cli, package in clis:
+            if not !(which @(cli)):
+                bad.append((cli, package))
+        if bad:
+            s = ''
+            for cli, package in bad:
+                s += f'Could not find {cli}! Try installing:\n  $ conda install {package}'
+            print(s)
+            raise RuntimeError(s)
 
     def _func(self, project_id, zone):
         """Deploys the build docker containter to the google cloud"""

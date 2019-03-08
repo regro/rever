@@ -46,23 +46,10 @@ class DeployToGCloud(Activity):
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='deploy_to_gcloud', deps=deps, func=self._func,
                          desc="Deploys a docker container to the google cloud",
-                         check=self.check_func)
+                         check=self.check_func,
+                         requires={'commands': {'gcloud': 'google-cloud-sdk',
+                                                'kubectl': 'kubernetes'}})
     def check_func(self):
-        clis = [
-            ('gcloud', 'google-cloud-sdk'),
-            ('kubectl', 'kubernetes'),
-            ]
-        bad = []
-        for cli, package in clis:
-            if not !(which @(cli)):
-                bad.append((cli, package))
-        if bad:
-            s = ''
-            for cli, package in bad:
-                s += f'Could not find {cli}! Try installing:\n  $ conda install {package}'
-            print(s)
-            raise RuntimeError(s)
-
         # make sure we are logged in
         _ensure_default_credentials()
         account = _ensure_account()
@@ -80,7 +67,7 @@ class DeployToGCloud(Activity):
         ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=docker.io/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
 
 
-class DeployTOGCloudApp(Activity):
+class DeployToGCloudApp(Activity):
     """Deploys an app to the google cloud via the app engine
 
         This activity may be configured with the following environment variables:
@@ -92,21 +79,9 @@ class DeployTOGCloudApp(Activity):
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='deploy_to_gcloud_app', deps=deps, func=self._func,
                          desc="Deploys an app to the google cloud via the app engine",
-                         check=self.check_func)
+                         check=self.check_func,
+                         requires={'commands': {'gcloud': 'google-cloud-sdk'}})
     def check_func(self):
-        clis = [
-            ('gcloud', 'google-cloud-sdk'),
-            ]
-        bad = []
-        for cli, package in clis:
-            if not !(which @(cli)):
-                bad.append((cli, package))
-        if bad:
-            s = ''
-            for cli, package in bad:
-                s += f'Could not find {cli}! Try installing:\n  $ conda install {package}'
-            print(s)
-            raise RuntimeError(s)
         # make sure we are logged in
         _ensure_default_credentials()
         account = _ensure_account()

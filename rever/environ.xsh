@@ -51,7 +51,7 @@ def default_dag():
     from rever.activities.tag import Tag
     from rever.activities.push_tag import PushTag
     from rever.activities.version_bump import VersionBump
-    from rever.activities.gcloud import DeployToGCloud, DeployTOGCloudApp
+    from rever.activities.gcloud import DeployToGCloud, DeployToGCloudApp
     dag = {
         'authors': Authors(),
         'bibtex': BibTex(),
@@ -69,7 +69,7 @@ def default_dag():
         'push_tag': PushTag(),
         'version_bump': VersionBump(),
         'deploy_to_gcloud': DeployToGCloud(),
-        'deploy_to_gcloud_app': DeployTOGCloudApp(),
+        'deploy_to_gcloud_app': DeployToGCloudApp(),
     }
     return dag
 

@@ -1,0 +1,88 @@
+"""Activities for interfacing with gcloud"""
+import os
+import re
+import sys
+import json
+
+from xonsh.tools import print_color
+
+from rever import vcsutils
+from rever.activity import Activity
+from rever.tools import eval_version, replace_in_file
+from rever.authors import load_metadata
+
+
+
+def _ensure_default_credentials():
+    credfile = os.path.join($XDG_CONFIG_HOME, 'gcloud', 'application_default_credentials.json')
+    if os.path.isfile(credfile):
+        print_color('{YELLOW}Found ' + credfile + ' ...{NO_COLOR}')
+    else:
+        ![gcloud auth application-default login]
+    $CLOUDSDK_CONTAINER_USE_APPLICATION_DEFAULT_CREDENTIALS = 'true'
+    return credfile
+
+
+def _ensure_account(n=0):
+    if n > 3:
+        raise RuntimeError('failed to log in to gcloud')
+    account = $(gcloud config get-value account).strip()
+    if account == '(unset)' or '@' not in account:
+        n += 1
+        print(f'gcloud account is {account}, login attempt {n}/3:')
+        ![gcloud auth login]
+        account = _ensure_account(n+1)
+    return account
+
+
+class DeployToGCloud(Activity):
+    """Deploys a docker container to the google cloud
+
+    This activity may be configured with the following environment variables:
+
+    :$GCLOUD_PROJECT_ID: str, the gcloud project id
+    :$GCLOUD_ZONE: str, the gcloud zone
+    :$GCLOUD_CLUSTER: str the kubernetes cluster to deploy to
+    :$GCLOUD_CONTAINER_NAME: str, the name of the container image to deploy to
+    :$GCLOUD_DOCKER_ORG: str, the name of the docker org to pull the container
+        from
+    :$GCLOUD_DOCKER_REPO: str, the name of the docker container repo to use
+    :$VERSION: str, the version of the container to use
+    """
+
+    def __init__(self, *, deps=frozenset()):
+        super().__init__(name='deploy_to_gcloud', deps=deps, func=self._func,
+                         desc="Deploys a docker container to the google cloud",)
+        self._re_cache = {}
+
+    def _func(self):
+        """Deploys the build docker containter to the google cloud"""
+        # make sure we are logged in
+        _ensure_default_credentials()
+        account = _ensure_account()
+        # get cluster credentials
+        ![gcloud container clusters get-credentials --account @(account) \
+          --zone=$GCLOUD_ZONE --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]
+        # set new image
+        ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=docker.io/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
+
+
+class DeployTOGCloudApp(Activity):
+    """Deploys an app to the google cloud via the app engine
+
+        This activity may be configured with the following environment variables:
+
+        :$GCLOUD_PROJECT_ID: str, the gcloud project id
+        """
+
+    def __init__(self, *, deps=frozenset()):
+        super().__init__(name='deploy_to_gcloud_app', deps=deps, func=self._func,
+                         desc="Deploys an app to the google cloud via the app engine", )
+        self._re_cache = {}
+
+    def _func(self):
+        """Deploys the build docker containter to the google cloud"""
+        # make sure we are logged in
+        _ensure_default_credentials()
+        account = _ensure_account()
+        ![gcloud app deploy app.yaml index.yaml --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]

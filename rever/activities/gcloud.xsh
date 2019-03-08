@@ -1,16 +1,9 @@
 """Activities for interfacing with gcloud"""
 import os
-import re
-import sys
-import json
 
 from xonsh.tools import print_color
 
-from rever import vcsutils
 from rever.activity import Activity
-from rever.tools import eval_version, replace_in_file
-from rever.authors import load_metadata
-
 
 
 def _ensure_default_credentials():
@@ -84,5 +77,5 @@ class DeployTOGCloudApp(Activity):
         """Deploys the build docker containter to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
-        account = _ensure_account()
+        _ensure_account()
         ![gcloud app deploy app.yaml index.yaml --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]

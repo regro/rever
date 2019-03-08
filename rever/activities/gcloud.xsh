@@ -28,7 +28,7 @@ def _ensure_account(n=0):
     return account
 
 
-class DeployToGCloud(Activity):
+class DeploytoGCloud(Activity):
     """Deploys a docker container to the google cloud
 
     This activity may be configured with the following environment variables:
@@ -56,7 +56,7 @@ class DeployToGCloud(Activity):
 
     def _func(self, project_id, cluster, zone, container_name, docker_org,
               docker_repo):
-        """Deploys the build docker containter to the google cloud"""
+        """Deploys the build docker container to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
         account = _ensure_account()
@@ -67,7 +67,7 @@ class DeployToGCloud(Activity):
         ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=docker.io/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
 
 
-class DeployToGCloudApp(Activity):
+class DeploytoGCloudApp(Activity):
     """Deploys an app to the google cloud via the app engine
 
         This activity may be configured with the following environment variables:
@@ -87,7 +87,7 @@ class DeployToGCloudApp(Activity):
         account = _ensure_account()
 
     def _func(self, project_id, zone):
-        """Deploys the build docker containter to the google cloud"""
+        """Deploys the build docker container to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
         account = _ensure_account()

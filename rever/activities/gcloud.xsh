@@ -45,7 +45,8 @@ class DeployToGCloud(Activity):
 
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='deploy_to_gcloud', deps=deps, func=self._func,
-                         desc="Deploys a docker container to the google cloud",)
+                         desc="Deploys a docker container to the google cloud",
+                         check=self.check_func)
     def check_func(self):
         clis = [
             ('gcloud', 'google-cloud-sdk'),
@@ -90,7 +91,8 @@ class DeployTOGCloudApp(Activity):
 
     def __init__(self, *, deps=frozenset()):
         super().__init__(name='deploy_to_gcloud_app', deps=deps, func=self._func,
-                         desc="Deploys an app to the google cloud via the app engine", )
+                         desc="Deploys an app to the google cloud via the app engine",
+                         check=self.check_func)
     def check_func(self):
         clis = [
             ('gcloud', 'google-cloud-sdk'),

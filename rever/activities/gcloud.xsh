@@ -66,6 +66,7 @@ class DeployTOGCloudApp(Activity):
         This activity may be configured with the following environment variables:
 
         :$GCLOUD_PROJECT_ID: str, the gcloud project id
+        :$GCLOUD_ZONE: str, the gcloud zone
         """
 
     def __init__(self, *, deps=frozenset()):
@@ -77,5 +78,7 @@ class DeployTOGCloudApp(Activity):
         """Deploys the build docker containter to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
-        _ensure_account()
-        ![gcloud app deploy app.yaml index.yaml --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]
+        account = _ensure_account()
+        # get cluster credentials
+        ![gcloud app deploy app.yaml index.yaml --account @(account) \
+          --zone=$GCLOUD_ZONE --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]

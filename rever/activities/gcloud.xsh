@@ -48,7 +48,8 @@ class DeployToGCloud(Activity):
                          desc="Deploys a docker container to the google cloud",)
         self._re_cache = {}
 
-    def _func(self):
+    def _func(self, project_id, cluster, zone, container_name, docker_org,
+              docker_repo):
         """Deploys the build docker containter to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()
@@ -74,7 +75,7 @@ class DeployTOGCloudApp(Activity):
                          desc="Deploys an app to the google cloud via the app engine", )
         self._re_cache = {}
 
-    def _func(self):
+    def _func(self, project_id, zone):
         """Deploys the build docker containter to the google cloud"""
         # make sure we are logged in
         _ensure_default_credentials()

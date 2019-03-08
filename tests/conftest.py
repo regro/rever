@@ -41,6 +41,22 @@ def gitecho(request):
     del aliases['git']
 
 
+@pytest.fixture
+def gcloudecho(request):
+    aliases = builtins.aliases
+    aliases['gcloud'] = lambda args: 'Would have run: ' + ' '.join(args) + '@\n'
+    yield None
+    del aliases['gcloud']
+
+
+@pytest.fixture
+def kubectlecho(request):
+    aliases = builtins.aliases
+    aliases['kubectl'] = lambda args: 'Would have run: ' + ' '.join(args) + '\n'
+    yield None
+    del aliases['kubectl']
+
+
 def rmtree(dirname):
     """Remove a directory, even if it has read-only files (Windows).
     Git creates read-only files that must be removed on teardown. See

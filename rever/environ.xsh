@@ -51,6 +51,7 @@ def default_dag():
     from rever.activities.tag import Tag
     from rever.activities.push_tag import PushTag
     from rever.activities.version_bump import VersionBump
+    from rever.activities.gcloud import DeploytoGCloud, DeploytoGCloudApp
     dag = {
         'authors': Authors(),
         'bibtex': BibTex(),
@@ -67,6 +68,8 @@ def default_dag():
         'tag': Tag(),
         'push_tag': PushTag(),
         'version_bump': VersionBump(),
+        'deploy_to_gcloud': DeploytoGCloud(),
+        'deploy_to_gcloud_app': DeploytoGCloudApp(),
     }
     return dag
 
@@ -188,6 +191,18 @@ ENVVARS = {
     'DOCKER_WORKDIR': ('$HOME/$PROJECT', is_string, str, ensure_string,
         'The working directory for the docker container. This is evaluated in '
         'the container itself, default $HOME/$PROJECT'),
+    'GCLOUD_PROJECT_ID': ('', is_string, str, ensure_string,
+                          'The ID for the gcloud project'),
+    'GCLOUD_ZONE': ('us-central1-a', is_string, str, ensure_string,
+                    'The gcloud zone'),
+    'GCLOUD_CLUSTER': ('', is_string, str, ensure_string,
+                       'The kubernetes cluster to deploy to'),
+    'GCLOUD_CONTAINER_NAME': ('', is_string, str, ensure_string,
+                              'The name of the container image to deploy to'),
+    'GCLOUD_DOCKER_ORG': ('', is_string, str, ensure_string,
+                          'The name of the docker org to pull the container from'),
+    'GCLOUD_DOCKER_REPO': ('', is_string, str, ensure_string,
+                           'The name of the docker container repo to use'),
     'GITHUB_CREDFILE': ('', is_string, str, ensure_string,
                         'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),

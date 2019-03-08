@@ -1,3 +1,4 @@
+from rever.logger import current_logger
 from rever.main import env_main
 
 GCLOUD_REVER_XSH = """

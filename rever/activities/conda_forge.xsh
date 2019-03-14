@@ -227,6 +227,9 @@ class CondaForge(Activity):
 
     def check_func(self):
         """Checks that we can login"""
+        import conda_build
+        from conda_smithy.configure_feedstock import check_version_uptodate
+
         error_on_warn = True
         index = conda_build.conda_interface.get_index(channel_urls=["conda-forge"])
         r = conda_build.conda_interface.Resolve(index)

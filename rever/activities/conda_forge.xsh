@@ -226,5 +226,6 @@ class CondaForge(Activity):
                         '{NO_COLOR}')
 
     def check_func(self):
-        """Checks that we can login"""
-        return github.can_login()
+        """Checks that we can rerender and login"""
+        rerender = ![conda-smithy regenerate --check]
+        return rerender and github.can_login()

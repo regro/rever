@@ -226,25 +226,6 @@ class CondaForge(Activity):
                         '{NO_COLOR}')
 
     def check_func(self):
-        """Checks that we can login"""
-        import conda_build
-        from conda_smithy.configure_feedstock import check_version_uptodate
-
-        error_on_warn = True
-        index = conda_build.conda_interface.get_index(channel_urls=["conda-forge"])
-        r = conda_build.conda_interface.Resolve(index)
-
-        # Check that conda-smithy is up-to-date
-        installed_vers = conda_build.conda_interface.get_installed_version(
-        conda_build.conda_interface.root_dir, ["conda-forge-pinning"])
-        cf_pinning_ver = installed_vers["conda-forge-pinning"]
-
-        try:
-            for package in ["conda-smithy", "conda-forge-pinning"]:
-                installed_vers = conda_build.conda_interface.get_installed_version(
-        conda_build.conda_interface.root_dir, [package])[package]
-            check_version_uptodate(r, package, installed_vers, error_on_warn)
-        except RuntimeError:
-            return False
-
-        return github.can_login()
+        """Checks that we can rerender and login"""
+        rerender = ![conda-smithy regenerate --check]
+        return rerender and github.can_login()

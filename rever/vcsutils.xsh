@@ -123,7 +123,7 @@ track = make_vcs_dispatcher(TRACK, name='track',
 
 def git_commit(message="Rever commit"):
     """Commits to the repo."""
-    git commit -am @(message)
+    git commit --allow-empty -am @(message)
 
 
 COMMIT = {'git': git_commit}

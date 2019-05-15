@@ -7,7 +7,7 @@ Quick Start
 To get started with rever, first put a ``rever.xsh`` file in the root directory of your
 source repository,
 
-.. code-block:: xonsh
+.. code-block:: sh
 
     $ACTIVITIES = ['tag']
     $TAG_PUSH = False

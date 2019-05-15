@@ -14,7 +14,7 @@
   github: asmeurer
 - name: Christopher J. Wright
   email: cjwright4242gh@gmail.com
-  num_commits: 119
+  num_commits: 135
   first_commit: 2017-07-25 20:41:13
   alternate_emails:
   - cjwright4242@gmail.com
@@ -27,7 +27,7 @@
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
-  num_commits: 256
+  num_commits: 264
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
@@ -44,3 +44,6 @@
   aliases:
   - Mike Sarahan
   email: msarahan@gmail.com
+  num_commits: 1
+  first_commit: 2019-05-14 21:01:12
+  github: msarahan

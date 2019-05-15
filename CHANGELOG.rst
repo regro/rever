@@ -4,6 +4,34 @@ Rever Change Log
 
 .. current developments
 
+v0.3.5
+====================
+
+**Added:**
+
+* ``CondaForge`` activity now checks that conda-smithy and pinning are up to date
+* ``DeployToGCloud`` activity for pushing to a google cloud kubernetes clusters
+* ``DeployToGCloudApp`` activity for pushing to the google cloud via the app engine
+
+**Changed:**
+
+* Allow empty commits for git.  Authorship update commit was failing because no file changes were made by that update.
+* ``rever.authors.update_metadata()`` will always write the authors file
+  if ``write=True``. In the cases where there is an error or incomplete data,
+  the file that is written only contains valid information.
+
+**Fixed:**
+
+* Some minor robustness fixes for computing first commit timestamps
+
+**Authors:**
+
+* Anthony Scopatz
+* Christopher J. Wright
+* Michael Sarahan
+
+
+
 v0.3.4
 ====================
 

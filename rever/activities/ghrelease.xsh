@@ -37,9 +37,10 @@ def git_archive_asset():
     """Provides tarball of the repository as an asset."""
     template = ${...}.get('TAG_TEMPLATE', '$VERSION')
     tag = eval_version(template)
-    fname = os.path.join($REVER_DIR, tag + '.tar.gz')
+    folder_name = $GITHUB_REPO + '-' + tag
+    fname = os.path.join($REVER_DIR, folder_name + '.tar.gz')
     print_color('Archiving repository as {INTENSE_CYAN}' + fname + '{NO_COLOR}')
-    ![git archive -9 --format=tar.gz -o @(fname) @(tag)]
+    ![git archive -9 --format=tar.gz --prefix=@(folder_name)/ -o @(fname) @(tag)]
     return fname
 
 

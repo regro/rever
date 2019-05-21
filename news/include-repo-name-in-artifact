@@ -1,0 +1,23 @@
+**Added:**
+
+* <news item>
+
+**Changed:**
+
+* github artifact tarball changed to include repo name in filename.  This is nicer both on disk and makes tools like versioneer work better.
+
+**Deprecated:**
+
+* <news item>
+
+**Removed:**
+
+* <news item>
+
+**Fixed:**
+
+* <news item>
+
+**Security:**
+
+* <news item>

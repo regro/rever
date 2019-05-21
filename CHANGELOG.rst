@@ -4,6 +4,24 @@ Rever Change Log
 
 .. current developments
 
+v0.3.6
+====================
+
+**Added:**
+
+* added ``--version`` flag to rever to show active version
+
+**Changed:**
+
+* github artifact tarball changed to include repo name in filename.  This is nicer both on disk and makes tools like versioneer work better.
+
+**Authors:**
+
+* Anthony Scopatz
+* Michael Sarahan
+
+
+
 v0.3.5
 ====================
 

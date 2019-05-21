@@ -7,6 +7,7 @@ from collections import defaultdict
 from lazyasd import lazyobject
 from xonsh.tools import csv_to_set, print_color
 
+from rever import __version__
 from rever import environ
 from rever.dag import find_path
 
@@ -39,6 +40,8 @@ def PARSER():
                                             'install docker container.')
     p.add_argument('version', help='version to release, the value "setup" is an alias '
                                    'to --setup.')
+    p.add_argument('--version', action='version',
+                        version='rever {version}'.format(version=__version__))
     return p
 
 

@@ -36,7 +36,6 @@ def create_rc(rc, username=None, password=None):
 def validate_rc(rc):
     """Validate a pypirc file, returns True/False and a message"""
     parser = ConfigParser(interpolation=ExtendedInterpolation())
-
     parser.read([rc])
     if 'distutils' not in parser:
         return False, 'distutils section not in ' + rc

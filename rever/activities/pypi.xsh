@@ -7,6 +7,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 from lazyasd import lazyobject
 from xonsh.tools import expand_path, print_color
+from xonsh.lib.os import rmtree
 
 from rever.activity import Activity
 from rever.tools import download
@@ -77,9 +78,10 @@ class PyPI(Activity):
     """
 
     def __init__(self, *, deps=frozenset(('version_bump',))):
+        requires = {"commands": {"twine": "twine"}}
         super().__init__(name='pypi', deps=deps, func=self._func,
                          desc="Uploads to the Python Package Index.",
-                         check=self.check_func)
+                         requires=requires, check=self.check_func)
 
     def _ensure_rc(self, rc, always_return=False):
         rc = expand_path(rc)
@@ -101,13 +103,21 @@ class PyPI(Activity):
     def _func(self, rc='$HOME/.pypirc', build_commands=('sdist',),
               upload=True, name=None):
         rc = self._ensure_rc(rc)
-        commands = build_commands
-        if upload:
-            commands += ('upload',)
-        p = ![$PYTHON setup.py @(commands)]
+        # isolate distributions for rever
+        $dist_dir = os.path.join($REVER_DIR, "dist")
+        if os.path.exists($dist_dir):
+            rmtree($dist_dir, force=True)
+        # build distributions
+        p = ![$PYTHON setup.py --dist-dir $dist_dir @(build_commands)]
         if p.rtn != 0:
-            raise RuntimeError('pypi upload failed! Did you register the '
-                               'package with "python setup.py register"?')
+            raise RuntimeError("Failed to build Python distributions!")
+        # upload, as needed
+        if upload:
+            p = ![twine upload $dist_dir/*]
+            if p.rtn != 0:
+                raise RuntimeError('pypi upload failed! Did you register the '
+                                   'package with "python setup.py register"?')
+        del $dist_dir
 
     def check_func(self):
         # First check rc file

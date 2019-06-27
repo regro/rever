@@ -23,7 +23,6 @@ def create_rc(rc, username=None, password=None):
     parser.add_section('distutils')
     parser.set('distutils', 'index-servers', '\npypi')
     parser.add_section('pypi')
-    parser.set('pypi', 'repository', 'https://pypi.python.org/pypi')
     parser.set('pypi', 'username', username)
     parser.set('pypi', 'password', password)
     with open(rc, 'w') as f:
@@ -43,6 +42,9 @@ def validate_rc(rc):
         return False, 'index-servers not in distutils section of ' + rc
     if 'pypi' not in parser:
         return False, 'pypi section not in ' + rc
+    if 'repository' in parser['pypi'] and parser['pypi']['repository'] == 'https://pypi.python.org/pypi':
+        return False, ('pypi repository "https://pypi.python.org/pypi" is no longer '
+                       'supported, please remove this line from ' + rc)
     if 'username' not in parser['pypi']:
         return False, 'username not in pypi section of ' + rc
     if 'password' not in parser['pypi']:

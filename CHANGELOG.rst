@@ -4,6 +4,22 @@ Rever Change Log
 
 .. current developments
 
+v0.3.8
+====================
+
+**Changed:**
+
+* PyPI activity will no longer attempt to use the deprecated
+  ``repository:https://pypi.python.org/pypi`` in pypirc. Instead,
+  it will rely on the upload tool's default (i.e. what ``twine`` thinks
+  is best).
+
+**Authors:**
+
+* Anthony Scopatz
+
+
+
 v0.3.7
 ====================
 

@@ -22,7 +22,7 @@ def main():
         description='Release Versions of Software',
         long_description=readme,
         license='BSD',
-        version='0.3.6',
+        version='0.3.7',
         author='Anthony Scopatz',
         maintainer='Anthony Scopatz',
         author_email='scopatz@gmail.com',

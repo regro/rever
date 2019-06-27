@@ -108,7 +108,12 @@ class PyPI(Activity):
         if os.path.exists($dist_dir):
             rmtree($dist_dir, force=True)
         # build distributions
-        p = ![$PYTHON setup.py @(build_commands) --dist-dir $dist_dir]
+        dist_in_cmds = any(["dist" in c for c in build_commands])
+        dist_dir_in_cmds = any([c.startswith("-d=") or c == "-d" or c.startswith("--dist-dir")
+                                for c in build_commands])
+        if dist_in_cmds and not dist_dir_in_cmds:
+            build_commands = list(build_commands) + ["--dist-dir", $dist_dir]
+        p = ![$PYTHON setup.py @(build_commands)]
         if p.rtn != 0:
             raise RuntimeError("Failed to build Python distributions!")
         # upload, as needed

@@ -4,6 +4,20 @@ Rever Change Log
 
 .. current developments
 
+v0.3.7
+====================
+
+**Changed:**
+
+* Updated the PyPI activity to use ``twine`` to upload distributions.
+* The PyPI activity now builds distributions in ``$REVER_DIR/dist``.
+
+**Authors:**
+
+* Anthony Scopatz
+
+
+
 v0.3.6
 ====================
 

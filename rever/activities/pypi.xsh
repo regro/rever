@@ -7,7 +7,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 from lazyasd import lazyobject
 from xonsh.tools import expand_path, print_color
-from xonsh.lib.os import rmtreeo
+from xonsh.lib.os import rmtree
 
 from rever.activity import Activity
 from rever.tools import download

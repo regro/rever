@@ -28,6 +28,17 @@ username:MisterT
 password:JibberJabber
 """
 
+
+INVALID_RC = """[distutils]
+index-servers =
+    pypi
+
+[pypi]
+repository:https://pypi.python.org/pypi
+username:MisterT
+password:JibberJabber
+"""
+
 SETUP_PY = """
 from distutils.core import setup
 setup(
@@ -47,7 +58,6 @@ def test_create_rc():
            'index-servers=\n'
            '\tpypi\n\n'
            '[pypi]\n'
-           'repository=https://pypi.python.org/pypi\n'
            'username=zappa\n'
            'password=WakkaJawaka\n\n')
     assert exp == obs
@@ -62,7 +72,7 @@ def test_valid_rc():
     assert len(msg) == 0, msg
 
 
-def test_invalid_rc():
+def test_invalid_rc_username():
     rc = ''.join(VALID_RC.splitlines(keepends=True)[:-2])
     with tempfile.NamedTemporaryFile('w+t') as f:
         f.write(rc)
@@ -71,6 +81,17 @@ def test_invalid_rc():
     assert not valid, msg
     assert len(msg) > 0, msg
     assert 'username' in msg
+
+
+def test_invalid_rc_repository():
+    rc = ''.join(INVALID_RC.splitlines(keepends=True)[:-2])
+    with tempfile.NamedTemporaryFile('w+t') as f:
+        f.write(rc)
+        f.flush()
+        valid, msg = validate_rc(f.name)
+    assert not valid, msg
+    assert len(msg) > 0, msg
+    assert 'repository' in msg
 
 
 def test_pypi_activity(gitrepo):

@@ -108,7 +108,7 @@ class PyPI(Activity):
         if os.path.exists($dist_dir):
             rmtree($dist_dir, force=True)
         # build distributions
-        p = ![$PYTHON setup.py --dist-dir $dist_dir @(build_commands)]
+        p = ![$PYTHON setup.py @(build_commands) --dist-dir $dist_dir]
         if p.rtn != 0:
             raise RuntimeError("Failed to build Python distributions!")
         # upload, as needed

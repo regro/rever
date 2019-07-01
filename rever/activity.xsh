@@ -170,7 +170,7 @@ class Activity:
                 continue
             msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
                         '{YELLOW}' + cmd + '{NO_COLOR} cannot be found. '
-                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR}'
+                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR} '
                         'package is installed in your environment.')
         # now check package imports
         for mod, pkg in self.requires.get("imports", {}).items():
@@ -181,7 +181,7 @@ class Activity:
                 pass
             msgs.append('{RED}ERROR:{NO_COLOR} the module '
                         '{YELLOW}' + mod + '{NO_COLOR} cannot be imported. '
-                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR}'
+                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR} '
                         'package is installed in your environment.')
         # print mesages and return
         if len(msgs) == 0:

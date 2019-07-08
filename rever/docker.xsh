@@ -118,9 +118,11 @@ def collate_deps(apt=None, conda=None, conda_channels=None,
                  pip=None, pip_requirements=None):
     """Constructs a string that installs all known dependencies."""
     if conda or $DOCKER_CONDA_DEPS:
-        if not apt:
-            apt = set()
-        apt |= {"wget", "bzip2", "ca-certificates", "curl", "git"}
+        if not apt and not $DOCKER_APT_DEPS:
+            apt = []
+        elif not apt:
+            apt = list($DOCKER_APT_DEPS)
+        apt += ["wget", "bzip2", "ca-certificates", "curl", "git"]
     s = ''
     s += apt_deps(apt)
     s += conda_deps(conda, conda_channels)

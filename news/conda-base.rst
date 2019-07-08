@@ -4,7 +4,7 @@
 
 **Changed:**
 
-* Updates base conda installation first thing in docker containers.
+* Updates docker conda install to use latest miniconda install.
 
 **Deprecated:**
 

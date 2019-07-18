@@ -80,7 +80,7 @@ def conda_deps(conda=None, conda_channels=None):
     s += '    /opt/conda/bin/conda clean -tipsy && \\\n'
     s += '    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \\\n'
     s += '    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \\\n'
-    s += '    echo "conda activate base" >> ~/.bashrc \\n'
+    s += '    echo "conda activate base" >> ~/.bashrc && \\\n'
     s += '    conda config --set always_yes yes && \\\n'
     if channels:
         for channel in channels[::-1]:

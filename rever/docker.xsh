@@ -74,7 +74,14 @@ def conda_deps(conda=None, conda_channels=None):
     if not conda:
         return ''
     channels = $DOCKER_CONDA_CHANNELS if conda_channels is None else conda_channels
-    s = 'RUN conda config --set always_yes yes && \\\n'
+    s = 'RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \\\n'
+    s += '    /bin/bash ~/miniconda.sh -b -p /opt/conda && \\\n'
+    s += '    rm ~/miniconda.sh && \\\n'
+    s += '    /opt/conda/bin/conda clean -tipsy && \\\n'
+    s += '    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \\\n'
+    s += '    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \\\n'
+    s += '    echo "conda activate base" >> ~/.bashrc && \\\n'
+    s += '    conda config --set always_yes yes && \\\n'
     if channels:
         for channel in channels[::-1]:
             s += '    conda config --add channels ' + channel + ' && \\\n'
@@ -83,6 +90,11 @@ def conda_deps(conda=None, conda_channels=None):
     s += wrap(' '.join(sorted(conda)), indent=' '*8) + ' && \\\n'
     s += '    conda clean --all && \\\n'
     s += '    conda info\n\n'
+    s += 'ENV TINI_VERSION v0.16.1\n'
+    s += 'ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini\n'
+    s += 'RUN chmod +x /usr/bin/tini\n\n'
+    s += 'ENTRYPOINT [ "/usr/bin/tini", "--" ]\n'
+    s += 'CMD [ "/bin/bash" ]\n\n'
     return s
 
 
@@ -105,6 +117,12 @@ def pip_deps(pip=None, pip_requirements=None):
 def collate_deps(apt=None, conda=None, conda_channels=None,
                  pip=None, pip_requirements=None):
     """Constructs a string that installs all known dependencies."""
+    if conda or $DOCKER_CONDA_DEPS:
+        if not apt and not $DOCKER_APT_DEPS:
+            apt = []
+        elif not apt:
+            apt = list($DOCKER_APT_DEPS)
+        apt += ["wget", "bzip2", "ca-certificates", "curl", "git"]
     s = ''
     s += apt_deps(apt)
     s += conda_deps(conda, conda_channels)
@@ -141,6 +159,10 @@ def make_base_dockerfile(base_from=None, apt=None, conda=None, conda_channels=No
            'GITHUB_ORG': $GITHUB_ORG, 'GITHUB_REPO': $GITHUB_REPO,
            'WEBSITE_URL': $WEBSITE_URL, 'HOME': $DOCKER_HOME}
     env = {k: v for k, v in env.items() if v}
+    if conda or $DOCKER_CONDA_DEPS:
+        env["LANG"] = "C.UTF-8"
+        env["LC_ALL"] = "C.UTF-8"
+        env["PATH"] = "/opt/conda/bin:$PATH"
     envvars = docker_envvars(env)
     git_config = git_configure(name=git_name, email=git_email)
     base = BASE_DOCKERFILE.format(base_from=base_from, deps=deps,

@@ -56,16 +56,37 @@ def test_apt_deps(dockerenv, deps, exp):
     ([], None, ''),
     ([], ['conda-forge'], ''),
     (['dep1', 'dep0'], [],
-"""RUN conda config --set always_yes yes && \\
+"""RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \\
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \\
+    rm ~/miniconda.sh && \\
+    /opt/conda/bin/conda clean -tipsy && \\
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \\
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \\
+    echo "conda activate base" >> ~/.bashrc && \\
+    conda config --set always_yes yes && \\
     conda update --all && \\
     conda install \\
         dep0 dep1 && \\
     conda clean --all && \\
     conda info
 
+ENV TINI_VERSION v0.16.1
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+RUN chmod +x /usr/bin/tini
+
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
+CMD [ "/bin/bash" ]
+
 """),
     (['dep1', 'dep0'], ['conda-forge', 'my-channel'],
-"""RUN conda config --set always_yes yes && \\
+"""RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \\
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \\
+    rm ~/miniconda.sh && \\
+    /opt/conda/bin/conda clean -tipsy && \\
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \\
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \\
+    echo "conda activate base" >> ~/.bashrc && \\
+    conda config --set always_yes yes && \\
     conda config --add channels my-channel && \\
     conda config --add channels conda-forge && \\
     conda update --all && \\
@@ -73,6 +94,13 @@ def test_apt_deps(dockerenv, deps, exp):
         dep0 dep1 && \\
     conda clean --all && \\
     conda info
+
+ENV TINI_VERSION v0.16.1
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+RUN chmod +x /usr/bin/tini
+
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
+CMD [ "/bin/bash" ]
 
 """),
 ])
@@ -122,6 +150,9 @@ def test_git_configure(dockerenv, name, email, exp):
 EXP_BASE = """FROM zappa/project
 
 ENV HOME /root
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV PATH /opt/conda/bin:$PATH
 ENV REVER_VCS git
 ENV VERSION x.y.z
 
@@ -129,10 +160,17 @@ WORKDIR /root
 
 RUN apt-get -y update && \\
     apt-get install -y --fix-missing \\
-        dep0 dep1 && \\
+        bzip2 ca-certificates curl dep0 dep1 git wget && \\
     apt-get clean -y
 
-RUN conda config --set always_yes yes && \\
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \\
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \\
+    rm ~/miniconda.sh && \\
+    /opt/conda/bin/conda clean -tipsy && \\
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \\
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \\
+    echo "conda activate base" >> ~/.bashrc && \\
+    conda config --set always_yes yes && \\
     conda config --add channels my-channel && \\
     conda config --add channels conda-forge && \\
     conda update --all && \\
@@ -140,6 +178,13 @@ RUN conda config --set always_yes yes && \\
         dep0 dep1 && \\
     conda clean --all && \\
     conda info
+
+ENV TINI_VERSION v0.16.1
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+RUN chmod +x /usr/bin/tini
+
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
+CMD [ "/bin/bash" ]
 
 RUN pip install \\
     -r req1 -r req0 dep1 dep0

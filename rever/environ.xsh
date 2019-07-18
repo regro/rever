@@ -143,7 +143,7 @@ ENVVARS = {
                         '"$REVER_USER/$PROJECT:latest"]``.'),
     'DOCKER_APT_DEPS': ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                         'Dependencies to install in the base container via apt-get.'),
-    'DOCKER_BASE_FROM': ('continuumio/miniconda3', is_string, str, ensure_string,
+    'DOCKER_BASE_FROM': ('debian:latest', is_string, str, ensure_string,
                          'Image to include in the base rever image.'),
     'DOCKER_BASE_IMAGE': ('$PROJECT/rever-base', is_string, str, ensure_string,
                           'Image name for the base docker image. This is evaluated in the '

@@ -27,7 +27,7 @@
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
-  num_commits: 284
+  num_commits: 292
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
@@ -47,3 +47,8 @@
   num_commits: 6
   first_commit: 2019-05-14 21:01:12
   github: msarahan
+- name: Baptiste Mouginot
+  email: mouginot.baptiste@gmail.com
+  github: bam241
+  num_commits: 1
+  first_commit: 2019-07-01 11:49:22

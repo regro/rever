@@ -4,6 +4,20 @@ Rever Change Log
 
 .. current developments
 
+v0.3.9
+====================
+
+**Changed:**
+
+* Updates docker conda install to use latest miniconda install.
+
+**Authors:**
+
+* Anthony Scopatz
+* Baptiste Mouginot
+
+
+
 v0.3.8
 ====================
 

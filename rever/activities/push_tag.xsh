@@ -87,4 +87,4 @@ class PushTag(Activity):
         remote = ${...}.get('PUSH_TAG_REMOTE', None)
         protocol = ${...}.get('PUSH_TAG_PROTOCOL', None)
         remote = self._find_remote(remote=remote, protocol=protocol)
-        return vcsutils.have_push_permissions
+        return vcsutils.have_push_permissions(remote)

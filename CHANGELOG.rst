@@ -4,6 +4,25 @@ Rever Change Log
 
 .. current developments
 
+v0.4.0
+====================
+
+**Changed:**
+
+* PyPI updated the HTML for listing maintainers.
+  This fixes the PyPI permissions check.
+
+**Fixed:**
+
+* ``rever.activities.push_tag`` now properly checks the capacity to push
+
+**Authors:**
+
+* Anthony Scopatz
+* Christopher J. Wright
+
+
+
 v0.3.9
 ====================
 

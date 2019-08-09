@@ -56,8 +56,9 @@ def validate_rc(rc):
 @lazyobject
 def maintainer_re():
     return re.compile(r'<span class="sidebar-section__maintainer">.*?'
-                      r'<a href="/user/(\w+)/" class="sidebar-section__user-gravatar-text">.*?'
-                      r'</span>', flags=re.DOTALL)
+                      r'<a href="/user/(\w+)/" '
+                      r'(?:class="sidebar-section__user-gravatar-text"|aria-label="\w+")'
+                      r'>.*?</span>', flags=re.DOTALL)
 
 
 class PyPI(Activity):

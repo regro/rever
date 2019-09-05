@@ -197,6 +197,7 @@ class Changelog(Activity):
         with open(changelog_file, 'w') as f:
             s = INITIAL_CHANGELOG.format(PROJECT=$PROJECT,
                                          bars='='*(len($PROJECT) + 11))
+            s = s.rstrip() + "\n"
             f.write(s)
         return True
 
@@ -218,6 +219,7 @@ class Changelog(Activity):
             lines.append(self._format_category_title(category_title_format, category))
             lines.append(news_item)
         s = "".join(lines)
+        s = s.rstrip() + "\n"
         with open(filename, 'w') as f:
             f.write(s)
 

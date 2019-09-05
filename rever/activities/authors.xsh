@@ -199,7 +199,8 @@ class Authors(Activity):
         if not include_orgs:
             md = [x for x in md if not x.get("is_org", False)]
         aformated = "".join([format.format(**x) for x in md])
-        s = template.format(sorting_text=sorting_text, authors=aformated) + "\n"
+        s = template.format(sorting_text=sorting_text, authors=aformated)
+        s = s.rstrip() + "\n"
         with open(filename, 'w') as f:
             f.write(s)
         return md

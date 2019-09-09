@@ -54,7 +54,8 @@ class Changelog(Activity):
         to ignore. The default is to ignore the template file.
     :$CHANGELOG_LATEST: str, file to write just the latest part of the
         changelog to. This defaults to ``$REVER_DIR/LATEST``. This is evaluated
-        in the current environment.
+        in the current environment. If this file is not within ``$REVER_DIR``,
+        it is added to the repository.
     :$CHANGELOG_TEMPLATE: str, filename of the template file in the
         news directory. The default is ``'TEMPLATE'``.
     :$CHANGELOG_CATEGORIES: iterable of str, the news categories that are used.
@@ -99,6 +100,8 @@ class Changelog(Activity):
         merged += authors
         with open(latest, 'w') as f:
             f.write(merged)
+        if not latest.startswith($REVER_DIR):
+            vcsutils.track(latest)
         n = header + merged
         replace_in_file(pattern, n, filename)
         vcsutils.commit('Updated CHANGELOG for ' + $VERSION)

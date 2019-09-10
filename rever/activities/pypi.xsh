@@ -10,7 +10,7 @@ from xonsh.tools import expand_path, print_color
 from xonsh.lib.os import rmtree
 
 from rever.activity import Activity
-from rever.tools import download
+from rever.tools import download, check_gpg
 
 
 def create_rc(rc, username=None, password=None):
@@ -74,6 +74,9 @@ class PyPI(Activity):
     :$PYPI_UPLOAD: bool, whether or not to upload PyPI, default True.
     :$PYPI_NAME: str or None, The name of the package on PyPI. If None,
         This will default to the result of ``python setup.py --name``
+    :$PYPI_SIGN: bool or None, whether the packages should be signed
+        (with gpg) when uploaded. If None (default), packages will be
+        signed if a gpg key is available and skipped otherwise.
 
     Other environment variables that affect the behavior are:
 
@@ -104,7 +107,7 @@ class PyPI(Activity):
             return rc
 
     def _func(self, rc='$HOME/.pypirc', build_commands=('sdist',),
-              upload=True, name=None):
+              upload=True, name=None, sign=None):
         rc = self._ensure_rc(rc)
         # isolate distributions for rever
         $dist_dir = os.path.join($REVER_DIR, "dist")
@@ -121,10 +124,19 @@ class PyPI(Activity):
             raise RuntimeError("Failed to build Python distributions!")
         # upload, as needed
         if upload:
-            p = ![twine upload $dist_dir/*]
+            upload_args = ["upload"]
+            if sign:
+                upload_args.append("--sign")
+            elif sign is None:
+                gpg_flag, gpg_msg = check_gpg()
+                if gpg_flag:
+                    upload_args.append("--sign")
+                else:
+                    msg = "{YELLOW}Package cannot be signed: " + gpg_msg + "{NO_COLOR}"
+                    print_color(msg, file=sys.stderr)
+            p = ![twine @(upload_args) $dist_dir/*]
             if p.rtn != 0:
-                raise RuntimeError('pypi upload failed! Did you register the '
-                                   'package with "python setup.py register"?')
+                raise RuntimeError('PyPI upload failed!')
         del $dist_dir
 
     def check_func(self):
@@ -153,4 +165,16 @@ class PyPI(Activity):
             msg += "\n* ".join(sorted(maintainers))
             print_color(msg, file=sys.stderr)
             return False
+        # Now check signing capability
+        upload = ${...}.get('PYPI_UPLOAD', True)
+        sign = ${...}.get('PYPI_SIGN', None)
+        if not upload or sign is False:
+            pass
+        elif sign is None or sign:
+            gpg_flag, gpg_msg = check_gpg()
+            msg = "{GREEN}" if gpg_flag else "{RED}"
+            msg += gpg_msg + "{NO_COLOR}"
+            print_color(msg, file=sys.stderr)
+            if sign and not gpg_flag:
+                return False
         return True

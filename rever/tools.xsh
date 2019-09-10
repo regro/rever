@@ -250,3 +250,16 @@ def get_format_field_names(s):
     formatter = string.Formatter()
     return {field_name for literal_text, field_name, format_spec, conversion in
             formatter.parse(s) if field_name is not None}
+
+
+def check_gpg():
+    """Checks that gpg is available and useable.
+    Returns a boolean and message.
+    """
+    if not bool(!(which gpg)):
+        return False, "gpg command not found! Please install gnupg."
+    keys = $(gpg --list-keys)
+    phrases = ("-----\n", "\npub ", "\nuid ", "\nsub ")
+    if not all([phrase in keys for phrase in phrases]):
+        return False, "No gpg keys available! Output of 'gpg --list-keys':\n\n" + keys
+    return True, "gpg fully available!"

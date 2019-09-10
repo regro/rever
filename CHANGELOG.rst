@@ -4,6 +4,24 @@ Rever Change Log
 
 .. current developments
 
+v0.4.2
+====================
+
+**Added:**
+
+* The PyPI activity now includes the ability to sign source packages
+  if ``gpg`` is available with the ``$PYPI_SIGN`` variable.
+
+**Changed:**
+
+* ``$CHANGELOG_LATEST`` is now tracked if it is not in the ``$REVER_DIR``
+
+**Authors:**
+
+* Anthony Scopatz
+
+
+
 v0.4.1
 ====================
 

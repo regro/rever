@@ -105,7 +105,7 @@ Contributing
 We highly encourage contributions to rever!  If you would like to contribute,
 it is as easy as forking the repository on GitHub, making your changes, and
 issuing a pull request.  If you have any questions about this process don't
-hesitate to ask on the `Gitter <https://gitter.im/ergs/rever>`_ channel.
+hesitate to ask on the `Gitter <https://gitter.im/regro/rever>`_ channel.
 
 See the `Developer's Guide <devguide.html>`_ for more information about contributing.
 
@@ -113,16 +113,16 @@ See the `Developer's Guide <devguide.html>`_ for more information about contribu
 Helpful Links
 =============
 
-* `Documentation <http://ergs.github.io/rever-docs>`_
-* `Gitter <https://gitter.im/ergs/rever>`_
-* `GitHub Repository <https://github.com/ergs/rever>`_
+* `Documentation <http://regro.github.io/rever-docs>`_
+* `Gitter <https://gitter.im/regro/rever>`_
+* `GitHub Repository <https://github.com/regro/rever>`_
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
 .. raw:: html
 
-    <a href="https://github.com/ergs/rever" class='github-fork-ribbon' title='Fork me on GitHub'>Fork me on GitHub</a>
+    <a href="https://github.com/regro/rever" class='github-fork-ribbon' title='Fork me on GitHub'>Fork me on GitHub</a>
 
     <style>
     /*!

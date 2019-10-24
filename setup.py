@@ -34,9 +34,10 @@ def main():
         package_data={'rever': ['*.xsh'], 'rever.activities': ['*.xsh']},
         scripts=scripts,
         zip_safe=False,
+        install_requires=['xonsh'],
         )
     # WARNING!!! Do not use setuptools 'console_scripts'
-    # It validates the depenendcies (of which we have none) everytime the
+    # It validates the depenendcies everytime the
     # 'rever' command is run. This validation adds ~0.2 sec. to the startup
     # time of xonsh - for every single xonsh run.  This prevents us from
     # reaching the goal of a startup time of < 0.1 sec.  So never ever write

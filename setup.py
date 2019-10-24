@@ -34,7 +34,7 @@ def main():
         package_data={'rever': ['*.xsh'], 'rever.activities': ['*.xsh']},
         scripts=scripts,
         zip_safe=False,
-        install_requires=['xonsh'],
+        install_requires=['xonsh', 'lazyasd'],
         )
     # WARNING!!! Do not use setuptools 'console_scripts'
     # It validates the depenendcies everytime the

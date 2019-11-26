@@ -9,6 +9,7 @@ $GCLOUD_ZONE = 'us-central1-a'
 $GCLOUD_CLUSTER = 'hello-world-cluster01'
 $GCLOUD_DOCKER_ORG = 'hello-world-org'
 $GCLOUD_DOCKER_REPO = 'hello-world-repo'
+$GCLOUD_DOCKHER_HOST = 'gcr.io'
 """
 
 

@@ -199,6 +199,8 @@ ENVVARS = {
                        'The kubernetes cluster to deploy to'),
     'GCLOUD_CONTAINER_NAME': ('', is_string, str, ensure_string,
                               'The name of the container image to deploy to'),
+    'GCLOUD_DOCKER_HOST': ('docker.io', is_string, str, ensure_string,
+                          'The name of the docker host to pull the container from'),
     'GCLOUD_DOCKER_ORG': ('', is_string, str, ensure_string,
                           'The name of the docker org to pull the container from'),
     'GCLOUD_DOCKER_REPO': ('', is_string, str, ensure_string,

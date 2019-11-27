@@ -37,6 +37,7 @@ class DeploytoGCloud(Activity):
     :$GCLOUD_CLUSTER: str the kubernetes cluster to deploy to
     :$GCLOUD_ZONE: str, the gcloud zone
     :$GCLOUD_CONTAINER_NAME: str, the name of the container image to deploy to
+    :$GCLOUD_DOCKER_HOST: str, the name of the docker host to pull the container from, defaults to docker.io
     :$GCLOUD_DOCKER_ORG: str, the name of the docker org to pull the container
         from
     :$GCLOUD_DOCKER_REPO: str, the name of the docker container repo to use
@@ -69,7 +70,7 @@ class DeploytoGCloud(Activity):
         ![gcloud container clusters get-credentials --account @(account) \
           --zone=$GCLOUD_ZONE --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]
         # set new image
-        ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=docker.io/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
+        ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=$GCLOUD_DOCKER_HOST/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
 
 
 class DeploytoGCloudApp(Activity):

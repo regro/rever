@@ -4,6 +4,21 @@ Rever Change Log
 
 .. current developments
 
+v0.4.3
+====================
+
+**Changed:**
+
+* ``activities.gcloud.DeploytoGCloud`` now supports docker hosts beyond ``docker.io``
+
+**Authors:**
+
+* Anthony Scopatz
+* Christopher J. Wright
+* Thomas Kluyver
+
+
+
 v0.4.2
 ====================
 

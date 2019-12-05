@@ -3,6 +3,7 @@ $REVER_DIR = 'rever-tmp'
 $ACTIVITIES = ['version_bump', 'authors', 'changelog', 'pytest',
                'sphinx', 'tag', 'push_tag', 'pypi', 'conda_forge',
                'ghpages', 'ghrelease']
+$PYPI_SIGN = False
 
 $VERSION_BUMP_PATTERNS = [
     ('rever/__init__.py', r'__version__\s*=.*', "__version__ = '$VERSION'"),

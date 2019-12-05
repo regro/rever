@@ -14,7 +14,7 @@
   github: asmeurer
 - name: Christopher J. Wright
   email: cjwright4242gh@gmail.com
-  num_commits: 136
+  num_commits: 139
   first_commit: 2017-07-25 20:41:13
   alternate_emails:
   - cjwright4242@gmail.com
@@ -27,7 +27,7 @@
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
-  num_commits: 306
+  num_commits: 310
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
@@ -52,3 +52,8 @@
   github: bam241
   num_commits: 1
   first_commit: 2019-07-01 11:49:22
+- name: Thomas Kluyver
+  email: thomas@kluyver.me.uk
+  num_commits: 3
+  first_commit: 2019-10-24 08:16:16
+  github: takluyver

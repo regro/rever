@@ -69,8 +69,14 @@ class DeploytoGCloud(Activity):
         # get cluster credentials
         ![gcloud container clusters get-credentials --account @(account) \
           --zone=$GCLOUD_ZONE --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]
-        # set new image
-        ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=$GCLOUD_DOCKER_HOST/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
+        # make certain kubectl rolls out, otherwise raise exception
+        for i in range(3):
+            # set new image
+            ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=$GCLOUD_DOCKER_HOST/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
+            if ![kubectl rollout status deployment/$GCLOUD_CONTAINER_NAME]:
+                break
+        else:
+            raise RuntimeException('kubectl failed to rollout the new image')
 
 
 class DeploytoGCloudApp(Activity):

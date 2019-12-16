@@ -78,6 +78,23 @@ class DeploytoGCloud(Activity):
         else:
             raise RuntimeException('kubectl failed to rollout the new image')
 
+    def undo(self,
+             project_id='$$GCLOUD_PROJECT_ID',
+             cluster='$GCLOUD_CLUSTER',
+             zone='$GCLOUD_ZONE',
+             container_name='$GCLOUD_CONTAINER_NAME',
+             docker_org='$GCLOUD_DOCKER_ORG',
+             docker_repo='$GCLOUD_DOCKER_REPO'):
+        # make sure we are logged in
+        _ensure_default_credentials()
+        account = _ensure_account()
+        # get cluster credentials
+        ![gcloud container clusters get-credentials --account @(account) \
+          --zone=$GCLOUD_ZONE --project=$GCLOUD_PROJECT_ID $GCLOUD_CLUSTER]
+        ![kubectl rollout undo deployment/$GCLOUD_CONTTAINER_NAME]
+       
+
+
 
 class DeploytoGCloudApp(Activity):
     """Deploys an app to the google cloud via the app engine

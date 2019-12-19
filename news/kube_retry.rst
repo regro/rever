@@ -1,6 +1,6 @@
 **Added:**
 
-* `rever.activities.gcloud.DeploytoGcloud` now has an undo
+* ``rever.activities.gcloud.DeploytoGcloud`` now has an undo
 
 **Changed:**
 

@@ -73,7 +73,11 @@ class DeploytoGCloud(Activity):
         for i in range(3):
             # set new image
             ![kubectl set image deployment/$GCLOUD_CONTAINER_NAME $GCLOUD_CONTAINER_NAME=$GCLOUD_DOCKER_HOST/$GCLOUD_DOCKER_ORG/$GCLOUD_DOCKER_REPO:$VERSION]
-            if ![kubectl rollout status deployment/$GCLOUD_CONTAINER_NAME]:
+            try:
+                ![kubectl rollout status deployment/$GCLOUD_CONTAINER_NAME]
+            except:
+                pass
+            else:
                 break
         else:
             raise RuntimeException('kubectl failed to rollout the new image')

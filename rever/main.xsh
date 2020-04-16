@@ -29,7 +29,7 @@ def PARSER():
     p.add_argument('-f', '--force', default=False, action='store_true',
                    dest='force', help='Forces rever actions which might otherwise be safe.')
     p.add_argument('-s', '--setup', default=False, action='store_true',
-                   dest='setup', help='Iniatilaizes the activities, if needed.')
+                   dest='setup', help='Initializes the activities, if needed.')
     p.add_argument('-c', '--check', default=False, action='store_true',
                    dest='check', help='Checks that the activities can be executed.')
     p.add_argument('--docker-base', default=False, action='store_true',

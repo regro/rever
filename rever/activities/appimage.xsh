@@ -3,6 +3,7 @@
 import importlib
 import platform
 from shutil import which
+from pathlib import Path
 from rever.activity import Activity
 
 class AppImage(Activity):
@@ -21,17 +22,23 @@ class AppImage(Activity):
         pre_requirements_file = self.appimage_descr_dir / 'pre-requirements.txt'
         requirements_file = self.appimage_descr_dir / 'requirements.txt'
         cat @(pre_requirements_file) > @(requirements_file)
-        echo -e \n@(p'.'.absolute()) >> @(requirements_file)
 
         if platform.system() == 'Linux':
+            echo -e \n@(p'.'.absolute()) >> @(requirements_file)
             python -m python_appimage build app @(self.appimage_descr_dir)
         else:
-            docker run -v $PWD:/dir --rm python:3.7-slim-buster bash -c "apt update && apt install -y git file gpg && pip install git+https://github.com/niess/python-appimage && cd /dir && python -m python_appimage build app ./appimage"
+            path = Path('.').absolute()
+            echo -e \n/dir >> @(requirements_file)
+            docker run -v @(path):/dir --rm -e GID=@$(id -g) -e UID=@$(id -u) python:3.7-slim-buster bash -c @('addgroup --gid $GID user && adduser --disabled-password --gecos "" --uid $UID --gid $GID user && apt update && apt install -y git file gpg && pip install git+https://github.com/niess/python-appimage && chown -R user:user /dir && su - user -c "cd /dir && python -m python_appimage build app ./appimage"')
         rm @(requirements_file)
 
     def check_func(self):
         if not self.appimage_descr_dir.exists():
             print(f"AppImage description not found in {self.appimage_descr_dir.absolute()}")
+            return False
+
+        if not Path('setup.py').exists():
+            print('setup.py does not exists!')
             return False
 
         if platform.system() == 'Linux':

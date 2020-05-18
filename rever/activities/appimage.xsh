@@ -24,6 +24,9 @@ class AppImage(Activity):
         cat @(pre_requirements_file) > @(requirements_file)
 
         if platform.system() == 'Linux':
+            if not importlib.util.find_spec("python_appimage"):
+                pip install git+https://github.com/niess/python-appimage
+
             echo -e \n@(p'.'.absolute()) >> @(requirements_file)
             python -m python_appimage build app @(self.appimage_descr_dir)
         else:

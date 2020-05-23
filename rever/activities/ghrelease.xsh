@@ -123,6 +123,8 @@ class GHRelease(Activity):
             asset = f.read()
         name = os.path.basename(filename)
         content_type = mimetypes.guess_type(name, strict=False)[0]
+        if content_type is None:
+            content_type = 'application/octet-stream'
         release.upload_asset(content_type, name, asset)
 
     def check_func(self):

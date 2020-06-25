@@ -12,7 +12,7 @@ For those of you who want the gritty details.
 
     activities/index
 
-**Core Iterface:**
+**Core Interface:**
 
 .. toctree::
     :maxdepth: 1

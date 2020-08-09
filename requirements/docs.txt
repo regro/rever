@@ -1,4 +1,4 @@
-xonsh
+xonsh>0.9.18
 lazyasd
 cloud_sptheme
 numpydoc

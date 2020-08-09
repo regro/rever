@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 import os
-import sys
-import ast
 try:
     from setuptools import setup
     HAVE_SETUPTOOLS = True
@@ -12,8 +10,6 @@ except ImportError:
 
 def main():
     """The main entry point."""
-    if sys.version_info[:2] < (3, 4):
-        sys.exit('xonsh currently requires Python 3.4+')
     with open(os.path.join(os.path.dirname(__file__), 'README.rst'), 'r') as f:
         readme = f.read()
     scripts = ['scripts/rever']
@@ -35,6 +31,7 @@ def main():
         scripts=scripts,
         zip_safe=False,
         install_requires=['xonsh', 'lazyasd', 'ruamel.yaml', 'github3.py'],
+        python_requires=">3.4",
         )
     # WARNING!!! Do not use setuptools 'console_scripts'
     # It validates the depenendcies everytime the

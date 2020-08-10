@@ -149,6 +149,8 @@ def test_changelog(gitrepo):
 
 
 SETUP_XSH = """
+from rever.activities.changelog import Changelog
+$DAG['changelog'] = Changelog()
 $PROJECT = 'castlehouse'
 $ACTIVITIES = ['changelog']
 $REVER_DIR = 'rvr'

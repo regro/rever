@@ -8,8 +8,8 @@ REVER_XSH = """
 $ACTIVITIES = ['version_bump']
 
 $DAG['version_bump'].args = [[
-    ('init.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
-    ('appveyor.yml', 'version:\s*', (lambda ver: 'version: {0}.{{build}}'.format(ver))),
+    ('init.py', r'__version__\s*=.*', "__version__ = '$VERSION'"),
+    ('appveyor.yml', r'version:\s*', (lambda ver: 'version: {0}.{{build}}'.format(ver))),
 ]]
 """
 INIT_PY = "__version__='42.1.0'\n"

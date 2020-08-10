@@ -8,12 +8,17 @@ from ast import literal_eval
 from contextlib import contextmanager
 from collections.abc import MutableMapping
 
-from xonsh.environ import Ensurer, VarDocs
+from xonsh.environ import default_value
 from xonsh.tools import (is_string, ensure_string, always_false, always_true, is_bool,
                          is_string_set, csv_to_set, set_to_csv, is_nonstring_seq_of_strings,
                          to_bool, bool_to_str)
 
 from rever.logger import Logger
+
+
+def is_logger(x):
+    """Validates if something is a valid logger"""
+    return isinstance(x, Logger)
 
 
 def to_logger(x):
@@ -35,7 +40,8 @@ def detype_logger(x):
     return  x.filename
 
 
-def default_dag():
+@default_value
+def default_dag(env):
     """Creates a default activity DAG."""
     from rever.activities.authors import Authors
     from rever.activities.bibtex import BibTex
@@ -110,11 +116,18 @@ def str_to_date(s):
     return datetime.date(*nums)
 
 
-def rever_config_dir():
+@default_value
+def rever_config_dir(env):
     """Ensures and returns the $REVER_CONFIG_DIR"""
     rcd = os.path.expanduser(os.path.join($XDG_CONFIG_HOME, 'rever'))
     os.makedirs(rcd, exist_ok=True)
     return rcd
+
+
+@default_value
+def today(env):
+    """Provides today's date"""
+    return datetime.date.today()
 
 
 # key = name
@@ -126,7 +139,7 @@ ENVVARS = {
     re.compile(r'ACTIVITIES_\w*'): ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                                    'A list of activity names for rever to execute for the entry '
                                    'point named after the first underscore.'),
-    'DAG': (default_dag, always_true, None, str,
+    'DAG': (default_dag(None), always_true, None, str,
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),
@@ -211,22 +224,24 @@ ENVVARS = {
                         'GitHub credential file to use'),
     'GITHUB_ORG': ('', is_string, str, ensure_string, 'GitHub organization name'),
     'GITHUB_REPO': ('', is_string, str, ensure_string, 'GitHub repository name'),
-    'LOGGER': (Logger('rever.log'), always_false, to_logger, detype_logger,
+    'LOGGER': (Logger('rever.log'), is_logger, to_logger, detype_logger,
                "Rever logger object. Setting this variable to a string will "
                "change the filename of the logger."),
     'PROJECT': ('', is_string, str, ensure_string, 'Project name'),
     'PYTHON': (sys.executable if sys.executable else 'python', is_string, str,
                ensure_string, 'Path to Python executable that rever is run '
                               'with or "python".'),
-    'RELEASE_DATE': (datetime.date.today, is_date, str_to_date, str,
+    'RELEASE_DATE': (today(None), is_date, str_to_date, str,
                      'The date of the release, defaults to today, string '
                      'representations have "YYYY-MM-DD" format.'),
-    'REVER_CONFIG_DIR': (rever_config_dir, is_string, str, ensure_string,
+    'REVER_CONFIG_DIR': (rever_config_dir(None), is_string, str, ensure_string,
                          'Path to rever configuration directory'),
     'REVER_DIR': ('rever', is_string, str, ensure_string, 'Path to directory '
                   'used for storing rever temporary files.'),
     'REVER_FORCED': (False, is_bool, str, ensure_string, 'Path to directory '
                      'used for storing rever temporary files.'),
+    'REVER_QUIET': (False, is_bool, bool, to_bool,
+                    'If True do not write progress during hashing'),
     'REVER_USER': (getpass.getuser(), is_string, to_bool, bool_to_str,
                    "Name of the user who ran the rever command."),
     'REVER_VCS': ('git', is_string, str, ensure_string, "Version control "
@@ -238,30 +253,30 @@ ENVVARS = {
                 'version that is being released.'),
     'WEBSITE_URL': ('', is_string, str, ensure_string,
                     'Project URL, usually for docs.'),
-    'REVER_QUIET': (False, is_bool, bool, to_bool,
-                    'If True do not write progress during hashing')
     }
 
 
 def setup():
-    for key, (default, validate, convert, detype, docstr) in ENVVARS.items():
-        if key in ${...}:
-            del ${...}[key]
-        ${...}._defaults[key] = default() if callable(default) else default
-        ${...}._ensurers[key] = Ensurer(validate=validate, convert=convert,
-                                        detype=detype)
-        ${...}._docs[key] = VarDocs(docstr=docstr)
+    for name, (default, validate, convert, detype, docstr) in ENVVARS.items():
+        if name in ${...}:
+            del ${...}[name]
+        ${...}.register(
+            name=name,
+            default=default,
+            validate=validate,
+            convert=convert,
+            detype=detype,
+            doc=docstr,
+        )
 
 
 def teardown():
     for act in $DAG.values():
         act.clear_kwargs_from_env()
-    for key in ENVVARS:
-        ${...}._defaults.pop(key)
-        ${...}._ensurers.pop(key)
-        ${...}._docs.pop(key)
-        if key in ${...}:
-            del ${...}[key]
+    for name in ENVVARS:
+        ${...}.deregister(name)
+        if name in ${...}:
+            del ${...}[name]
 
 
 @contextmanager

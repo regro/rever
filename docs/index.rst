@@ -35,8 +35,8 @@ There are a couple steps you should take to get the most out of rever.
                         'ghrelease'  # Creates a Github release entry for the new tag
                          ]
           $VERSION_BUMP_PATTERNS = [  # These note where/how to find the version numbers
-                                   ('rever/__init__.py', '__version__\s*=.*', "__version__ = '$VERSION'"),
-                                   ('setup.py', 'version\s*=.*,', "version='$VERSION',")
+                                   ('rever/__init__.py', r'__version__\s*=.*', "__version__ = '$VERSION'"),
+                                   ('setup.py', r'version\s*=.*,', "version='$VERSION',")
                                    ]
           $CHANGELOG_FILENAME = 'CHANGELOG.rst'  # Filename for the changelog
           $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'  # Filename for the news template

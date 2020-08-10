@@ -15,7 +15,7 @@ $PYPI_RC = 'pypirc'
 $PYPI_BUILD_COMMANDS = ['--version']
 $PYPI_UPLOAD = False
 $VERSION_BUMP_PATTERNS = [
-    ('setup.py', '    version\s*=.*', "    version='$VERSION'"),
+    ('setup.py', r'    version\s*=.*', "    version='$VERSION'"),
     ]
 """
 

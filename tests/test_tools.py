@@ -7,11 +7,11 @@ import pytest
 from rever.tools import indir, render_authors, hash_url, replace_in_file
 
 @pytest.mark.parametrize('inp, pattern, new, leading_whitespace, exp', [
-    ('__version__ = "wow.mom"', '__version__\s*=.*', '__version__ = "WAKKA"',
+    ('__version__ = "wow.mom"', r'__version__\s*=.*', '__version__ = "WAKKA"',
      True, '__version__ = "WAKKA"\n'),
-    ('    __version__ = "wow.mom"', '    __version__\s*=.*',
+    ('    __version__ = "wow.mom"', r'    __version__\s*=.*',
      '    __version__ = "WAKKA"', False, '    __version__ = "WAKKA"\n'),
-    ('    __version__ = "wow.mom"', '__version__\s*=.*', '__version__ = "WAKKA"',
+    ('    __version__ = "wow.mom"', r'__version__\s*=.*', '__version__ = "WAKKA"',
      True, '    __version__ = "WAKKA"\n'),
 ])
 def test_replace_in_file(inp, pattern, new, leading_whitespace, exp):

@@ -139,7 +139,7 @@ ENVVARS = {
     re.compile(r'ACTIVITIES_\w*'): ([], is_nonstring_seq_of_strings, csv_to_list, list_to_csv,
                                    'A list of activity names for rever to execute for the entry '
                                    'point named after the first underscore.'),
-    'DAG': (default_dag, always_true, None, str,
+    'DAG': (default_dag(None), always_true, None, str,
                      'Directed acyclic graph of '
                      'activities as represented by a dict with str keys and '
                      'Activity objects as values.'),

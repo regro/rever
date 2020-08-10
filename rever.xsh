@@ -22,6 +22,7 @@ with open('requirements/tests.txt') as f:
 with open('requirements/docs.txt') as f:
     $DOCKER_CONDA_DEPS += f.read().split()
 $DOCKER_CONDA_DEPS = [d.lower() for d in set($DOCKER_CONDA_DEPS)]
+$DOCKER_APT_DEPS = ['file']
 $DOCKER_PIP_DEPS = ['xonda']
 $DOCKER_INSTALL_COMMAND = 'git clean -fdx && ./setup.py install'
 $DOCKER_GIT_NAME = 'rever'

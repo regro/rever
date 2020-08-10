@@ -4,6 +4,33 @@ Rever Change Log
 
 .. current developments
 
+v0.4.4
+====================
+
+**Added:**
+
+* Added AppImage activity
+* ``rever.activities.gcloud.DeploytoGcloud`` now has an undo
+
+**Changed:**
+
+* `rever.activities.gcloud.DeploytoGCloud` now awaits the deployment of the new image.
+  If the deployment fails then it tries 2 more times, then errors.
+
+**Fixed:**
+
+* Fixes for xonsh >0.9.18
+
+**Authors:**
+
+* Anthony Scopatz
+* Christopher J. Wright
+* a
+* Melissa Weber Mendonça
+* Bas Nijholt
+
+
+
 v0.4.3
 ====================
 

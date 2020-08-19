@@ -120,6 +120,7 @@ follows:
 
         def __call__(self, filename='project.tar.gz'):
             tar czf @(filename) src/
+            return True
 
         def undo(self):
             rm -f *.tar.gz

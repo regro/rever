@@ -257,6 +257,7 @@ ENVVARS = {
 
 
 def setup():
+    orig_thread_subprocs, $THREAD_SUBPROCS = $THREAD_SUBPROCS, False
     for name, (default, validate, convert, detype, docstr) in ENVVARS.items():
         if name in ${...}:
             del ${...}[name]
@@ -268,15 +269,17 @@ def setup():
             detype=detype,
             doc=docstr,
         )
+    return orig_thread_subprocs
 
 
-def teardown():
+def teardown(orig_thread_subprocs=True):
     for act in $DAG.values():
         act.clear_kwargs_from_env()
     for name in ENVVARS:
         ${...}.deregister(name)
         if name in ${...}:
             del ${...}[name]
+    $THREAD_SUBPROCS = orig_thread_subprocs
 
 
 @contextmanager
@@ -284,9 +287,9 @@ def context():
     """A context manager for entering and leaving the rever environment
     safely.
     """
-    setup()
+    orig_thread_subprocs = setup()
     yield
-    teardown()
+    teardown(orig_thread_subprocs=orig_thread_subprocs)
 
 
 def rever_envvar_names():

@@ -48,7 +48,7 @@ def default_dag(env):
     from rever.activities.changelog import Changelog
     from rever.activities.check import Check
     from rever.activities.conda_forge import CondaForge
-    from rever.activities.custom_forge import CustomForge
+    from rever.activities.forge import Forge
     from rever.activities.docker import DockerBuild, DockerPush
     from rever.activities.ghpages import GHPages
     from rever.activities.ghrelease import GHRelease
@@ -67,7 +67,7 @@ def default_dag(env):
         'changelog': Changelog(),
         'check': Check(),
         'conda_forge': CondaForge(),
-        'custom_forge': CustomForge(),
+        'forge': Forge(),
         'docker_build': DockerBuild(),
         'docker_push': DockerPush(),
         'ghpages': GHPages(),

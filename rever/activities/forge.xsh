@@ -71,7 +71,7 @@ DEFAULT_PATTERNS = (
     )
 
 
-class CustomForge(Activity):
+class Forge(Activity):
     """Updates custom (private) conda-forge feedstocks.
 
     The behaviour of this activity may be adjusted through the following

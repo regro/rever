@@ -62,6 +62,7 @@ def get_fork_url(feedstock_url, username, feedstock_org):
     url = beg + username + '/' + end
     return url
 
+
 def get_source_url():
     # Get source url for the recipe
     if source_url is None:
@@ -90,48 +91,49 @@ DEFAULT_PATTERNS = (
 
 
 class Forge(Activity):
-    """Updates custom (private) conda-forge feedstocks.
+    """Updates a forge feedstock.
 
     The behaviour of this activity may be adjusted through the following
     environment variables:
 
-    :$CUSTOM_FORGE_FEEDSTOCK: str or None, feedstock name or URL,
+    :$FORGE_FEEDSTOCK: str or None, feedstock name or URL,
         default ``$PROJECT-feedstock``.
-    :$CUSTOM_FORGE_PROTOCOL: str, one of ``'ssh'``, ``'http'``, or ``'https'``
+    :$FORGE_PROTOCOL: str, one of ``'ssh'``, ``'http'``, or ``'https'``
         that specifies how the activity should interact with github when
         cloning, pulling, or pushing to the feedstock repo. Note that
         ``'ssh'`` requires you to have an SSH key registered with github.
         The default  is ``'ssh'``.
-    :$CUSTOM_FORGE_SOURCE_URL: str, the URL that the recipe will use to
+    :$FORGE_SOURCE_URL: str, the URL that the recipe will use to
         download the source code. This is needed so that we may update the
         hash of the downloaded file. This string is evaluated with the current
         environment. Default
         ``'https://github.com/$GITHUB_ORG/$GITHUB_REPO/archive/$VERSION.tar.gz'``.
-    :$CUSTOM_FORGE_HASH_TYPE: str, the type of hash that the recipe uses, eg
+    :$FORGE_HASH_TYPE: str, the type of hash that the recipe uses, eg
         ``'md5'`` or ``'sha256'``. Default ``'sha256'``.
-    :$CUSTOM_FORGE_PATTERNS: list or 3-tuples of str, this is list of
+    :$FORGE_PATTERNS: list or 3-tuples of str, this is list of
         (filename, pattern-regex, replacement) tuples that is evaluated
         inside of the recipe directory. This is similar to the version bump
         pattern structure. Both the pattern-regex str and the replacement str
         will have environment variables expanded. The following environment
-        variables are added for this evaluation:
+        variables are added for this evaluation (only if $FORGE_USE_GIT_URL is False):
 
         * ``$SOURCE_URL``: the fully expanded source code URL.
         * ``$HASH_TYPE``: the hash type used to hash ``$SOURCE_URL``.
         * ``$HASH``: the hexdigest of ``$SOURCE_URL``.
 
         The default patterns match most standard recipes.
-    :$CUSTOM_FORGE_PULL_REQUEST: bool, whether the activity should open
+    :$FORGE_PULL_REQUEST: bool, whether the activity should open
         a pull request to the upstream conda-forge feestock, default True.
-    :$CUSTOM_FORGE_RERENDER: bool, whether the activity should rerender the
+    :$FORGE_RERENDER: bool, whether the activity should rerender the
         feedstock using conda-smithy, default True.
-    :$CUSTOM_FORGE_FEEDSTOCK_ORG: str, specify the feedstock organization. Must be set.
-    :$CUSTOM_FORGE_FORK: bool, whether the activity should create a new fork of
+    :$FORGE_FEEDSTOCK_ORG: str, specify the feedstock organization. Must be set.
+    :$FORGE_FORK: bool, whether the activity should create a new fork of
         the feedstock if it doesn't exist already, default True.
-    :$CUSTOM_FORGE_FORK_ORG: str, the org to fork the recipe to or which holds
+    :$FORGE_FORK_ORG: str, the org to fork the recipe to or which holds
         the fork, if ``''`` use the registered gh username, defaults to ``''``
-    :$CUSTOM_FORGE_USE_GIT_URL: bool, whether or not to use `git_url` in the recipe source
+    :$FORGE_USE_GIT_URL: bool, whether or not to use `git_url` in the recipe source
         url, default True.
+    :$FORGE_RECIPE_DIR: str, the name of the recipe folder, default is 'recipe'.
 
     Other environment variables that affect the behavior are:
 
@@ -167,9 +169,9 @@ class Forge(Activity):
               patterns=DEFAULT_PATTERNS,
               pull_request=True,
               rerender=True,
-              fork=False,
-              fork_org='',
-              use_git_url=True,
+              fork=True,
+              fork_org=None,
+              use_git_url=False,
               recipe_dir='recipe'):
 
         if feedstock_org is None:

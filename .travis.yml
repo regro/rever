@@ -21,6 +21,8 @@ install:
 
   # Install dependencies
   - conda install --file requirements/docs.txt
+  # Remove once https://github.com/xonsh/xonsh/pull/3705 is merged
+  - pip install --no-deps https://github.com/xonsh/xonsh/archive/nothreadrc.zip
   - pip install xonda
   - python setup.py install
 

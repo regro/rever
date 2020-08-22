@@ -12,35 +12,6 @@ from rever.activity import Activity
 from rever.tools import eval_version, indir, hash_url, replace_in_file
 
 
-@lazyobject
-def github3():
-    import github3 as gh3
-    return gh3
-
-
-def feedstock_url(feedstock, protocol='ssh'):
-    """Returns the URL for a conda-forge feedstock."""
-    if feedstock is None:
-        feedstock = $PROJECT + '-feedstock'
-    elif feedstock.startswith('http://github.com/'):
-        return feedstock
-    elif feedstock.startswith('https://github.com/'):
-        return feedstock
-    elif feedstock.startswith('git@github.com:'):
-        return feedstock
-    protocol = protocol.lower()
-    if protocol == 'http':
-        url = 'http://github.com/conda-forge/' + feedstock + '.git'
-    elif protocol == 'https':
-        url = 'https://github.com/conda-forge/' + feedstock + '.git'
-    elif protocol == 'ssh':
-        url = 'git@github.com:conda-forge/' + feedstock + '.git'
-    else:
-        msg = 'Unrecognized github protocol {0!r}, must be ssh, http, or https.'
-        raise ValueError(msg.format(protocol))
-    return url
-
-
 def feedstock_repo(feedstock):
     """Gets the name of the feedstock repository."""
     if feedstock is None:
@@ -130,6 +101,8 @@ class CondaForge(Activity):
 
     """
 
+    FORGE_FEEDSTOCK_ORG = "conda-forge"
+
     def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
         requires = {"imports": {"github3.exceptions": "github3.py"},
                     "commands": {"conda": "conda", "conda-smithy": "conda-smithy"}}
@@ -154,7 +127,7 @@ class CondaForge(Activity):
 
         # first, let's grab the feedstock locally
         gh, username = github.login(return_username=True)
-        upstream = feedstock_url(feedstock, protocol=protocol)
+        upstream = feedstock_url(feedstock, feedstock_org=FORGE_FEEDSTOCK_ORG, protocol=protocol)
         origin = fork_url(upstream, username)
         feedstock_reponame = feedstock_repo(feedstock)
 
@@ -185,6 +158,7 @@ class CondaForge(Activity):
                 msg = 'Could not clone ' + origin
                 msg += '. Do you have a personal fork of the feedstock?'
                 raise RuntimeError(msg)
+
         with indir(feedstock_dir):
             # make sure feedstock is up-to-date with origin
             git checkout master
@@ -194,6 +168,7 @@ class CondaForge(Activity):
             # make and modify version branch
             with ${...}.swap(RAISE_SUBPROC_ERROR=False):
                 git checkout -b $VERSION master or git checkout $VERSION
+
         # now, update the feedstock to the new version
         source_url = eval_version(source_url)
         hash = hash_url(source_url)

@@ -18,8 +18,8 @@ def github3():
     return gh3
 
 
-def feedstock_url(feedstock, feedstock_org, protocol='ssh'):
-    """Returns the URL for a custom conda-forge feedstock."""
+def get_feedstock_url(feedstock, feedstock_org, protocol='ssh'):
+    """Returns the URL for a forge feedstock."""
     if feedstock is None:
         feedstock = $PROJECT + '-feedstock'
     elif feedstock.startswith('http://github.com/'):
@@ -28,6 +28,7 @@ def feedstock_url(feedstock, feedstock_org, protocol='ssh'):
         return feedstock
     elif feedstock.startswith('git@github.com:'):
         return feedstock
+
     protocol = protocol.lower()
     if protocol == 'http':
         url = 'http://github.com/{}/'.format(feedstock_org) + feedstock + '.git'
@@ -38,10 +39,11 @@ def feedstock_url(feedstock, feedstock_org, protocol='ssh'):
     else:
         msg = 'Unrecognized github protocol {0!r}, must be ssh, http, or https.'
         raise ValueError(msg.format(protocol))
+
     return url
 
 
-def feedstock_repo(feedstock):
+def get_feedstock_repo_name(feedstock):
     """Gets the name of the feedstock repository."""
     if feedstock is None:
         repo = $PROJECT + '-feedstock'
@@ -53,12 +55,25 @@ def feedstock_repo(feedstock):
     return repo
 
 
-def fork_url(feedstock_url, username, feedstock_org):
+def get_fork_url(feedstock_url, username, feedstock_org):
     """Creates the URL of the user's fork."""
     beg, end = feedstock_url.rsplit('/', 1)
     beg = beg.replace(feedstock_org, '')  # chop off `feedstock_org`
     url = beg + username + '/' + end
     return url
+
+def get_source_url():
+    # Get source url for the recipe
+    if source_url is None:
+        version_tag = ${...}.get('TAG_TEMPLATE', $VERSION)
+        release_fn = $GITHUB_REPO + '-' + version_tag + '.tar.gz'
+        if release_fn in os.listdir($REVER_DIR):
+            source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO'
+                        '/releases/download/{}/{}'.format(
+                        version_tag, release_fn))
+        else:
+            source_url = ('https://github.com/$GITHUB_ORG/$GITHUB_REPO/'
+                        'archive/{}.tar.gz'.format(version_tag))
 
 
 DEFAULT_PATTERNS = (
@@ -68,7 +83,10 @@ DEFAULT_PATTERNS = (
     ('meta.yaml', '{% set version = ".*" %}', '{% set version = "$VERSION" %}'),
     # reset the build number to 0
     ('meta.yaml', '  number:.*', '  number: 0'),
-    )
+    # set the hash of the source url
+    ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}', '{% set $HASH_TYPE = "$HASH" %}'),
+    ('meta.yaml', r'  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
+)
 
 
 class Forge(Activity):
@@ -129,55 +147,62 @@ class Forge(Activity):
 
     """
 
-    # def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
-    def __init__(self, *, deps=frozenset()):
+    def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
         requires = {"imports": {"github3.exceptions": "github3.py"},
                     "commands": {"conda": "conda", "conda-smithy": "conda-smithy"}}
 
-        super().__init__(name='custom_forge', deps=deps, func=self._func,
-                         desc="Updates a custom (private) conda-forge feedstocks",
-                         requires=requires, check=self.check_func)
+        super().__init__(name='forge',
+                         deps=deps,
+                         func=self._func,
+                         desc="Updates a forge feedstock",
+                         requires=requires,
+                         check=self.check_func)
 
-    def _func(self, feedstock=None, protocol='ssh', source_url=None,
-              hash_type='sha256', patterns=DEFAULT_PATTERNS,
-              pull_request=False, rerender=True, feedstock_org=None,
-              fork=False, fork_org='', use_git_url=True):
+    def _func(self,
+              feedstock=None,
+              feedstock_org=None,
+              protocol='ssh',
+              source_url=None,
+              hash_type='sha256',
+              patterns=DEFAULT_PATTERNS,
+              pull_request=True,
+              rerender=True,
+              fork=False,
+              fork_org='',
+              use_git_url=True,
+              recipe_dir='recipe'):
 
         if feedstock_org is None:
-            raise ValueError("CUSTOM_FORGE_FEEDSTOCK_ORG must be set.")
+            raise ValueError("FORGE_FEEDSTOCK_ORG must be set.")
 
-        if source_url is None:
-            version_tag = ${...}.get('TAG_TEMPLATE', $VERSION)
-            release_fn = $GITHUB_REPO + '-' + version_tag + '.tar.gz'
-            if release_fn in os.listdir($REVER_DIR):
-                source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO'
-                            '/releases/download/{}/{}'.format(
-                            version_tag, release_fn))
-            else:
-                source_url = ('https://github.com/$GITHUB_ORG/$GITHUB_REPO/'
-                              'archive/{}.tar.gz'.format(version_tag))
-
-        # first, let's grab the feedstock locally
+        # Login to github
         gh, username = github.login(return_username=True)
-        upstream = feedstock_url(feedstock, feedstock_org, protocol=protocol)
 
-        # Allow to push in `master` in `upstream` if `fork` and `pull_request` are set to False.
-        if not fork and not pull_request:
-            origin = upstream
+        # Get the upstream feedstock url
+        feedstock_upstream = get_feedstock_url(feedstock=feedstock,
+                                               feedstock_org=feedstock_org,
+                                               protocol=protocol)
+
+        # Get the name of the feedstock repository
+        feedstock_repo_name = get_feedstock_repo_name(feedstock)
+
+        # Get the feedstock repository url to work with (a fork or not).
+        if fork:
+            feedstock_origin = get_fork_url(feedstock_upstream, username, feedstock_org)
         else:
-            origin = fork_url(upstream, username, feedstock_org)
-        feedstock_reponame = feedstock_repo(feedstock)
+            feedstock_origin = feedstock_upstream
 
-        if pull_request or fork:
-            repo = gh.repository(feedstock_org, feedstock_reponame)
+        # Get the feedstock Github repository
+        repo = gh.repository(feedstock_org, feedstock_repo_name)
 
-        # Check if fork exists
+        # Create the fork repository if required
         if fork:
             try:
                 fork_repo = gh.repository(fork_org or username,
-                                          feedstock_reponame)
+                                          feedstock_repo_name)
             except github3.exceptions.NotFoundError:
                 fork_repo = None
+
             if fork_repo is None or (hasattr(fork_repo, 'is_null') and
                                      fork_repo.is_null()):
                 print("Fork doesn't exist creating feedstock fork...",
@@ -187,73 +212,87 @@ class Forge(Activity):
                 else:
                     repo.create_fork()
 
-        feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
-        recipe_dir = os.path.join(feedstock_dir, 'recipe')
+        # Get some paths
+        feedstock_dir = os.path.join($REVER_DIR, feedstock_repo_name)
+        recipe_dir = os.path.join(feedstock_dir, recipe_dir)
 
+        # Clone the feedstock repository locally
         if not os.path.isdir(feedstock_dir):
-            p = ![git clone @(origin) @(feedstock_dir)]
+            p = ![git clone @(feedstock_origin) @(feedstock_dir)]
             if p.rtn != 0:
-                msg = 'Could not clone ' + origin
-                msg += '. Do you have a personal fork of the feedstock?'
-                raise RuntimeError(msg)
+                raise RuntimeError('Could not clone ' + feedstock_origin)
 
+        # Prepare the local cloned feeedstock
         with indir(feedstock_dir):
-            # make sure feedstock is up-to-date with origin
+            # Checkout to master and pull latest commits from feedstock upstream
             git checkout master
-            git pull @(origin) master
-            # make sure feedstock is up-to-date with upstream
-            git pull @(upstream) master
+            git pull @(feedstock_origin) master
+            git pull @(feedstock_upstream) master
 
+            # Create a new branch if required
             if fork or pull_request:
-                # make and modify version branch
-                with ${...}.swap(RAISE_SUBPROC_ERROR=False):
+                with ${...}.swap(RAISE_SUBPROC_ERROR=True):
                     git checkout -b $VERSION master or git checkout $VERSION
 
-        # now, update the feedstock to the new version
+        # Get the source url and its hash if required
         if not use_git_url:
+            # Get and eval the source url
+            source_url = get_source_url()
             source_url = eval_version(source_url)
-            hash = hash_url(source_url)
-            with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash,
-                                                SOURCE_URL=source_url):
-                for f, p, n in patterns:
-                    p = eval_version(p)
-                    n = eval_version(n)
-                    replace_in_file(p, n, f)
-        else:
-            with indir(recipe_dir):
-                for f, p, n in patterns:
-                    p = eval_version(p)
-                    n = eval_version(n)
-                    replace_in_file(p, n, f)
 
-        with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git commit -am @("updated v" + $VERSION)
-            if rerender:
+            # Get the hash of the source url
+            source_url_hash = hash_url(source_url)
+        else:
+            source_url = None
+            source_url_hash = None
+
+        # Modify the files in the recipe folder (build number, version, hash, source_url, etc)
+        with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type,
+                                            HASH=source_url_hash,
+                                            SOURCE_URL=source_url):
+            for f, p, n in patterns:
+                p = eval_version(p)
+                n = eval_version(n)
+                replace_in_file(p, n, f)
+
+        # Commit the changes
+        with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=True):
+            git commit -am @("Bump to " + $VERSION)
+
+        # Regenerate the feedstock if required
+        if rerender:
+            with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=True):
                 print_color('{YELLOW}Rerendering the feedstock{NO_COLOR}',
                             file=sys.stderr)
                 conda smithy regenerate -c auto
 
-        # lastly make a PR for the feedstock or directly push
-        if not pull_request:
-            with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
-                if fork:
-                    git push --set-upstream @(origin) $VERSION
-                else:
-                    git push @(origin) master
-            return
+        # Push changes
+        with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=True):
+            if fork or pull_request:
+                git push --set-upstream @(feedstock_origin) $VERSION
+            else:
+                git push @(feedstock_origin) master
 
-        print('Creating conda-forge feedstock pull request...', file=sys.stderr)
-        title = $PROJECT + ' v' + $VERSION
-        head = username + ':' + $VERSION
-        body = ('Merge only after success.\n\n'
-                'This pull request was auto-generated by '
-                '[rever](https://regro.github.io/rever-docs/)')
-        pr = repo.create_pull(title, 'master', head, body=body)
-        if pr is None:
-            print_color('{RED}Failed to create pull request!{NO_COLOR}')
-        else:
-            print_color('{GREEN}Pull request created at ' + pr.html_url + \
-                        '{NO_COLOR}')
+        # Make a pull request if required
+        if pull_request:
+            print('Creating conda-forge feedstock pull request...', file=sys.stderr)
+            title = $PROJECT + ' ' + $VERSION
+
+            if fork:
+                head = fork_org or username + ':' + $VERSION
+            else:
+                head = feedstock_org + ':' + $VERSION
+
+            body = ('Merge only after success.\n\n'
+                    'This pull request was auto-generated by '
+                    '[rever](https://regro.github.io/rever-docs/)')
+
+            pr = repo.create_pull(title, 'master', head, body=body)
+
+            if pr is None:
+                print_color('{RED}Failed to create pull request!{NO_COLOR}')
+            else:
+                print_color('{GREEN}Pull request created at ' + pr.html_url + '{NO_COLOR}')
 
     def check_func(self):
         """Checks that we can rerender and login"""

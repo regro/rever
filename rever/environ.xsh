@@ -46,6 +46,7 @@ def default_dag(env):
     from rever.activities.authors import Authors
     from rever.activities.bibtex import BibTex
     from rever.activities.changelog import Changelog
+    from rever.activities.check import Check
     from rever.activities.conda_forge import CondaForge
     from rever.activities.docker import DockerBuild, DockerPush
     from rever.activities.ghpages import GHPages
@@ -63,6 +64,7 @@ def default_dag(env):
         'authors': Authors(),
         'bibtex': BibTex(),
         'changelog': Changelog(),
+        'check': Check(),
         'conda_forge': CondaForge(),
         'docker_build': DockerBuild(),
         'docker_push': DockerPush(),

@@ -1,6 +1,5 @@
 """Activity for updating a custom (private) conda-forge feedstocks."""
 import os
-import re
 import sys
 
 from lazyasd import lazyobject
@@ -149,7 +148,11 @@ class Forge(Activity):
 
     """
 
-    def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
+    DEFAULT_PROTOCOL = 'ssh'
+    DEFAULT_HASH_TYPE = 'sha256'
+    DEFAULT_RECIPE_DIR = 'recipe'
+
+    def __init__(self, *, deps=frozenset(('tag', 'push_tag')), **kwargs):
         requires = {"imports": {"github3.exceptions": "github3.py"},
                     "commands": {"conda": "conda", "conda-smithy": "conda-smithy"}}
 
@@ -163,19 +166,24 @@ class Forge(Activity):
     def _func(self,
               feedstock=None,
               feedstock_org=None,
-              protocol='ssh',
+              protocol=None,
               source_url=None,
-              hash_type='sha256',
+              hash_type=None,
               patterns=DEFAULT_PATTERNS,
               pull_request=True,
               rerender=True,
               fork=True,
               fork_org=None,
               use_git_url=False,
-              recipe_dir='recipe'):
+              recipe_dir=None):
 
         if feedstock_org is None:
             raise ValueError("FORGE_FEEDSTOCK_ORG must be set.")
+
+        # Default params
+        protocol = protocol or Forge.DEFAULT_PROTOCOL
+        hash_type = hash_type or Forge.DEFAULT_HASH_TYPE
+        recipe_dir = recipe_dir or Forge.DEFAULT_RECIPE_DIR
 
         # Login to github
         gh, username = github.login(return_username=True)

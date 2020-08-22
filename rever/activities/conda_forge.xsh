@@ -1,52 +1,9 @@
 """Activity for updating conda-forge feedstocks."""
-import os
-import re
-import sys
-
-from lazyasd import lazyobject
-from xonsh.tools import print_color
-
-from rever import vcsutils
-from rever import github
 from rever.activity import Activity
-from rever.tools import eval_version, indir, hash_url, replace_in_file
+from rever.activities.forge import Forge
 
 
-def feedstock_repo(feedstock):
-    """Gets the name of the feedstock repository."""
-    if feedstock is None:
-        repo = $PROJECT + '-feedstock'
-    else:
-        repo = feedstock
-    repo = repo.rsplit('/', 1)[-1]
-    if repo.endswith('.git'):
-        repo = repo[:-4]
-    return repo
-
-
-def fork_url(feedstock_url, username):
-    """Creates the URL of the user's fork."""
-    beg, end = feedstock_url.rsplit('/', 1)
-    beg = beg[:-11]  # chop off 'conda-forge'
-    url = beg + username + '/' + end
-    return url
-
-
-DEFAULT_PATTERNS = (
-    # filename, pattern, new
-    # set the version
-    ('meta.yaml', r'  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
-    ('meta.yaml', '{% set version = ".*" %}', '{% set version = "$VERSION" %}'),
-    # reset the build number to 0
-    ('meta.yaml', '  number:.*', '  number: 0'),
-    # set the hash
-    ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}',
-                  '{% set $HASH_TYPE = "$HASH" %}'),
-    ('meta.yaml', r'  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
-    )
-
-
-class CondaForge(Activity):
+class CondaForge(Forge):
     """Updates conda-forge feedstocks.
 
     The behaviour of this activity may be adjusted through the following
@@ -101,107 +58,48 @@ class CondaForge(Activity):
 
     """
 
-    FORGE_FEEDSTOCK_ORG = "conda-forge"
+    CONDA_FORGE_FEEDSTOCK_ORG = "conda-forge"
 
-    def __init__(self, *, deps=frozenset(('tag', 'push_tag'))):
-        requires = {"imports": {"github3.exceptions": "github3.py"},
-                    "commands": {"conda": "conda", "conda-smithy": "conda-smithy"}}
-        super().__init__(name='conda_forge', deps=deps, func=self._func,
-                         desc="Updates conda-forge feedstocks",
-                         requires=requires, check=self.check_func)
+    def __init__(self, *, deps=frozenset(("tag", "push_tag"))):
+        requires = {
+            "imports": {"github3.exceptions": "github3.py"},
+            "commands": {"conda": "conda", "conda-smithy": "conda-smithy"},
+        }
 
-    def _func(self, feedstock=None, protocol='ssh', source_url=None,
-              hash_type='sha256', patterns=DEFAULT_PATTERNS,
-              pull_request=True, rerender=True, fork=True,
-              fork_org=''):
-        if source_url is None:
-            version_tag = ${...}.get('TAG_TEMPLATE', $VERSION)
-            release_fn = $GITHUB_REPO + '-' + version_tag + '.tar.gz'
-            if release_fn in os.listdir($REVER_DIR):
-                source_url=('https://github.com/$GITHUB_ORG/$GITHUB_REPO'
-                            '/releases/download/{}/{}'.format(
-                            version_tag, release_fn))
-            else:
-                source_url = ('https://github.com/$GITHUB_ORG/$GITHUB_REPO/'
-                              'archive/{}.tar.gz'.format(version_tag))
+        Activity.__init__(
+            self,
+            name="conda_forge",
+            deps=deps,
+            func=self._func,
+            desc="Updates a conda-forge feedstock",
+            requires=requires,
+            check=self.check_func,
+        )
 
-        # first, let's grab the feedstock locally
-        gh, username = github.login(return_username=True)
-        upstream = feedstock_url(feedstock, feedstock_org=FORGE_FEEDSTOCK_ORG, protocol=protocol)
-        origin = fork_url(upstream, username)
-        feedstock_reponame = feedstock_repo(feedstock)
+    def _func(
+        self,
+        feedstock=None,
+        protocol=None,
+        source_url=None,
+        hash_type=None,
+        patterns=None,
+        pull_request=True,
+        rerender=True,
+        fork=True,
+        fork_org=None,
+    ):
 
-        if pull_request or fork:
-            repo = gh.repository('conda-forge', feedstock_reponame)
-
-        # Check if fork exists
-        if fork:
-            try:
-                fork_repo = gh.repository(fork_org or username,
-                                          feedstock_reponame)
-            except github3.exceptions.NotFoundError:
-                fork_repo = None
-            if fork_repo is None or (hasattr(fork_repo, 'is_null') and
-                                     fork_repo.is_null()):
-                print("Fork doesn't exist creating feedstock fork...",
-                      file=sys.stderr)
-                if fork_org:
-                    repo.create_fork(fork_org)
-                else:
-                    repo.create_fork()
-
-        feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
-        recipe_dir = os.path.join(feedstock_dir, 'recipe')
-        if not os.path.isdir(feedstock_dir):
-            p = ![git clone @(origin) @(feedstock_dir)]
-            if p.rtn != 0:
-                msg = 'Could not clone ' + origin
-                msg += '. Do you have a personal fork of the feedstock?'
-                raise RuntimeError(msg)
-
-        with indir(feedstock_dir):
-            # make sure feedstock is up-to-date with origin
-            git checkout master
-            git pull @(origin) master
-            # make sure feedstock is up-to-date with upstream
-            git pull @(upstream) master
-            # make and modify version branch
-            with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-                git checkout -b $VERSION master or git checkout $VERSION
-
-        # now, update the feedstock to the new version
-        source_url = eval_version(source_url)
-        hash = hash_url(source_url)
-        with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash,
-                                            SOURCE_URL=source_url):
-            for f, p, n in patterns:
-                p = eval_version(p)
-                n = eval_version(n)
-                replace_in_file(p, n, f)
-        with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git commit -am @("updated v" + $VERSION)
-            if rerender:
-                print_color('{YELLOW}Rerendering the feedstock{NO_COLOR}',
-                            file=sys.stderr)
-                conda smithy rerender -c auto
-            git push --set-upstream @(origin) $VERSION
-        # lastly make a PR for the feedstock
-        if not pull_request:
-            return
-        print('Creating conda-forge feedstock pull request...', file=sys.stderr)
-        title = $PROJECT + ' v' + $VERSION
-        head = username + ':' + $VERSION
-        body = ('Merge only after success.\n\n'
-                'This pull request was auto-generated by '
-                '[rever](https://regro.github.io/rever-docs/)')
-        pr = repo.create_pull(title, 'master', head, body=body)
-        if pr is None:
-            print_color('{RED}Failed to create pull request!{NO_COLOR}')
-        else:
-            print_color('{GREEN}Pull request created at ' + pr.html_url + \
-                        '{NO_COLOR}')
-
-    def check_func(self):
-        """Checks that we can rerender and login"""
-        rerender = ![conda-smithy regenerate --check]
-        return rerender and github.can_login()
+        super()._func(
+            feedstock=feedstock,
+            feedstock_org=CondaForge.CONDA_FORGE_FEEDSTOCK_ORG,
+            protocol=protocol,
+            source_url=source_url,
+            hash_type=hash_type,
+            patterns=patterns,
+            pull_request=pull_request,
+            rerender=rerender,
+            fork=fork,
+            fork_org=fork_org,
+            use_git_url=False,
+            recipe_dir=None,
+        )

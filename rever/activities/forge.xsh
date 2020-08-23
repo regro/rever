@@ -62,7 +62,7 @@ def get_fork_url(feedstock_url, username, feedstock_org):
     return url
 
 
-def get_source_url():
+def get_source_url(source_url):
     # Get source url for the recipe
     if source_url is None:
         version_tag = ${...}.get('TAG_TEMPLATE', $VERSION)
@@ -74,6 +74,7 @@ def get_source_url():
         else:
             source_url = ('https://github.com/$GITHUB_ORG/$GITHUB_REPO/'
                         'archive/{}.tar.gz'.format(version_tag))
+    return source_url
 
 
 DEFAULT_PATTERNS = (
@@ -169,7 +170,7 @@ class Forge(Activity):
               protocol=None,
               source_url=None,
               hash_type=None,
-              patterns=DEFAULT_PATTERNS,
+              patterns=None,
               pull_request=True,
               rerender=True,
               fork=True,
@@ -184,6 +185,7 @@ class Forge(Activity):
         protocol = protocol or Forge.DEFAULT_PROTOCOL
         hash_type = hash_type or Forge.DEFAULT_HASH_TYPE
         recipe_dir = recipe_dir or Forge.DEFAULT_RECIPE_DIR
+        patterns = patterns or DEFAULT_PATTERNS
 
         # Login to github
         gh, username = github.login(return_username=True)
@@ -203,7 +205,8 @@ class Forge(Activity):
             feedstock_origin = feedstock_upstream
 
         # Get the feedstock Github repository
-        repo = gh.repository(feedstock_org, feedstock_repo_name)
+        if pull_request or fork:
+            repo = gh.repository(feedstock_org, feedstock_repo_name)
 
         # Create the fork repository if required
         if fork:
@@ -247,7 +250,7 @@ class Forge(Activity):
         # Get the source url and its hash if required
         if not use_git_url:
             # Get and eval the source url
-            source_url = get_source_url()
+            source_url = get_source_url(source_url)
             source_url = eval_version(source_url)
 
             # Get the hash of the source url

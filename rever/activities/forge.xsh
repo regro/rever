@@ -203,9 +203,6 @@ class Forge(Activity):
             feedstock_origin = feedstock_upstream
 
         # Get the feedstock Github repository
-        print(feedstock_org)
-        print(feedstock_repo_name)
-        print(protocol)
         repo = gh.repository(feedstock_org, feedstock_repo_name)
 
         # Create the fork repository if required

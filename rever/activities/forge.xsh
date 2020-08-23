@@ -1,4 +1,4 @@
-"""Activity for updating a custom (private) conda-forge feedstocks."""
+"""Activity for updating a forge feedstock."""
 import os
 import sys
 

@@ -213,13 +213,13 @@ def test_conda_forge_activity(gitrepo, gitecho):
     vcsutils.track(".")
     vcsutils.commit("Some versioned files")
     env_main(["0.1.0"])
-    # # now see if this works
-    # with open(meta_yaml, "r") as f:
-    #     obs = f.read()
-    # assert EXP_META_YAML == obs
+    # now see if this works
+    with open(meta_yaml, "r") as f:
+        obs = f.read()
+    assert EXP_META_YAML == obs
 
-    # env_main(["0.2.0"])
-    # # now see if this works
-    # with open(meta_yaml, "r") as f:
-    #     obs = f.read()
-    # assert EXP_META_YAML2 == obs
+    env_main(["0.2.0"])
+    # now see if this works
+    with open(meta_yaml, "r") as f:
+        obs = f.read()
+    assert EXP_META_YAML2 == obs

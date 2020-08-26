@@ -4,6 +4,29 @@ Rever Change Log
 
 .. current developments
 
+v0.4.5
+====================
+
+**Added:**
+
+* A new `Forge` activity available as `forge`. It allows updating a forge feedstock on a forge different than the conda-forge.
+* A new `Check` activity available as `check` that runs `rever check`.
+
+**Fixed:**
+
+* example activity's __call__ needs to return True in documentation
+* Fixed issue where rever could not be run from within Bash by setting
+  ``$THREAD_SUBPROCS = False``.
+* a typo in the documentation
+
+**Authors:**
+
+* Anthony Scopatz
+* Hadrien Mary
+* Julian Rüth
+
+
+
 v0.4.4
 ====================
 

@@ -27,7 +27,7 @@
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
-  num_commits: 320
+  num_commits: 326
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
@@ -71,3 +71,13 @@
   num_commits: 1
   first_commit: 2020-04-16 04:18:12
   github: basnijholt
+- name: Julian Rüth
+  email: julian.rueth@fsfe.org
+  num_commits: 2
+  first_commit: 2020-08-19 07:34:05
+  github: saraedum
+- name: Hadrien Mary
+  email: hadrien.mary@gmail.com
+  num_commits: 14
+  first_commit: 2020-08-22 10:03:21
+  github: hadim

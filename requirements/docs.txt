@@ -1,4 +1,5 @@
-xonsh>0.9.18
+# Uncomment once 0.9.20 is released
+# xonsh>=0.9.20
 lazyasd
 cloud_sptheme
 numpydoc

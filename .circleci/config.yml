@@ -16,6 +16,8 @@ jobs:
             conda config --add channels conda-forge
             conda config --set always_yes yes --set changeps1 no
             conda install --file requirements/tests.txt
+            # Remove once 0.9.20 is released
+            pip install --no-deps https://github.com/xonsh/xonsh/archive/master.zip
             pip install xonda
       - run:
           name: tests

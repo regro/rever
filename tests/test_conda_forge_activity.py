@@ -7,50 +7,6 @@ import pytest
 from rever import vcsutils
 from rever.logger import current_logger
 from rever.main import env_main
-from rever.activities.conda_forge import (feedstock_url, feedstock_repo,
-                                          fork_url)
-
-
-@pytest.mark.parametrize('name, proto, exp', [
-    ('my-feedstock', 'ssh', 'git@github.com:conda-forge/my-feedstock.git'),
-    ('git@github.com:conda-forge/my-feedstock.git', None,
-     'git@github.com:conda-forge/my-feedstock.git'),
-    ('my-feedstock', 'http', 'http://github.com/conda-forge/my-feedstock.git'),
-    ('http://github.com/conda-forge/my-feedstock.git', None,
-     'http://github.com/conda-forge/my-feedstock.git'),
-    ('my-feedstock', 'https',
-     'https://github.com/conda-forge/my-feedstock.git'),
-    ('https://github.com/conda-forge/my-feedstock.git', None,
-     'https://github.com/conda-forge/my-feedstock.git'),
-])
-def test_feedstock_url(name, proto, exp):
-    obs = feedstock_url(name, protocol=proto)
-    assert exp == obs
-
-
-@pytest.mark.parametrize('name, exp', [
-    ('my-feedstock', 'my-feedstock'),
-    ('my-feedstock.git', 'my-feedstock'),
-    ('git@github.com:conda-forge/my-feedstock.git', 'my-feedstock'),
-    ('http://github.com/conda-forge/my-feedstock.git', 'my-feedstock'),
-    ('https://github.com/conda-forge/my-feedstock.git', 'my-feedstock'),
-])
-def test_feedstock_repo(name, exp):
-    obs = feedstock_repo(name)
-    assert exp == obs
-
-
-@pytest.mark.parametrize('feed, username, exp', [
-    ('git@github.com:conda-forge/my-feedstock.git', 'zappa',
-     'git@github.com:zappa/my-feedstock.git'),
-    ('http://github.com/conda-forge/my-feedstock.git', 'zappa',
-     'http://github.com/zappa/my-feedstock.git'),
-    ('https://github.com/conda-forge/my-feedstock.git', 'zappa',
-     'https://github.com/zappa/my-feedstock.git'),
-])
-def test_fork_url(feed, username, exp):
-    obs = fork_url(feed, username)
-    assert exp == obs
 
 
 REVER_XSH = """
@@ -240,27 +196,29 @@ extra:
 
 
 def test_conda_forge_activity(gitrepo, gitecho):
-    vcsutils.tag('0.0.1')
+    vcsutils.tag("0.0.1")
     env = builtins.__xonsh__.env
-    recipe_dir = os.path.join(env['REVER_DIR'], 'rever-feedstock', 'recipe')
-    meta_yaml = os.path.join(recipe_dir, 'meta.yaml')
+    recipe_dir = os.path.join(env["REVER_DIR"], "rever-feedstock", "recipe")
+    meta_yaml = os.path.join(recipe_dir, "meta.yaml")
     os.makedirs(recipe_dir, exist_ok=True)
-    files = [('rever.xsh', REVER_XSH),
-             (meta_yaml, ORIG_META_YAML),
-             ('credfile', CREDFILE)]
+    files = [
+        ("rever.xsh", REVER_XSH),
+        (meta_yaml, ORIG_META_YAML),
+        ("credfile", CREDFILE),
+    ]
     for filename, body in files:
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(body)
-    vcsutils.track('.')
-    vcsutils.commit('Some versioned files')
-    env_main(['0.1.0'])
+    vcsutils.track(".")
+    vcsutils.commit("Some versioned files")
+    env_main(["0.1.0"])
     # now see if this works
-    with open(meta_yaml, 'r') as f:
+    with open(meta_yaml, "r") as f:
         obs = f.read()
     assert EXP_META_YAML == obs
 
-    env_main(['0.2.0'])
+    env_main(["0.2.0"])
     # now see if this works
-    with open(meta_yaml, 'r') as f:
+    with open(meta_yaml, "r") as f:
         obs = f.read()
     assert EXP_META_YAML2 == obs

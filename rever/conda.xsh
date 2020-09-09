@@ -25,11 +25,12 @@ def run_in_conda_env(packages, envname='rever-env'):
     ...     ./setup.py test
 
     """
-    xontrib load xonda
-    if env_exists(envname):
+    try:
+        if env_exists(envname):
+            conda remove -y -n @(envname) --all
+        conda create -y -n @(envname) @(packages)
+        conda activate @(envname)
+        yield
+    finally:
+        conda deactivate
         conda remove -y -n @(envname) --all
-    conda create -y -n @(envname) @(packages)
-    conda activate @(envname)
-    yield
-    conda deactivate
-    conda remove -y -n @(envname) --all

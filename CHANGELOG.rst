@@ -4,6 +4,24 @@ Rever Change Log
 
 .. current developments
 
+v0.4.6
+====================
+
+**Added:**
+
+* New, reentrant ``conda.conda_init()`` function enables ``conda activate``.
+
+**Fixed:**
+
+* Fixed conda activation by removing dependence on xonda.
+
+**Authors:**
+
+* Anthony Scopatz
+* Aaron Meurer
+
+
+
 v0.4.5
 ====================
 

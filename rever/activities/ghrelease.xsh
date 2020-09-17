@@ -96,9 +96,9 @@ class GHRelease(Activity):
         notes = prepend + notes + append
         gh = github.login()
         repo = gh.repository($GITHUB_ORG, $GITHUB_REPO)
-        rel = repo.create_release(name, target_commitish='master',
-                                  name=name, body=notes,
-                                  draft=False, prerelease=False)
+        rel = github.create_or_get_release(repo, name, name,
+                target_commitish='master', body=notes,
+                draft=False, prerelease=False)
         # now upload assets
         for asset in assets:
             if isinstance(asset, str):
@@ -125,7 +125,7 @@ class GHRelease(Activity):
         content_type = mimetypes.guess_type(name, strict=False)[0]
         if content_type is None:
             content_type = 'application/octet-stream'
-        release.upload_asset(content_type, name, asset)
+        release.upload_asset(content_type, name, asset, label=name)
 
     def check_func(self):
         return github.can_login()

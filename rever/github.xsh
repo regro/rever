@@ -155,3 +155,20 @@ def authorizations(gh, number=-1, etag=None):
     authorizations = getattr(gh, 'iter_authorizations', None)
     authorizations = authorizations or getattr(gh, 'authorizations')
     yield from authorizations(number=number, etag=etag)
+
+
+def create_or_get_release(repo, tag_name, name, target_commitish='master', body=None, draft=False,
+                          prerelease=False):
+    """A safe way to either get a release object, or create the release if it doesn't exist."""
+    try:
+        rel = repo.create_release(
+            tag_name,
+            name=name,
+            target_commitish=target_commitish,
+            body=body,
+            draft=False,
+            prerelease=False,
+    )
+    except github3.exceptions.UnprocessableEntity:
+        rel = repo.release_from_tag(tag_name)
+    return rel

@@ -136,10 +136,10 @@ def run_activities(ns):
     for name in done:
         if ns.force:
             msg = ("{YELLOW}Re-doing activity '" + name + "' which has already been "
-                   "completed!{NO_COLOR}")
+                   "completed!{RESET}")
         else:
             msg = ("{GREEN}Activity '" + name + "' has already been "
-                   "completed!{NO_COLOR}")
+                   "completed!{RESET}")
         print_color(msg)
     for name in need:
         act = $DAG[name]
@@ -174,10 +174,10 @@ def setup_activities(ns):
         if name in done:
             if ns.force:
                 print_color("{YELLOW}Re-doing acctivity '" + name + "' which has "
-                            "already been setup!{NO_COLOR}")
+                            "already been setup!{RESET}")
             else:
                 print_color("{GREEN}Activity '" + name + "' has already been "
-                            "setup!{NO_COLOR}")
+                            "setup!{RESET}")
                 continue
         act = $DAG[name]
         act.ns = ns
@@ -231,8 +231,8 @@ def env_main(args=None):
     if os.path.exists(ns.rc):
         source @(ns.rc)
     else:
-        print_color('{RED}WARNING{NO_COLOR} the run control file {GREEN}' +
-                    ns.rc + '{NO_COLOR} does not exist!', file=sys.stderr)
+        print_color('{RED}WARNING{RESET} the run control file {GREEN}' +
+                    ns.rc + '{RESET} does not exist!', file=sys.stderr)
     running_activities(ns)
     # run the command
     if ns.undo:

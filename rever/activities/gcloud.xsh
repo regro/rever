@@ -9,7 +9,7 @@ from rever.activity import Activity
 def _ensure_default_credentials():
     credfile = os.path.join($XDG_CONFIG_HOME, 'gcloud', 'application_default_credentials.json')
     if os.path.isfile(credfile):
-        print_color('{YELLOW}Found ' + credfile + ' ...{NO_COLOR}')
+        print_color('{YELLOW}Found ' + credfile + ' ...{RESET}')
     else:
         ![gcloud auth application-default login]
     $CLOUDSDK_CONTAINER_USE_APPLICATION_DEFAULT_CREDENTIALS = 'true'

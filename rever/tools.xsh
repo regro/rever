@@ -135,7 +135,7 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
     if total is None:
         bar = PONG[_NPONG]
         _NPONG = (_NPONG + 1)%len(PONG)
-        fmt = ('{prefix}{{{color}}}{bar}{{NO_COLOR}} '
+        fmt = ('{prefix}{{{color}}}{bar}{{RESET}} '
                '{frac} bytes{suffix}\r')
         frac = count
     else:
@@ -145,8 +145,8 @@ def progress(count, total=None, prefix='', suffix='', width=60, file=None,
         if color is None:
             color = 'YELLOW' if count < total else 'GREEN'
         frac = count / float(total)
-        fmt = ('{prefix}[{{{color}}}{bar}{{NO_COLOR}}] '
-               '{{{color}}}{frac:.1%}{{NO_COLOR}}{suffix}\r')
+        fmt = ('{prefix}[{{{color}}}{bar}{{RESET}}] '
+               '{{{color}}}{frac:.1%}{{RESET}}{suffix}\r')
     s = fmt.format(prefix=prefix, color=color, bar=bar, frac=frac,
                    suffix=suffix)
     print_color(s, end='', file=file)
@@ -191,13 +191,13 @@ def stream_url_progress(url, verb='downloading', chunksize=1024, width=60,
                 totalbytes = getattr(f, 'length', None)
     if totalbytes is None:
         color = 'GREEN'
-        suffix = '{GREEN} TOTAL{NO_COLOR}\n'
+        suffix = '{GREEN} TOTAL{RESET}\n'
     elif nbytes < totalbytes:
         color = 'RED'
-        suffix = '{RED} FAILED{{NO_COLOR}\n'
+        suffix = '{RED} FAILED{{RESET}\n'
     else:
         color = 'GREEN'
-        suffix = '{GREEN} SUCCESS{NO_COLOR}\n'
+        suffix = '{GREEN} SUCCESS{RESET}\n'
     progress(nbytes, totalbytes, color=color, suffix=suffix)
 
 

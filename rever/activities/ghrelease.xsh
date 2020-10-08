@@ -39,7 +39,7 @@ def git_archive_asset():
     tag = eval_version(template)
     folder_name = $GITHUB_REPO + '-' + tag
     fname = os.path.join($REVER_DIR, folder_name + '.tar.gz')
-    print_color('Archiving repository as {INTENSE_CYAN}' + fname + '{NO_COLOR}')
+    print_color('Archiving repository as {INTENSE_CYAN}' + fname + '{RESET}')
     ![git archive -9 --format=tar.gz --prefix=@(folder_name)/ -o @(fname) @(tag)]
     return fname
 
@@ -118,7 +118,7 @@ class GHRelease(Activity):
     def _upload_asset(self, release, filename):
         """Uploads an asset from a filename"""
         print_color("Uploading {INTENSE_CYAN}" + filename +
-                    "{NO_COLOR} to GitHub release")
+                    "{RESET} to GitHub release")
         with open(filename, 'rb') as f:
             asset = f.read()
         name = os.path.basename(filename)

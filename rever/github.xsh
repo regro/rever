@@ -91,7 +91,7 @@ def write_credfile(credfile=None, username='', password=''):
                                  two_factor_callback=two_factor)
     except github3.exceptions.UnprocessableEntity:
         print_color('{YELLOW}Token for "' + note + ' "may already exist! '
-                    'Attempting to delete and regenerate...{NO_COLOR}', file=sys.stderr)
+                    'Attempting to delete and regenerate...{RESET}', file=sys.stderr)
         gh = github3.login(username, password=password, two_factor_callback=two_factor)
         for auth in authorizations(gh):
             if note == auth.note:
@@ -100,10 +100,10 @@ def write_credfile(credfile=None, username='', password=''):
             msg = 'Could not find GitHub authentication token to delete it!'
             raise RuntimeError(msg)
         auth.delete()
-        print_color('{YELLOW}Deleted previous token.{NO_COLOR}')
+        print_color('{YELLOW}Deleted previous token.{RESET}')
         auth = github3.authorize(username, password, scopes, note, note_url,
                                  two_factor_callback=two_factor)
-        print_color('{YELLOW}Regenerated token.{NO_COLOR}')
+        print_color('{YELLOW}Regenerated token.{RESET}')
     credfile = credfilename(credfile)
     with open(credfile, 'w') as f:
         f.write(username + '\n')
@@ -142,10 +142,10 @@ def can_login():
     try:
         gh, username = login(return_username=True)
     except Exception as e:
-        print_color("{RED}Unable to login to GitHub{NO_COLOR}", file=sys.stderr)
+        print_color("{RED}Unable to login to GitHub{RESET}", file=sys.stderr)
         print(str(e), file=sys.stderr)
         return False
-    print_color("GitHub login as {GREEN}" + username + "{NO_COLOR} works!",
+    print_color("GitHub login as {GREEN}" + username + "{RESET} works!",
                 file=sys.stderr)
     return True
 

@@ -121,7 +121,7 @@ class DockerPush(Activity):
             try:
                 ![docker push @(tag)]
             except Exception:
-                print_color("{RED}Check failure!{NO_COLOR} Cannot push to docker " +
+                print_color("{RED}Check failure!{RESET} Cannot push to docker " +
                             tag.rpartition(":")[0], file=sys.stderr)
                 return False
         return True

@@ -257,8 +257,8 @@ def build_image(dockerfile, image, maker, **kwargs):
     s = maker(**kwargs)
     with open(dockerfile, 'w') as f:
         f.write(s)
-    print_color('{PURPLE}Wrote ' + dockerfile + '{NO_COLOR}')
-    print_color('{CYAN}Building docker image ' + image + ' ...{NO_COLOR}')
+    print_color('{PURPLE}Wrote ' + dockerfile + '{RESET}')
+    print_color('{CYAN}Building docker image ' + image + ' ...{RESET}')
     ![docker build -t @(image) -f @(dockerfile) --no-cache .]
 
 

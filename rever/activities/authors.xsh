@@ -125,7 +125,7 @@ class Authors(Activity):
         md = self._update_authors(filename, template, format, metadata, sortby,
                                   include_orgs)
         files = [filename, metadata]
-        print_color('{YELLOW}wrote authors to {INTENSE_CYAN}' + filename + '{NO_COLOR}', file=sys.stderr)
+        print_color('{YELLOW}wrote authors to {INTENSE_CYAN}' + filename + '{RESET}', file=sys.stderr)
         # write latest authors
         prev_version = vcsutils.latest_tag()
         commits_since_last = vcsutils.commits_per_email(since=prev_version)
@@ -140,13 +140,13 @@ class Authors(Activity):
         if not latest.startswith($REVER_DIR):
             # commit the latest file
             files.append(latest)
-        print_color('{YELLOW}wrote authors since ' + prev_version + ' to {INTENSE_CYAN}' + latest + '{NO_COLOR}', file=sys.stderr)
+        print_color('{YELLOW}wrote authors since ' + prev_version + ' to {INTENSE_CYAN}' + latest + '{RESET}', file=sys.stderr)
         # write mailmap
         if mailmap and isinstance(mailmap, str):
             mailmap = eval_version(mailmap)
             write_mailmap(md, mailmap)
             files.append(mailmap)
-            print_color('{YELLOW}wrote mailmap file to {INTENSE_CYAN}' + mailmap + '{NO_COLOR}', file=sys.stderr)
+            print_color('{YELLOW}wrote mailmap file to {INTENSE_CYAN}' + mailmap + '{RESET}', file=sys.stderr)
         # Commit changes
         vcsutils.track(files)
         vcsutils.commit('Updated authorship for ' + $VERSION)
@@ -172,14 +172,14 @@ class Authors(Activity):
         if mailmap_exists:
             msgs.append('Mailmap file {0!r} exists'.format(mailmap))
         if len(msgs) > 0:
-            print_color('{RED}' + ' AND '.join(msgs) + '{NO_COLOR}',
+            print_color('{RED}' + ' AND '.join(msgs) + '{RESET}',
                         file=sys.stderr)
             if $REVER_FORCED:
-                print_color('{RED}rever forced, overwriting files!{NO_COLOR}',
+                print_color('{RED}rever forced, overwriting files!{RESET}',
                             file=sys.stderr)
             else:
                 print_color('{RED}Use the --force option to force the creation '
-                            'of the changelog files.{NO_COLOR}',
+                            'of the changelog files.{RESET}',
                             file=sys.stderr)
                 return False
         # actually create files

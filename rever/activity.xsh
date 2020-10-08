@@ -119,7 +119,7 @@ class Activity:
     def setup(self):
         """Calls this activity's setup() initialization function."""
         if self._setup is None:
-            print_color('{PURPLE}No setup needed for ' + self.name + ' activity{NO_COLOR}')
+            print_color('{PURPLE}No setup needed for ' + self.name + ' activity{RESET}')
             return True
         status = self._setup()
         if not status:
@@ -136,7 +136,7 @@ class Activity:
     def check(self):
         """Calls this activity's check() function."""
         if self._check is None and not self.requires:
-            print_color('{PURPLE}No checks needed for ' + self.name + ' activity{NO_COLOR}')
+            print_color('{PURPLE}No checks needed for ' + self.name + ' activity{RESET}')
             return True
         status = self.check_requirements() and (self._check is None or self._check())
         if not status:
@@ -160,17 +160,17 @@ class Activity:
         if $REVER_VCS is None or $REVER_VCS == "None":
             pass
         elif not p:
-            msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
-                        '{YELLOW}' + $REVER_VCS + '{NO_COLOR} cannot be found. '
-                        'Please make sure that the {INTENSE_CYAN}' + $REVER_VCS + '{NO_COLOR} '
+            msgs.append('{RED}ERROR:{RESET} the command line utility '
+                        '{YELLOW}' + $REVER_VCS + '{RESET} cannot be found. '
+                        'Please make sure that the {INTENSE_CYAN}' + $REVER_VCS + '{RESET} '
                         'package is installed in your environment.')
         # now check CLI availability
         for cmd, pkg in self.requires.get("commands", {}).items():
             if !(which @(cmd)):
                 continue
-            msgs.append('{RED}ERROR:{NO_COLOR} the command line utility '
-                        '{YELLOW}' + cmd + '{NO_COLOR} cannot be found. '
-                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR} '
+            msgs.append('{RED}ERROR:{RESET} the command line utility '
+                        '{YELLOW}' + cmd + '{RESET} cannot be found. '
+                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{RESET} '
                         'package is installed in your environment.')
         # now check package imports
         for mod, pkg in self.requires.get("imports", {}).items():
@@ -179,17 +179,17 @@ class Activity:
                 continue
             except ImportError:
                 pass
-            msgs.append('{RED}ERROR:{NO_COLOR} the module '
-                        '{YELLOW}' + mod + '{NO_COLOR} cannot be imported. '
-                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{NO_COLOR} '
+            msgs.append('{RED}ERROR:{RESET} the module '
+                        '{YELLOW}' + mod + '{RESET} cannot be imported. '
+                        'Please make sure that the {INTENSE_CYAN}' + pkg + '{RESET} '
                         'package is installed in your environment.')
         # print mesages and return
         if len(msgs) == 0:
             msg = ('{PURPLE}All CLI and import requirements met for ' +
-                   self.name + ' activity{NO_COLOR}')
+                   self.name + ' activity{RESET}')
             status = True
         else:
-            msg = "\n{INTENSE_WHITE}----------{NO_COLOR}\n".join(msgs)
+            msg = "\n{INTENSE_WHITE}----------{RESET}\n".join(msgs)
             status = False
         print_color(msg)
         $RAISE_SUBPROC_ERROR = orig

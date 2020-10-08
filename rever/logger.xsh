@@ -48,7 +48,7 @@ class Logger:
         msg = '{INTENSE_CYAN}' + category + '{PURPLE}:'
         if activity is not None:
             msg += '{RED}' + activity + '{PURPLE}:'
-        msg += '{INTENSE_WHITE}' + message + '{NO_COLOR}'
+        msg += '{INTENSE_WHITE}' + message + '{RESET}'
         print_color(msg)
 
     def load(self):

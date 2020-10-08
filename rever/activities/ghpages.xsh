@@ -84,7 +84,7 @@ class GHPages(Activity):
             git checkout @(branch)
             git pull @(repo) @(branch)
             for src, dst in copy:
-                msg = '{CYAN}Copying{NO_COLOR} from ' + src + ' {GREEN}->{NO_COLOR} ' + dst
+                msg = '{CYAN}Copying{RESET} from ' + src + ' {GREEN}->{RESET} ' + dst
                 print_color(msg)
                 if os.path.isdir(src):
                     copy_tree(src, dst, preserve_symlinks=1, verbose=1)
@@ -98,7 +98,7 @@ class GHPages(Activity):
                 q = !(git diff --cached --exit-code --quiet).rtn
             if p == 0 and q == 0:
                 msg = ('{YELLOW}no changes made to GitHub pages repo, already '
-                       'up-to-date.{NO_COLOR}')
+                       'up-to-date.{RESET}')
                 print_color(msg)
                 return
             # now update the repo and push the changes

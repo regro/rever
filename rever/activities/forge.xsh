@@ -275,7 +275,7 @@ class Forge(Activity):
         # Regenerate the feedstock if required
         if rerender:
             with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=True):
-                print_color('{YELLOW}Rerendering the feedstock{NO_COLOR}',
+                print_color('{YELLOW}Rerendering the feedstock{RESET}',
                             file=sys.stderr)
                 conda smithy regenerate -c auto
 
@@ -303,9 +303,9 @@ class Forge(Activity):
             pr = repo.create_pull(title, 'master', head, body=body)
 
             if pr is None:
-                print_color('{RED}Failed to create pull request!{NO_COLOR}')
+                print_color('{RED}Failed to create pull request!{RESET}')
             else:
-                print_color('{GREEN}Pull request created at ' + pr.html_url + '{NO_COLOR}')
+                print_color('{GREEN}Pull request created at ' + pr.html_url + '{RESET}')
 
     def check_func(self):
         """Checks that we can rerender and login"""

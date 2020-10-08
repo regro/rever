@@ -93,7 +93,7 @@ class PyPI(Activity):
         rc = expand_path(rc)
         if not os.path.isfile(rc):
             print_color('{YELLOW}WARNING: PyPI run control file ' + rc + \
-                        ' does not exist.{NO_COLOR}', file=sys.stderr)
+                        ' does not exist.{RESET}', file=sys.stderr)
             create_rc(rc)
         valid, msg = validate_rc(rc)
         if not valid:
@@ -132,7 +132,7 @@ class PyPI(Activity):
                 if gpg_flag:
                     upload_args.append("--sign")
                 else:
-                    msg = "{YELLOW}Package cannot be signed: " + gpg_msg + "{NO_COLOR}"
+                    msg = "{YELLOW}Package cannot be signed: " + gpg_msg + "{RESET}"
                     print_color(msg, file=sys.stderr)
             p = ![twine @(upload_args) $dist_dir/*]
             if p.rtn != 0:
@@ -160,7 +160,7 @@ class PyPI(Activity):
         if username not in maintainers:
             sys.stdout.flush()
             sys.stderr.flush()
-            msg = "{RED}Check failure!{NO_COLOR} " + repr(username)
+            msg = "{RED}Check failure!{RESET} " + repr(username)
             msg += " is not in the maintainers list! Valid maintainers are:\n\n* "
             msg += "\n* ".join(sorted(maintainers))
             print_color(msg, file=sys.stderr)
@@ -173,7 +173,7 @@ class PyPI(Activity):
         elif sign is None or sign:
             gpg_flag, gpg_msg = check_gpg()
             msg = "{GREEN}" if gpg_flag else "{RED}"
-            msg += gpg_msg + "{NO_COLOR}"
+            msg += gpg_msg + "{RESET}"
             print_color(msg, file=sys.stderr)
             if sign and not gpg_flag:
                 return False

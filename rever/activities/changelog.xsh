@@ -184,14 +184,14 @@ class Changelog(Activity):
         if changelog_exists:
             msgs.append('Changelog file {0!r} exists'.format(changelog_file))
         if len(msgs) > 0:
-            print_color('{RED}' + ' AND '.join(msgs) + '{NO_COLOR}',
+            print_color('{RED}' + ' AND '.join(msgs) + '{RESET}',
                         file=sys.stderr)
             if $REVER_FORCED:
-                print_color('{RED}rever forced, overwriting files!{NO_COLOR}',
+                print_color('{RED}rever forced, overwriting files!{RESET}',
                             file=sys.stderr)
             else:
                 print_color('{RED}Use the --force option to force the creation '
-                            'of the changelog files.{NO_COLOR}',
+                            'of the changelog files.{RESET}',
                             file=sys.stderr)
                 return False
         # actually create files

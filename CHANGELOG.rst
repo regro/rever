@@ -4,6 +4,25 @@ Rever Change Log
 
 .. current developments
 
+v0.4.7
+====================
+
+**Added:**
+
+* New ``github.create_or_get_release()`` function for safely
+  getting ``Release`` objects from github.
+
+**Changed:**
+
+* GitHub release activity should now be more robust to failures.
+* Switched from NO_COLOR to RESET for xonsh v0.9.23+
+
+**Authors:**
+
+* Anthony Scopatz
+
+
+
 v0.4.6
 ====================
 

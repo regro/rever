@@ -18,7 +18,8 @@ class AppImage(Activity):
     def _func(self, template='$VERSION'):
         if not self.appimage_descr_dir.exists():
             return None
-
+        
+        python_ver = ${...}.get('APPIMAGE_PYTHON_VERSION', '3.8')
         pre_requirements_file = self.appimage_descr_dir / 'pre-requirements.txt'
         requirements_file = self.appimage_descr_dir / 'requirements.txt'
         cat @(pre_requirements_file) > @(requirements_file)
@@ -28,11 +29,11 @@ class AppImage(Activity):
                 pip install git+https://github.com/niess/python-appimage
 
             echo -e \n@(p'.'.absolute()) >> @(requirements_file)
-            python -m python_appimage build app @(self.appimage_descr_dir)
+            python -m python_appimage build app --python-version @(python_ver) @(self.appimage_descr_dir)
         else:
             path = Path('.').absolute()
             echo -e \n/dir >> @(requirements_file)
-            docker run -v @(path):/dir --rm -e GID=@$(id -g) -e UID=@$(id -u) python:3.7-slim-buster bash -c @('addgroup --gid $GID user && adduser --disabled-password --gecos "" --uid $UID --gid $GID user && apt update && apt install -y git file gpg && pip install git+https://github.com/niess/python-appimage && chown -R user:user /dir && su - user -c "cd /dir && python -m python_appimage build app ./appimage"')
+            docker run -v @(path):/dir --rm -e GID=@$(id -g) -e UID=@$(id -u) python:3.7-slim-buster bash -c @(f'addgroup --gid $GID user && adduser --disabled-password --gecos "" --uid $UID --gid $GID user && apt update && apt install -y git file gpg && pip install git+https://github.com/niess/python-appimage && chown -R user:user /dir && su - user -c "cd /dir && python -m python_appimage build app --python-version {python_ver} {self.appimage_descr_dir}"')
         rm @(requirements_file)
 
     def check_func(self):

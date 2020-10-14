@@ -34,7 +34,7 @@ class AppImage(Activity):
         else:
             path = Path('.').absolute()
             echo -e \n/dir >> @(requirements_file)
-            docker run -v @(path):/dir --rm -e GID=@$(id -g) -e UID=@$(id -u) python:3.7-slim-buster bash -c @(f'addgroup --gid $GID user && adduser --disabled-password --gecos "" --uid $UID --gid $GID user && apt update && apt install -y git file gpg && pip install git+https://github.com/niess/python-appimage && chown -R user:user /dir && su - user -c "cd /dir && python -m python_appimage build app --python-version {' '.join(python_ver)} {self.appimage_descr_dir}"')
+            docker run -v @(path):/dir --rm -e GID=@$(id -g) -e UID=@$(id -u) python:3.7-slim-buster bash -c @(f'addgroup --gid $GID user && adduser --disabled-password --gecos "" --uid $UID --gid $GID user && apt update && apt install -y git file gpg && pip install git+https://github.com/niess/python-appimage && chown -R user:user /dir && su - user -c "cd /dir && python -m python_appimage build app {' '.join(python_ver)} {self.appimage_descr_dir}"')
         rm @(requirements_file)
 
     def check_func(self):

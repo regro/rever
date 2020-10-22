@@ -4,6 +4,20 @@ Rever Change Log
 
 .. current developments
 
+v0.4.8
+====================
+
+**Added:**
+
+* Added ``APPIMAGE_PYTHON_VERSION`` to AppImage activity that allows to set the Python version that will be using to building the image.
+
+**Authors:**
+
+* Anthony Scopatz
+* anki-code
+
+
+
 v0.4.7
 ====================
 

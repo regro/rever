@@ -70,8 +70,8 @@ class GHRelease(Activity):
         functions will usually generate or acquire the asset. By default, this
         a tarball of the release tag will be uploaded.
     :$GHRELEASE_TARGET: str or None, the git branch/commit to target for the release.
-        If this value is None, it will use the current branch name. This is typically
-        "main", and has historically been "master".
+        If this value is None, it will use the default branch name, as specified on
+        the GitHub repo.
 
     Other environment variables that affect the behavior are:
 
@@ -101,7 +101,7 @@ class GHRelease(Activity):
         gh = github.login()
         repo = gh.repository($GITHUB_ORG, $GITHUB_REPO)
         if target is None:
-            target = current_branch()
+            target = repo.default_branch
         rel = github.create_or_get_release(repo, name, name,
                 target_commitish=target, body=notes,
                 draft=False, prerelease=False)

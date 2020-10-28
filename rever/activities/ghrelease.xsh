@@ -7,6 +7,7 @@ from xonsh.tools import expand_path, print_color
 from rever import github
 from rever.activity import Activity
 from rever.tools import eval_version
+from rever.vcsutils import current_branch
 
 
 def read_file_if_exists(filename):
@@ -68,6 +69,9 @@ class GHRelease(Activity):
         either a string filename or a list of string filenames. The asset
         functions will usually generate or acquire the asset. By default, this
         a tarball of the release tag will be uploaded.
+    :$GHRELEASE_TARGET: str or None, the git branch/commit to target for the release.
+        If this value is None, it will use the current branch name. This is typically
+        "main", and has historically been "master".
 
     Other environment variables that affect the behavior are:
 
@@ -90,14 +94,16 @@ class GHRelease(Activity):
                          check=self.check_func)
 
     def _func(self, name='$VERSION', notes=None, prepend='', append='',
-              assets=(git_archive_asset,)):
+              assets=(git_archive_asset,), target=None):
         name = eval_version(name)
         notes = find_notes(notes)
         notes = prepend + notes + append
         gh = github.login()
         repo = gh.repository($GITHUB_ORG, $GITHUB_REPO)
+        if target is None:
+            target = current_branch()
         rel = github.create_or_get_release(repo, name, name,
-                target_commitish='master', body=notes,
+                target_commitish=target, body=notes,
                 draft=False, prerelease=False)
         # now upload assets
         for asset in assets:

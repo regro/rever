@@ -82,7 +82,7 @@ class Activity:
             try:
                 self.func(*args, **kwargs)
             except Exception:
-                msg = 'activity failed with execption:\n' + traceback.format_exc()
+                msg = 'activity failed with exception:\n' + traceback.format_exc()
                 msg += 'rewinding to ' + start_rev
                 log -a @(self.name) -c activity-error @(msg)
                 return False

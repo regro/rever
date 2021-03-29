@@ -30,9 +30,10 @@ def main():
         package_data={'rever': ['*.xsh'], 'rever.activities': ['*.xsh']},
         scripts=scripts,
         zip_safe=False,
-        install_requires=['xonsh', 'lazyasd', 'ruamel.yaml', 'github3.py'],
+        install_requires=['xonsh', 'lazyasd',
+                          'ruamel.yaml', 'github3.py >= 2'],
         python_requires=">3.4",
-        )
+    )
     # WARNING!!! Do not use setuptools 'console_scripts'
     # It validates the depenendcies everytime the
     # 'rever' command is run. This validation adds ~0.2 sec. to the startup

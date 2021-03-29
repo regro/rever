@@ -8,19 +8,23 @@ from getpass import getpass
 
 from lazyasd import lazyobject
 from xonsh.tools import print_color
+import webbrowser
+import requests
+import time
 
+REVER_CLIENT_ID = "0c99261465cac91a1a3f"
 
 @lazyobject
 def github3():
     try:
-        import github3 as gh3
+        from github3.github import GitHub
     except ImportError:
         gh3 = None
-    return gh3
+    return GitHub()
 
 
 def ensure_github(f):
-    """Ensure we have github3 befire running a function."""
+    """Ensure we have github3 before running a function."""
     @wraps(f)
     def dec(*args, **kwargs):
         if github3 is None:
@@ -73,43 +77,157 @@ def _compid(host=''):
     return h.hexdigest()[:8]
 
 
+def get_oauth_token(client_id, *, headers=None, scope='repo'):
+    """
+    Login to GitHub.
+    This uses the device authorization flow. client_id should be the client id
+    for your GitHub application. See
+    https://docs.github.com/en/free-pro-team@latest/developers/apps/authorizing-oauth-apps#device-flow.
+    'scope' should be the scope for the access token ('repo' by default). See https://docs.github.com/en/free-pro-team@latest/developers/apps/scopes-for-oauth-apps#available-scopes.
+    Returns an access token.
+    """
+    _headers = headers or {}
+    headers = {"accept":  "application/json", **_headers}
+
+    r = requests.post("https://github.com/login/device/code",
+                      {"client_id": client_id, "scope": scope},
+                      headers=headers)
+    GitHub_raise_for_status(r)
+    result = r.json()
+    device_code = result['device_code']
+    user_code = result['user_code']
+    verification_uri = result['verification_uri']
+    expires_in = result['expires_in']
+    interval = result['interval']
+    request_time = time.time()
+
+    print_color("{YELLOW}Go to "+ verification_uri + "and enter this code:\n")
+    print_color("{GREEN}" + user_code + "\n")
+    print_color("{YELLOW}Press Enter to open a webbrowser to " + verification_uri)
+    input()
+    webbrowser.open(verification_uri)
+    while True:
+        time.sleep(interval)
+        now = time.time()
+        if now - request_time > expires_in:
+            print_color(
+                "{RED}Did not receive a response in time. Please try again.")
+            return get_oauth_token(client_id=client_id, headers=headers, scope=scope)
+        # Try once before opening in case the user already did it
+        r = requests.post("https://github.com/login/oauth/access_token",
+                          {"client_id": client_id,
+                           "device_code": device_code,
+                           "grant_type": "urn:ietf:params:oauth:grant-type:device_code"},
+                          headers=headers)
+        GitHub_raise_for_status(r)
+        result = r.json()
+        if "error" in result:
+            # https://docs.github.com/en/free-pro-team@latest/developers/apps/authorizing-oauth-apps#error-codes-for-the-device-flow
+            error = result['error']
+            if error == "authorization_pending":
+                if 0:
+                    print_color("{RED}No response from GitHub yet: trying again")
+                continue
+            elif error == "slow_down":
+                # We are polling too fast somehow. This adds 5 seconds to the
+                # poll interval, which we increase by 6 just to be sure it
+                # doesn't happen again.
+                interval += 6
+                continue
+            elif error == "expired_token":
+                print_color("{RED}GitHub token expired. Trying again...")
+                return get_oauth_token(client_id=client_id, headers=headers, scope=scope)
+            elif error == "access_denied":
+                raise AuthenticationFailed("User canceled authorization")
+            else:
+                # The remaining errors, "unsupported_grant_type",
+                # "incorrect_client_credentials", and "incorrect_device_code"
+                # mean the above request was incorrect somehow, which
+                # indicates a bug. Or GitHub added a new error type, in which
+                # case this code needs to be updated.
+                raise AuthenticationFailed(
+                    "Unexpected error when authorizing with GitHub:", error)
+        else:
+            return result['access_token']
+
+
+class GitHubError(RuntimeError):
+    pass
+
+
+def GitHub_raise_for_status(r):
+    """
+    Call instead of r.raise_for_status() for GitHub requests
+    Checks for common GitHub response issues and prints messages for them.
+    """
+    # This will happen if the doctr session has been running too long and the
+    # OTP code gathered from get_oauth_token has expired.
+
+    # TODO: Refactor the code to re-request the OTP without exiting.
+    if r.status_code == 401 and r.headers.get('X-GitHub-OTP'):
+        raise GitHubError(
+            "The two-factor authentication code has expired. Please run doctr configure again.")
+    if r.status_code == 403 and r.headers.get('X-RateLimit-Remaining') == '0':
+        reset = int(r.headers['X-RateLimit-Reset'])
+        limit = int(r.headers['X-RateLimit-Limit'])
+        reset_datetime = datetime.datetime.fromtimestamp(
+            reset, datetime.timezone.utc)
+        relative_reset_datetime = reset_datetime - \
+            datetime.datetime.now(datetime.timezone.utc)
+        # Based on datetime.timedelta.__str__
+        mm, ss = divmod(relative_reset_datetime.seconds, 60)
+        hh, mm = divmod(mm, 60)
+
+        def plural(n):
+            return n, abs(n) != 1 and "s" or ""
+
+        s = "%d minute%s" % plural(mm)
+        if hh:
+            s = "%d hour%s, " % plural(hh) + s
+        if relative_reset_datetime.days:
+            s = ("%d day%s, " % plural(relative_reset_datetime.days)) + s
+        authenticated = limit >= 100
+        message = """\
+Your GitHub API rate limit has been hit. GitHub allows {limit} {un}authenticated
+requests per hour. See {documentation_url}
+for more information.
+""".format(limit=limit, un="" if authenticated else "un", documentation_url=r.json()["documentation_url"])
+        if authenticated:
+            message += """
+Note that GitHub's API limits are shared across all oauth applications. A
+common cause of hitting the rate limit is the Travis "sync account" button.
+"""
+        else:
+            message += """
+You can get a higher API limit by authenticating. Try running doctr configure
+again without the --no-upload-key flag.
+"""
+        message += """
+Your rate limits will reset in {s}.\
+""".format(s=s)
+        raise GitHubError(message)
+    r.raise_for_status()
+
+
+
 @ensure_github
-def write_credfile(credfile=None, username='', password=''):
+def write_credfile(credfile=None, username='', password='', client_id=REVER_CLIENT_ID):
     """Acquires a github token and writes a credentials file."""
     while not username:
         username = input('GitHub Username: ')
-    while not password:
-        password = getpass('GitHub Password for {0}: '.format(username))
     host = socket.gethostname()
     note = 'rever {org}/{repo} {host} {compid}'
     note = note.format(org=$GITHUB_ORG, repo=$GITHUB_REPO,
                        host=host, compid=_compid(host))
     note_url = $WEBSITE_URL
     scopes = ['user', 'repo']
-    try:
-        auth = github3.authorize(username, password, scopes, note, note_url,
-                                 two_factor_callback=two_factor)
-    except github3.exceptions.UnprocessableEntity:
-        print_color('{YELLOW}Token for "' + note + ' "may already exist! '
-                    'Attempting to delete and regenerate...{RESET}', file=sys.stderr)
-        gh = github3.login(username, password=password, two_factor_callback=two_factor)
-        for auth in authorizations(gh):
-            if note == auth.note:
-                break
-        else:
-            msg = 'Could not find GitHub authentication token to delete it!'
-            raise RuntimeError(msg)
-        auth.delete()
-        print_color('{YELLOW}Deleted previous token.{RESET}')
-        auth = github3.authorize(username, password, scopes, note, note_url,
-                                 two_factor_callback=two_factor)
-        print_color('{YELLOW}Regenerated token.{RESET}')
+    # We need to include the rever OAuth client ID
+    token = get_oauth_token(client_id, scope=scopes)
     credfile = credfilename(credfile)
     with open(credfile, 'w') as f:
         f.write(username + '\n')
-        f.write(str(auth.token) + '\n')
-        f.write(str(auth.id))
-    print_color('{YELLOW}wrote ' + credfile , file=sys.stderr)
+        f.write(str(token))
+    print_color('{YELLOW}wrote ' + credfile, file=sys.stderr)
     os.chmod(credfile, 0o600)
     print_color('{YELLOW}secured permisions of ' + credfile, file=sys.stderr)
 
@@ -120,8 +238,7 @@ def read_credfile(credfile=None):
     with open(credfile, 'r') as f:
         username = f.readline().strip()
         token = f.readline().strip()
-        ghid = f.readline().strip()
-    return username, token, ghid
+    return username, token
 
 
 def login(credfile=None, return_username=False):
@@ -130,7 +247,8 @@ def login(credfile=None, return_username=False):
     if not os.path.exists(credfile):
         write_credfile(credfile)
     username, token, _ = read_credfile()
-    gh = github3.login(username, token=token)
+    github3.login(username, token=token)
+    gh = github3
     if return_username:
         return gh, username
     else:

@@ -25,7 +25,6 @@ def test_credfilename(githubenv):
 
 CREDFILE = """zappa
 45463104f006ccb3a512fb20e31b9a50f10ba38b
-55d60676
 """
 
 
@@ -33,9 +32,6 @@ def test_read_credfile(githubenv):
     with tempfile.NamedTemporaryFile('w+t') as f:
         f.write(CREDFILE)
         f.flush()
-        username, token, ghid = read_credfile(f.name)
+        username, token = read_credfile(f.name)
     assert username == 'zappa'
     assert token == '45463104f006ccb3a512fb20e31b9a50f10ba38b'
-    assert ghid == '55d60676'
-
-

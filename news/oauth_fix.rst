@@ -15,7 +15,7 @@
 
 
 **Removed:**
-
+* Removed pip install of xonsh from github
 
 **Fixed:**
 

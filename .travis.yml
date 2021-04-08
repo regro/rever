@@ -21,8 +21,6 @@ install:
 
   # Install dependencies
   - conda install --file requirements/docs.txt
-  # Remove once 0.9.20 is released
-  - pip install --no-deps https://github.com/xonsh/xonsh/archive/master.zip
   - pip install xonda
   - python setup.py install
 

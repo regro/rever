@@ -6,7 +6,7 @@ import tempfile
 import pytest
 
 from rever import environ
-from rever.github import credfilename, read_credfile
+from rever.github import credfilename, read_credfile, credfile_new_format
 
 
 @pytest.fixture
@@ -33,5 +33,8 @@ def test_read_credfile(githubenv):
         f.write(CREDFILE)
         f.flush()
         username, token = read_credfile(f.name)
+        new_format = credfile_new_format(f.name)
+
     assert username == 'zappa'
     assert token == '45463104f006ccb3a512fb20e31b9a50f10ba38b'
+    assert new_format

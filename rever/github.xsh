@@ -209,9 +209,18 @@ Your rate limits will reset in {s}.\
     r.raise_for_status()
 
 
+@ensure_github
+def credfile_new_format(credfile=None):
+    """Check that our credfile conforms to the new format"""
+    # The new format should have two lines only,
+    # the old format has 3 lines
+    if len(open(credfile, 'r').readlines()) == 2:
+        return True
+    else:
+        return False
 
 @ensure_github
-def write_credfile(credfile=None, username='', password='', client_id=REVER_CLIENT_ID):
+def write_credfile(credfile=None, username='', client_id=REVER_CLIENT_ID):
     """Acquires a github token and writes a credentials file."""
     while not username:
         username = input('GitHub Username: ')
@@ -244,9 +253,10 @@ def read_credfile(credfile=None):
 def login(credfile=None, return_username=False):
     """Returns a github object that is logged in."""
     credfile = credfilename(credfile)
-    if not os.path.exists(credfile):
+    # Check to see if file exists and conforms to new format
+    if not os.path.exists(credfile) and not credfile_new_format(credfile):
         write_credfile(credfile)
-    username, token, _ = read_credfile()
+    username, token = read_credfile()
     github3.login(username, token=token)
     gh = github3
     if return_username:

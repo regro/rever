@@ -280,7 +280,9 @@ def login(credfile=None, return_username=False):
     """Returns a github object that is logged in."""
     credfile = credfilename(credfile)
     # Check to see if file exists and conforms to new format
-    if not os.path.exists(credfile) and not credfile_new_format(credfile):
+    if not os.path.exists(credfile):
+        write_credfile(credfile)
+    elif not credfile_new_format(credfile):
         write_credfile(credfile)
     username, token = read_credfile()
     github3.login(username, token=token)

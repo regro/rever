@@ -24,6 +24,7 @@ jobs:
             git config --global user.name "Anthony Scopatz"
             git config --global user.email scopatz@gmail.com
             pytest -v ./tests/
+            rever -a pytest
 
 workflows:
   version: 2

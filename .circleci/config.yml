@@ -17,6 +17,7 @@ jobs:
             conda config --set always_yes yes --set changeps1 no
             conda install --file requirements/tests.txt
             pip install xonda
+            pip install git+git://github.com/regro/rever
       - run:
           name: tests
           command: |

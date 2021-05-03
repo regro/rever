@@ -291,7 +291,7 @@ def make_envvars():
         vd = env.get_docs(var)
         s += sec.format(low=var.lower(), title=title, under=under,
                         docstr=vd.doc, configurable=vd.is_configurable,
-                        default=vd.doc_default, store_as_str=vd.doc_store_as_str)
+                        default=vd.doc_default, store_as_str=vd.can_store_as_str)
     s = s[:-9]
     fname = os.path.join(os.path.dirname(__file__), 'envvarsbody')
     with open(fname, 'w') as f:

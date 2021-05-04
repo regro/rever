@@ -28,7 +28,7 @@
   first_commit: 2018-08-11 13:07:29
 - name: Anthony Scopatz
   email: scopatz@gmail.com
-  num_commits: 341
+  num_commits: 345
   first_commit: 2017-05-16 14:52:07
 - name: Christoph Deil
   email: Deil.Christoph@gmail.com
@@ -74,7 +74,7 @@
   github: basnijholt
 - name: Julian Rüth
   email: julian.rueth@fsfe.org
-  num_commits: 2
+  num_commits: 3
   first_commit: 2020-08-19 07:34:05
   github: saraedum
 - name: Hadrien Mary
@@ -86,3 +86,13 @@
   email: anki-code@users.noreply.github.com
   num_commits: 7
   first_commit: 2020-10-14 14:50:25
+- name: Rob Koch
+  email: rkoch177@gmail.com
+  num_commits: 9
+  first_commit: 2021-03-29 19:39:58
+  github: rjkoch
+- name: Robert J Koch
+  email: 52714660+rjkoch@users.noreply.github.com
+  num_commits: 0
+  first_commit: 2021-05-04 08:37:59
+  github: rjkoch

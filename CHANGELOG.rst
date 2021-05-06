@@ -4,6 +4,65 @@ Rever Change Log
 
 .. current developments
 
+v0.5.0
+====================
+
+**Added:**
+
+
+* New ``$GHRELEASE_TARGET`` variable (str or None) allow users to set
+  the git branch/commit to target for the GitHub release. If this value is None,
+  it will use the default branch name.
+* added get_oauth_token in github.xsh to authorize rever application to make changes to a user's github
+* added GitHub_raise_for_status helper function for get_oauth_token in github.xsh
+* added credfile_new_format helper function for login in github.xsh to ensure new credfile is written
+
+
+**Changed:**
+
+* changed credfile_new_format helper function to check if credfile adheres to the new format after it checks if file exists
+  (not at the same time)
+* changed test_conda_forge_activity to expect two-line credfile
+* changed write_credfile in github.xsh to now call get_oauth_token. User is no longer prompted for password as this is handled through a browser
+* changed read_credfile in github.xsh to handle new format of credfile (without password)
+* changed login in github.xsh to login with OAuth token only
+* changed github3 in github.xsh to conform with latest version of github3.py API
+* changed test_github.py to handle new behavior of credfile and wnsure new format
+* changed doc_configurable flag in docs/conf.py to is_configurable
+* changed doc_store_as_str flag in docs/conf.py to can_store_as_str
+
+**Deprecated:**
+
+
+
+
+
+**Removed:**
+
+
+* Removed pip install of xonsh from github
+
+
+**Fixed:**
+
+
+* Fixed broken GitHub login behavior by using OAuth authentication
+
+
+**Security:**
+
+
+
+
+
+**Authors:**
+
+* Anthony Scopatz
+* Rob Koch
+* Julian Rüth
+
+
+
 v0.4.8
 ====================
 

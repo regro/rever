@@ -12,7 +12,7 @@ from rever import environ
 
 @pytest.fixture
 def gitrepo(request):
-    """A test fixutre that creates and destroys a git repo in a temporary
+    """A test fixture that creates and destroys a git repo in a temporary
     directory.
     This will yield the path to the repo.
     """

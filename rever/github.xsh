@@ -47,7 +47,7 @@ def github3():
     try:
         from github3.github import GitHub
     except ImportError:
-        gh3 = None
+        return None
     return GitHub()
 
 

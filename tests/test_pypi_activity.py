@@ -110,3 +110,14 @@ def test_pypi_activity(gitrepo):
                                   universal_newlines=True)
     out = out.strip()
     assert '42.1.1' == out
+
+def test_add_dist_dir_argument():
+    from rever.activities.pypi import PyPI
+
+    activity = PyPI()
+
+    assert activity._add_dist_dir_argument([], "/tmp/dist") == []
+    assert activity._add_dist_dir_argument(["sdist"], "/tmp/dist") == ["sdist", "--dist-dir", "/tmp/dist"]
+    assert activity._add_dist_dir_argument(["sdist", "--dist-dir=/tmp/explicit/dist/dir"], "/tmp/dist") == ["sdist", "--dist-dir=/tmp/explicit/dist/dir"]
+    assert activity._add_dist_dir_argument(["sdist", "bdist_wheel"], "/tmp/dist") == ["sdist", "--dist-dir", "/tmp/dist", "bdist_wheel", "--dist-dir", "/tmp/dist"]
+    assert activity._add_dist_dir_argument(["build"], "/tmp/dist") == ["build"]

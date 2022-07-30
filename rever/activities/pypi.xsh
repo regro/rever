@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import getpass
+import itertools
 from configparser import ConfigParser, ExtendedInterpolation
 
 from lazyasd import lazyobject
@@ -106,22 +107,61 @@ class PyPI(Activity):
         else:
             return rc
 
+    def _add_dist_dir_argument(self, build_commands, dist_dir):
+        r"""
+        Return ``build_commands`` augmented with ``--dist-dir`` arguments as needed.
+        """
+        # Split build_commands into individual subcommands and their arguments.
+        subcommands = []
+        for command in build_commands:
+          if command.startswith("-") and subcommands:
+            # Append this argument to the preceding subcommand.
+            subcommands[-1].append(command)
+          else:
+            # This command starts a new subcommand.
+            subcommands.append([command])
+
+        def needs_dist_dir_argument(subcommand):
+            # Return whether this command needs an explicit --dist-dir
+            # argument, i.e., whether it's some "dist" command that has no
+            # --dist-dir argument yet.
+            if not "dist" in subcommand[0]:
+                return False
+            for argument in subcommand[1:]:
+                if argument == "-d":
+                    return False
+                if argument.startswith("-d="):
+                    return False
+                if argument.startswith("--dist-dir"):
+                    return False
+
+            return True
+
+        for subcommand in subcommands:
+          if needs_dist_dir_argument(subcommand):
+            subcommand.extend(["--dist-dir", dist_dir])
+
+        return list(itertools.chain(*subcommands))
+
     def _func(self, rc='$HOME/.pypirc', build_commands=('sdist',),
               upload=True, name=None, sign=None):
+        if not build_commands:
+          raise ValueError("PyPI build commands must not be empty.")
+
         rc = self._ensure_rc(rc)
+
         # isolate distributions for rever
         $dist_dir = os.path.join($REVER_DIR, "dist")
         if os.path.exists($dist_dir):
             rmtree($dist_dir, force=True)
-        # build distributions
-        dist_in_cmds = any(["dist" in c for c in build_commands])
-        dist_dir_in_cmds = any([c.startswith("-d=") or c == "-d" or c.startswith("--dist-dir")
-                                for c in build_commands])
-        if dist_in_cmds and not dist_dir_in_cmds:
-            build_commands = list(build_commands) + ["--dist-dir", $dist_dir]
+
+        # build ditribution
+        build_commands = self._add_dist_dir_argument(build_commands, $dist_dir)
+
         p = ![$PYTHON setup.py @(build_commands)]
         if p.rtn != 0:
             raise RuntimeError("Failed to build Python distributions!")
+
         # upload, as needed
         if upload:
             upload_args = ["upload"]

@@ -4,6 +4,24 @@ Rever Change Log
 
 .. current developments
 
+v0.5.1
+====================
+
+**Fixed:**
+
+* Fixed upload of source tarballs to PyPI when building with sdist.
+* Change the feedstock pull request to request main rather than master to match
+  this change on conda-forge
+* Fixed an UnboundLocalError when the github3 library can't be imported.
+
+**Authors:**
+
+* Julian Rüth
+* Thomas Kluyver
+* Simon Billinge
+
+
+
 v0.5.0
 ====================
 

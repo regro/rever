@@ -55,7 +55,7 @@
   first_commit: 2019-07-01 11:49:22
 - name: Thomas Kluyver
   email: thomas@kluyver.me.uk
-  num_commits: 3
+  num_commits: 5
   first_commit: 2019-10-24 08:16:16
   github: takluyver
 - name: Melissa Weber Mendonça
@@ -74,7 +74,7 @@
   github: basnijholt
 - name: Julian Rüth
   email: julian.rueth@fsfe.org
-  num_commits: 3
+  num_commits: 7
   first_commit: 2020-08-19 07:34:05
   github: saraedum
 - name: Hadrien Mary
@@ -88,7 +88,7 @@
   first_commit: 2020-10-14 14:50:25
 - name: Rob Koch
   email: rkoch177@gmail.com
-  num_commits: 9
+  num_commits: 12
   first_commit: 2021-03-29 19:39:58
   github: rjkoch
 - name: Robert J Koch
@@ -96,3 +96,8 @@
   num_commits: 0
   first_commit: 2021-05-04 08:37:59
   github: rjkoch
+- name: Simon Billinge
+  email: simon.billinge@gmail.com
+  num_commits: 1
+  first_commit: 2022-06-17 15:17:47
+  github: sbillinge

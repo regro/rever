@@ -301,7 +301,9 @@ def update_metadata(filename, write=True, validation_error=True):
     cpe = vcsutils.commits_per_email()
     fcpe = None
     for x in y:
-        x["num_commits"] = cpe.get(x["email"], 0) + sum([cpe.get(a, 0) for a in x.get("alternate_emails", [])])
+        # if duplicate nicknames A <foo@example>, A B <foo@example>
+        unique_emails = set([x["email"]] + x.get("alternate_emails", []))
+        x["num_commits"] = sum([cpe.get(a, 0) for a in unique_emails])
         # only compute first commits if needed.
         if "first_commit" not in x:
             if fcpe is None:

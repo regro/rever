@@ -231,6 +231,8 @@ def git_commits_per_author(since=None):
     args = ['-s', '-e', '--no-merges']
     if since:
         args.append(since + "...HEAD")
+    else:
+        args.append("HEAD")
     for line in $(git shortlog @(args)).splitlines():
         m = RE_GIT_CPA.match(line)
         if m is None:
@@ -259,6 +261,8 @@ def git_commits_per_email(since=None):
     args = ['-s', '-e', '--no-merges']
     if since:
         args.append(since + "...HEAD")
+    else:
+        args.append("HEAD")
     for line in $(git shortlog @(args)).splitlines():
         n, email = RE_GIT_CPE.match(line).groups()
         cpe[email] = int(n)

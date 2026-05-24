@@ -29,6 +29,8 @@ def _verify_names_emails_aliases(y, by_names, by_emails, filename):
             by_names[author] = by_emails[email] = entry
         elif author in by_names:
             # check that email matches known email
+            if not email:
+                continue
             entry = by_emails.get(email, None)
             if entry is None:
                 msgs.append(
@@ -103,7 +105,9 @@ def metadata_is_valid(metadata, emails=None, fields=None, filename='the authors 
         by_names[x["name"]] = x
         by_names.update({a: x for a in x.get('aliases', [])})
         # emails
-        by_emails[x["email"]] = x
+        email = x.get("email", None)
+        if email:
+            by_emails[email] = x
         by_emails.update({e: x for e in x.get('alternate_emails', [])})
     status = _verify_names_emails_aliases(metadata, by_names, by_emails, filename)
     # now check that authors have all the relevant fields

@@ -17,9 +17,9 @@ jobs:
         os: ["ubuntu-24.04", "ubuntu-24.04-arm", "macos-15"]
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with: { submodules: recursive }
-      - uses: prefix-dev/setup-pixi@v0.9.3
+      - uses: prefix-dev/setup-pixi@v0.9.4
         with: { pixi-version: v0.59.0 }
       - name: git config
         run: |

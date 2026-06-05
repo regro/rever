@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+"""
+fix-authors-rever: Fix .authors.yml for rever using gh cli and git.
+"""
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from typing import Dict, Optional
+
+
+def run(cmd: list, check=True) -> str:
+    """Run command and return stdout."""
+    result = subprocess.run(cmd, capture_output=True, text=True, check=check)
+    return result.stdout.strip()
+
+
+def run_json(cmd: list, check=True) -> dict:
+    """Run command and parse JSON output."""
+    result = subprocess.run(cmd, capture_output=True, text=True, check=check)
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {}
+
+
+def get_existing_authors() -> Dict[str, dict]:
+    """Parse .authors.yml and return dict of email -> author data."""
+    authors = {}
+    try:
+        with open(".authors.yml") as f:
+            current = None
+            for line in f:
+                if line.startswith("- name:"):
+                    current = {"name": line.split("- name:", 1)[1].strip()}
+                elif current and line.strip().startswith("email:"):
+                    email = line.split("email:", 1)[1].strip()
+                    current["email"] = email
+                    authors[email] = current
+                    current = None
+                elif current and line.strip().startswith("github:"):
+                    current["github"] = line.split("github:", 1)[1].strip()
+    except FileNotFoundError:
+        print(f"❌ .authors.yml not found; create from scratch", file=sys.stderr)
+    return authors
+
+
+def get_latest_tag() -> str:
+    """Get latest tag sorted by version."""
+    return run(["git", "tag", "--sort=-version:refname"], check=False).split("\n")[0]
+
+
+def get_commits_since(since: str) -> list:
+    """Get commits since tag/ref. Returns list of commit dicts."""
+    if since == "all":
+        commits_range = "HEAD"
+    elif since == "tag":
+        tag = get_latest_tag()
+        if not tag:
+            print("❌ No tags found", file=sys.stderr)
+            sys.exit(1)
+        print(f"📍 Checking commits since tag: {tag}")
+        commits_range = f"{tag}..HEAD"
+    else:
+        commits_range = f"{since}..HEAD"
+
+    output = run(
+        ["git", "log", "--format=%H%n%ae%n%an%n%s%n---", commits_range], check=False
+    )
+    commits = []
+
+    if not output:
+        return commits
+
+    for chunk in output.split("---\n"):
+        lines = chunk.strip().split("\n")
+        if len(lines) >= 4:
+            commits.append({
+                "hash": lines[0],
+                "email": lines[1],
+                "name": lines[2],
+                "subject": lines[3],
+            })
+    return commits
+
+
+def get_github_login(repo: str, commit_hash: str) -> Optional[str]:
+    """Query gh cli for GitHub login via commit author."""
+    try:
+        data = run_json(
+            [
+                "gh",
+                "api",
+                f"repos/{repo}/commits/{commit_hash}",
+            ],
+            check=False,
+        )
+        # Try author first, fall back to committer
+        if data.get("author"):
+            return data["author"].get("login")
+        if data.get("commit", {}).get("author"):
+            # Use commit author info if API author not available
+            commit_author = data["commit"].get("author", {})
+            # Can't extract login from just email, but we have the data
+        return None
+    except Exception:
+        return None
+
+
+def get_repo_full(remote_alias: str) -> str:
+    """Extract owner/repo from git remote URL."""
+    url = run(["git", "remote", "get-url", remote_alias], check=False)
+    # Handle both SSH and HTTPS URLs
+    match = re.search(r"[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
+    if match:
+        return f"{match.group(1)}/{match.group(2)}"
+    return ""
+
+
+def format_yaml(commit: dict, github_login: Optional[str] = None) -> str:
+    """Format commit as YAML entry (no comment, no trailing blank line)."""
+    lines = [f"- name: {commit['name']}", f"  email: {commit['email']}"]
+    if github_login:
+        lines.append(f"  github: {github_login}")
+    return "\n".join(lines)
+
+
+def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> None:
+    """Check for missing authors and optionally update .authors.yml.
+
+    In check mode, exits with code 1 if missing authors found, 0 otherwise.
+    Otherwise, updates .authors.yml and exits with code 0 or 1.
+    """
+    # Get existing authors
+    print("🔍 Checking .authors.yml...")
+    existing = get_existing_authors()
+    existing_emails = set(existing.keys())
+
+    # Get commits
+    print(f"📜 Scanning commits (--since={since})...")
+    commits = get_commits_since(since)
+
+    # Find missing authors (deduplicated by email)
+    seen = set()
+    missing_commits = []
+    for commit in commits:
+        email = commit["email"]
+        if email not in existing_emails and email not in seen:
+            seen.add(email)
+            missing_commits.append(commit)
+
+    # In check mode, report missing authors and exit
+    if check_mode:
+        if missing_commits:
+            print(f"❌ Found {len(missing_commits)} missing author(s):")
+            for commit in missing_commits:
+                print(f"   • {commit['name']} <{commit['email']}>")
+            sys.exit(1)
+        else:
+            print("✅ All authors are present")
+            sys.exit(0)
+
+    # Check for existing authors missing GitHub keys
+    missing_github_keys = []
+    for email, author in existing.items():
+        if "github" not in author:
+            missing_github_keys.append(author["name"])
+
+    if not missing_commits and not missing_github_keys:
+        print("✅ .authors.yml is complete")
+        sys.exit(0)
+
+    # Report status
+    if missing_commits:
+        print(f"👤 Found {len(missing_commits)} new author(s)")
+    if missing_github_keys:
+        print(f"🔑 {len(missing_github_keys)} author(s) missing github key:")
+        for name in missing_github_keys:
+            print(f"   • {name}")
+        print()
+
+    if not missing_commits:
+        print("✅ No new authors to add")
+        sys.exit(0)
+
+    # Query GitHub logins for new authors
+    repo_full = get_repo_full(repo_alias)
+    yaml_entries = []
+
+    for commit in missing_commits:
+        github_login = None
+        if repo_full:
+            github_login = get_github_login(repo_full, commit["hash"])
+        yaml_entries.append(format_yaml(commit, github_login))
+
+    suggestions = "\n".join(yaml_entries)
+
+    if suggestions.strip():
+        with open(".authors.yml", "a+") as f:
+            # Ensure proper newline before new entries
+            f.seek(0, 2)
+            if f.tell() > 0:
+                f.seek(f.tell() - 1)
+                last_char = f.read(1)
+                if last_char != "\n":
+                    f.write("\n")
+            else:
+                f.write("\n")
+            f.write(suggestions)
+            f.write("\n")
+
+        print("✅ Updated .authors.yml")
+        print()
+        print("📋 Changes:")
+        subprocess.run(["git", "diff", ".authors.yml"])
+    else:
+        print("❌ No suggestions to apply")
+        sys.exit(1)
+
+
+def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description="Fix .authors.yml for rever using gh cli and git.",
+    )
+    parser.add_argument(
+        "--since",
+        choices=["all", "tag"],
+        default="tag",
+        help="all=all commits, tag=since latest version tag (default: tag)",
+    )
+    parser.add_argument(
+        "--repo",
+        default="origin",
+        help="git remote alias (default: origin)",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="check for missing authors and exit with nonzero if found (no updates)",
+    )
+
+    args = parser.parse_args()
+    check_and_update_authors(args.since, args.repo, args.check)
+
+
+if __name__ == "__main__":
+    main()

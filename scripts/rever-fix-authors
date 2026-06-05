@@ -5,6 +5,7 @@ fix-authors-rever: Fix .authors.yml for rever using gh cli and git.
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -26,9 +27,15 @@ def run_json(cmd: list, check=True) -> dict:
         return {}
 
 
-def get_existing_authors() -> Dict[str, dict]:
-    """Parse .authors.yml and return dict of email -> author data."""
+def get_existing_authors() -> tuple[Dict[str, dict], Optional[int]]:
+    """Parse .authors.yml and return dict of email -> author data and index of last author with github.
+
+    Returns:
+        Tuple of (authors dict, index of last author with github value or None)
+    """
     authors = {}
+    author_list = []  # Track order of authors
+    last_github_index = None
     try:
         with open(".authors.yml") as f:
             current = None
@@ -39,12 +46,15 @@ def get_existing_authors() -> Dict[str, dict]:
                     email = line.split("email:", 1)[1].strip()
                     current["email"] = email
                     authors[email] = current
-                    current = None
+                    author_list.append(email)
                 elif current and line.strip().startswith("github:"):
-                    current["github"] = line.split("github:", 1)[1].strip()
+                    github = line.split("github:", 1)[1].strip()
+                    current["github"] = github
+                    if author_list:
+                        last_github_index = len(author_list) - 1
     except FileNotFoundError:
         print(f"❌ .authors.yml not found; create from scratch", file=sys.stderr)
-    return authors
+    return authors, last_github_index
 
 
 def get_latest_tag() -> str:
@@ -133,10 +143,22 @@ def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> N
     In check mode, exits with code 1 if missing authors found, 0 otherwise.
     Otherwise, updates .authors.yml and exits with code 0 or 1.
     """
+    # Find repository root and change to it
+    try:
+        repo_root = run(["git", "rev-parse", "--show-toplevel"], check=True)
+    except subprocess.CalledProcessError:
+        print("❌ Not in a git repository", file=sys.stderr)
+        sys.exit(1)
+
+    os.chdir(repo_root)
+    print(f"📁 Repository: {repo_root}")
+    print()
+
     # Get existing authors
     print("🔍 Checking .authors.yml...")
-    existing = get_existing_authors()
+    existing, last_github_index = get_existing_authors()
     existing_emails = set(existing.keys())
+    author_list = list(existing.keys())  # Track order of authors
 
     # Get commits
     print(f"📜 Scanning commits (--since={since})...")
@@ -162,54 +184,85 @@ def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> N
             print("✅ All authors are present")
             sys.exit(0)
 
-    # Check for existing authors missing GitHub keys
+    # Check for existing authors missing GitHub keys (after the last one with github)
     missing_github_keys = []
-    for email, author in existing.items():
-        if "github" not in author:
-            missing_github_keys.append(author["name"])
+    if last_github_index is not None:
+        for i in range(last_github_index + 1, len(author_list)):
+            email = author_list[i]
+            author = existing[email]
+            if "github" not in author:
+                missing_github_keys.append((email, author["name"]))
 
+    # If only new authors, we'll handle them below
+    # If only missing github keys, we'll fetch and add them
     if not missing_commits and not missing_github_keys:
-        print("✅ .authors.yml is complete")
+        print("✅ .authors.yml is already complete")
         sys.exit(0)
 
     # Report status
     if missing_commits:
         print(f"👤 Found {len(missing_commits)} new author(s)")
     if missing_github_keys:
-        print(f"🔑 {len(missing_github_keys)} author(s) missing github key:")
-        for name in missing_github_keys:
+        print(
+            f"🔑 {len(missing_github_keys)} author(s) after last github entry missing github key:"
+        )
+        for _, name in missing_github_keys:
             print(f"   • {name}")
         print()
-
-    if not missing_commits:
-        print("✅ No new authors to add")
-        sys.exit(0)
 
     # Query GitHub logins for new authors
     repo_full = get_repo_full(repo_alias)
     yaml_entries = []
 
-    for commit in missing_commits:
+    if missing_commits:
+        for commit in missing_commits:
+            github_login = None
+            if repo_full:
+                github_login = get_github_login(repo_full, commit["hash"])
+            yaml_entries.append(format_yaml(commit, github_login))
+
+    # Query GitHub logins for authors missing github keys
+    github_updates = {}
+    for email, name in missing_github_keys:
         github_login = None
-        if repo_full:
-            github_login = get_github_login(repo_full, commit["hash"])
-        yaml_entries.append(format_yaml(commit, github_login))
+        # Find the commit hash for this author
+        for commit in commits:
+            if commit["email"] == email:
+                if repo_full:
+                    github_login = get_github_login(repo_full, commit["hash"])
+                break
+        if github_login:
+            github_updates[email] = github_login
 
-    suggestions = "\n".join(yaml_entries)
+    suggestions = "\n".join(yaml_entries) if yaml_entries else ""
 
-    if suggestions.strip():
-        with open(".authors.yml", "a+") as f:
-            # Ensure proper newline before new entries
-            f.seek(0, 2)
-            if f.tell() > 0:
-                f.seek(f.tell() - 1)
-                last_char = f.read(1)
-                if last_char != "\n":
-                    f.write("\n")
-            else:
-                f.write("\n")
-            f.write(suggestions)
-            f.write("\n")
+    # Apply updates to .authors.yml
+    if suggestions.strip() or github_updates:
+        # Read current file
+        try:
+            with open(".authors.yml", "r") as f:
+                content = f.read()
+        except FileNotFoundError:
+            content = ""
+
+        # Update github values for existing authors
+        for email, github_login in github_updates.items():
+            author = existing[email]
+            # Find the author block and add github field
+            old_entry = f"- name: {author['name']}\n  email: {email}"
+            new_entry = (
+                f"- name: {author['name']}\n  email: {email}\n  github: {github_login}"
+            )
+            content = content.replace(old_entry, new_entry)
+
+        # Add new author entries
+        if suggestions.strip():
+            if content and not content.endswith("\n"):
+                content += "\n"
+            content += suggestions + "\n"
+
+        with open(".authors.yml", "w") as f:
+            f.write(content)
 
         print("✅ Updated .authors.yml")
         print()

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#   "ruamel.yaml",
+# ]
+# ///
 """
 fix-authors-rever: Fix .authors.yml for rever using gh cli and git.
 """
@@ -9,7 +15,9 @@ import os
 import re
 import subprocess
 import sys
-from typing import Dict, Optional
+from typing import Optional
+
+from ruamel.yaml import YAML
 
 
 def run(cmd: list, check=True) -> str:
@@ -27,34 +35,116 @@ def run_json(cmd: list, check=True) -> dict:
         return {}
 
 
-def get_existing_authors() -> tuple[Dict[str, dict], Optional[int]]:
-    """Parse .authors.yml and return dict of email -> author data and index of last author with github.
+def load_metadata(filename: str = ".authors.yml"):
+    """Load author metadata from a YAML file."""
+    yaml_engine = YAML()
+    yaml_engine.preserve_quotes = True
+    if os.path.exists(filename):
+        with open(filename) as f:
+            metadata = yaml_engine.load(f)
+    else:
+        metadata = []
+    if metadata is None:
+        metadata = []
+    return metadata, yaml_engine, filename
 
-    Returns:
-        Tuple of (authors dict, index of last author with github value or None)
-    """
-    authors = {}
-    author_list = []  # Track order of authors
+
+def save_metadata(metadata, yaml_engine, filename: str = ".authors.yml") -> None:
+    """Write author metadata back to a YAML file."""
+    with open(filename, "w") as f:
+        yaml_engine.dump(metadata, f)
+
+
+def build_author_indexes(metadata: list) -> tuple[dict, dict, dict, Optional[int], set]:
+    """Build lookup indexes mirroring rever/authors.xsh metadata_is_valid."""
+    by_emails = {}
+    by_names = {}
+    by_github = {}
     last_github_index = None
-    try:
-        with open(".authors.yml") as f:
-            current = None
-            for line in f:
-                if line.startswith("- name:"):
-                    current = {"name": line.split("- name:", 1)[1].strip()}
-                elif current and line.strip().startswith("email:"):
-                    email = line.split("email:", 1)[1].strip()
-                    current["email"] = email
-                    authors[email] = current
-                    author_list.append(email)
-                elif current and line.strip().startswith("github:"):
-                    github = line.split("github:", 1)[1].strip()
-                    current["github"] = github
-                    if author_list:
-                        last_github_index = len(author_list) - 1
-    except FileNotFoundError:
-        print(f"❌ .authors.yml not found; create from scratch", file=sys.stderr)
-    return authors, last_github_index
+    for i, entry in enumerate(metadata):
+        by_emails[entry["email"]] = entry
+        for alt in entry.get("alternate_emails", []):
+            by_emails[alt] = entry
+        by_names[entry["name"]] = entry
+        for alias in entry.get("aliases", []):
+            by_names[alias] = entry
+        if "github" in entry:
+            by_github[entry["github"]] = entry
+            last_github_index = i
+    return by_emails, by_names, by_github, last_github_index, set(by_emails.keys())
+
+
+def find_existing_entry(
+    email: str,
+    name: str,
+    github_login: Optional[str],
+    by_emails: dict,
+    by_names: dict,
+    by_github: dict,
+) -> Optional[dict]:
+    """Return an existing entry if this email belongs to a known contributor."""
+    if email in by_emails:
+        return None
+    if name in by_names:
+        return by_names[name]
+    if github_login and github_login in by_github:
+        return by_github[github_login]
+    return None
+
+
+def update_existing_entry(entry: dict, email: str, name: str) -> bool:
+    """Add alternate email and alias to an existing author entry. Returns True if changed."""
+    changed = False
+    if email != entry["email"]:
+        alt_emails = entry.setdefault("alternate_emails", [])
+        if email not in alt_emails:
+            alt_emails.append(email)
+            changed = True
+    if name != entry["name"]:
+        aliases = entry.setdefault("aliases", [])
+        if name not in aliases:
+            aliases.append(name)
+            changed = True
+    return changed
+
+
+def classify_commits(
+    commits: list,
+    known_emails: set,
+    by_emails: dict,
+    by_names: dict,
+    by_github: dict,
+    repo_full: str,
+    get_github_login_fn,
+) -> tuple[list, list]:
+    """Split unknown commit emails into updates for existing authors vs new authors."""
+    seen: set[str] = set()
+    alternate_email_updates: list[tuple[dict, dict]] = []
+    new_authors: list[dict] = []
+
+    for commit in commits:
+        email = commit["email"]
+        if email in known_emails or email in seen:
+            continue
+        seen.add(email)
+
+        github_login = None
+        if repo_full:
+            github_login = get_github_login_fn(repo_full, commit["hash"])
+
+        entry = find_existing_entry(
+            email, commit["name"], github_login, by_emails, by_names, by_github
+        )
+        if entry is not None:
+            alternate_email_updates.append((entry, commit))
+            known_emails.add(email)
+        else:
+            commit_with_github = dict(commit)
+            if github_login:
+                commit_with_github["github"] = github_login
+            new_authors.append(commit_with_github)
+
+    return alternate_email_updates, new_authors
 
 
 def get_latest_tag() -> str:
@@ -107,13 +197,8 @@ def get_github_login(repo: str, commit_hash: str) -> Optional[str]:
             ],
             check=False,
         )
-        # Try author first, fall back to committer
         if data.get("author"):
             return data["author"].get("login")
-        if data.get("commit", {}).get("author"):
-            # Use commit author info if API author not available
-            commit_author = data["commit"].get("author", {})
-            # Can't extract login from just email, but we have the data
         return None
     except Exception:
         return None
@@ -122,19 +207,10 @@ def get_github_login(repo: str, commit_hash: str) -> Optional[str]:
 def get_repo_full(remote_alias: str) -> str:
     """Extract owner/repo from git remote URL."""
     url = run(["git", "remote", "get-url", remote_alias], check=False)
-    # Handle both SSH and HTTPS URLs
     match = re.search(r"[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
     if match:
         return f"{match.group(1)}/{match.group(2)}"
     return ""
-
-
-def format_yaml(commit: dict, github_login: Optional[str] = None) -> str:
-    """Format commit as YAML entry (no comment, no trailing blank line)."""
-    lines = [f"- name: {commit['name']}", f"  email: {commit['email']}"]
-    if github_login:
-        lines.append(f"  github: {github_login}")
-    return "\n".join(lines)
 
 
 def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> None:
@@ -143,7 +219,6 @@ def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> N
     In check mode, exits with code 1 if missing authors found, 0 otherwise.
     Otherwise, updates .authors.yml and exits with code 0 or 1.
     """
-    # Find repository root and change to it
     try:
         repo_root = run(["git", "rev-parse", "--show-toplevel"], check=True)
     except subprocess.CalledProcessError:
@@ -154,116 +229,104 @@ def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> N
     print(f"📁 Repository: {repo_root}")
     print()
 
-    # Get existing authors
     print("🔍 Checking .authors.yml...")
-    existing, last_github_index = get_existing_authors()
-    existing_emails = set(existing.keys())
-    author_list = list(existing.keys())  # Track order of authors
+    metadata, yaml_engine, authors_file = load_metadata()
+    by_emails, by_names, by_github, last_github_index, known_emails = (
+        build_author_indexes(metadata)
+    )
 
-    # Get commits
     print(f"📜 Scanning commits (--since={since})...")
     commits = get_commits_since(since)
+    repo_full = get_repo_full(repo_alias)
 
-    # Find missing authors (deduplicated by email)
-    seen = set()
-    missing_commits = []
-    for commit in commits:
-        email = commit["email"]
-        if email not in existing_emails and email not in seen:
-            seen.add(email)
-            missing_commits.append(commit)
+    alternate_email_updates, new_authors = classify_commits(
+        commits,
+        known_emails,
+        by_emails,
+        by_names,
+        by_github,
+        repo_full,
+        get_github_login,
+    )
 
-    # In check mode, report missing authors and exit
     if check_mode:
-        if missing_commits:
-            print(f"❌ Found {len(missing_commits)} missing author(s):")
-            for commit in missing_commits:
-                print(f"   • {commit['name']} <{commit['email']}>")
+        if alternate_email_updates or new_authors:
+            if alternate_email_updates:
+                print(
+                    f"❌ Found {len(alternate_email_updates)} existing contributor(s) "
+                    "needing alternate_emails updates:"
+                )
+                for entry, commit in alternate_email_updates:
+                    print(
+                        f"   • {entry['name']}: add {commit['email']!r} to alternate_emails"
+                    )
+            if new_authors:
+                print(f"❌ Found {len(new_authors)} new contributor(s):")
+                for commit in new_authors:
+                    print(f"   • {commit['name']} <{commit['email']}>")
             sys.exit(1)
-        else:
-            print("✅ All authors are present")
-            sys.exit(0)
+        print("✅ All authors are present")
+        sys.exit(0)
 
-    # Check for existing authors missing GitHub keys (after the last one with github)
-    missing_github_keys = []
+    missing_github_keys: list[tuple[str, str]] = []
     if last_github_index is not None:
-        for i in range(last_github_index + 1, len(author_list)):
-            email = author_list[i]
-            author = existing[email]
-            if "github" not in author:
-                missing_github_keys.append((email, author["name"]))
+        for i in range(last_github_index + 1, len(metadata)):
+            entry = metadata[i]
+            if "github" not in entry:
+                missing_github_keys.append((entry["email"], entry["name"]))
 
-    # If only new authors, we'll handle them below
-    # If only missing github keys, we'll fetch and add them
-    if not missing_commits and not missing_github_keys:
+    if not alternate_email_updates and not new_authors and not missing_github_keys:
         print("✅ .authors.yml is already complete")
         sys.exit(0)
 
-    # Report status
-    if missing_commits:
-        print(f"👤 Found {len(missing_commits)} new author(s)")
+    if alternate_email_updates:
+        print(
+            f"👤 Found {len(alternate_email_updates)} existing contributor(s) "
+            "with new email(s)"
+        )
+        for entry, commit in alternate_email_updates:
+            print(f"   • {entry['name']}: adding {commit['email']}")
+    if new_authors:
+        print(f"👤 Found {len(new_authors)} new contributor(s)")
+        for commit in new_authors:
+            print(f"   • {commit['name']} <{commit['email']}>")
     if missing_github_keys:
         print(
-            f"🔑 {len(missing_github_keys)} author(s) after last github entry missing github key:"
+            f"🔑 {len(missing_github_keys)} author(s) after last github entry "
+            "missing github key:"
         )
         for _, name in missing_github_keys:
             print(f"   • {name}")
         print()
 
-    # Query GitHub logins for new authors
-    repo_full = get_repo_full(repo_alias)
-    yaml_entries = []
+    changed = False
+    for entry, commit in alternate_email_updates:
+        if update_existing_entry(entry, commit["email"], commit["name"]):
+            changed = True
 
-    if missing_commits:
-        for commit in missing_commits:
-            github_login = None
-            if repo_full:
-                github_login = get_github_login(repo_full, commit["hash"])
-            yaml_entries.append(format_yaml(commit, github_login))
+    for commit in new_authors:
+        new_entry = {"name": commit["name"], "email": commit["email"]}
+        if commit.get("github"):
+            new_entry["github"] = commit["github"]
+        metadata.append(new_entry)
+        changed = True
 
-    # Query GitHub logins for authors missing github keys
-    github_updates = {}
-    for email, name in missing_github_keys:
+    for email, _name in missing_github_keys:
         github_login = None
-        # Find the commit hash for this author
         for commit in commits:
             if commit["email"] == email:
                 if repo_full:
                     github_login = get_github_login(repo_full, commit["hash"])
                 break
         if github_login:
-            github_updates[email] = github_login
+            for entry in metadata:
+                if entry["email"] == email:
+                    entry["github"] = github_login
+                    changed = True
+                    break
 
-    suggestions = "\n".join(yaml_entries) if yaml_entries else ""
-
-    # Apply updates to .authors.yml
-    if suggestions.strip() or github_updates:
-        # Read current file
-        try:
-            with open(".authors.yml", "r") as f:
-                content = f.read()
-        except FileNotFoundError:
-            content = ""
-
-        # Update github values for existing authors
-        for email, github_login in github_updates.items():
-            author = existing[email]
-            # Find the author block and add github field
-            old_entry = f"- name: {author['name']}\n  email: {email}"
-            new_entry = (
-                f"- name: {author['name']}\n  email: {email}\n  github: {github_login}"
-            )
-            content = content.replace(old_entry, new_entry)
-
-        # Add new author entries
-        if suggestions.strip():
-            if content and not content.endswith("\n"):
-                content += "\n"
-            content += suggestions + "\n"
-
-        with open(".authors.yml", "w") as f:
-            f.write(content)
-
+    if changed:
+        save_metadata(metadata, yaml_engine, authors_file)
         print("✅ Updated .authors.yml")
         print()
         print("📋 Changes:")
@@ -274,7 +337,6 @@ def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> N
 
 
 def main():
-    # Parse arguments
     parser = argparse.ArgumentParser(
         description="Fix .authors.yml for rever using gh cli and git.",
     )

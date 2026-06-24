@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#   "ruamel.yaml",
+# ]
+# ///
+"""
+fix-authors-rever: Fix .authors.yml for rever using gh cli and git.
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+from typing import Optional
+
+from ruamel.yaml import YAML
+
+
+def run(cmd: list, check=True) -> str:
+    """Run command and return stdout."""
+    result = subprocess.run(cmd, capture_output=True, text=True, check=check)
+    return result.stdout.strip()
+
+
+def run_json(cmd: list, check=True) -> dict:
+    """Run command and parse JSON output."""
+    result = subprocess.run(cmd, capture_output=True, text=True, check=check)
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {}
+
+
+def load_metadata(filename: str = ".authors.yml"):
+    """Load author metadata from a YAML file."""
+    yaml_engine = YAML()
+    yaml_engine.preserve_quotes = True
+    if os.path.exists(filename):
+        with open(filename) as f:
+            metadata = yaml_engine.load(f)
+    else:
+        metadata = []
+    if metadata is None:
+        metadata = []
+    return metadata, yaml_engine, filename
+
+
+def save_metadata(metadata, yaml_engine, filename: str = ".authors.yml") -> None:
+    """Write author metadata back to a YAML file."""
+    with open(filename, "w") as f:
+        yaml_engine.dump(metadata, f)
+
+
+def build_author_indexes(metadata: list) -> tuple[dict, dict, dict, Optional[int], set]:
+    """Build lookup indexes mirroring rever/authors.xsh metadata_is_valid."""
+    by_emails = {}
+    by_names = {}
+    by_github = {}
+    last_github_index = None
+    for i, entry in enumerate(metadata):
+        by_emails[entry["email"]] = entry
+        for alt in entry.get("alternate_emails", []):
+            by_emails[alt] = entry
+        by_names[entry["name"]] = entry
+        for alias in entry.get("aliases", []):
+            by_names[alias] = entry
+        if "github" in entry:
+            by_github[entry["github"]] = entry
+            last_github_index = i
+    return by_emails, by_names, by_github, last_github_index, set(by_emails.keys())
+
+
+def find_existing_entry(
+    email: str,
+    name: str,
+    github_login: Optional[str],
+    by_emails: dict,
+    by_names: dict,
+    by_github: dict,
+) -> Optional[dict]:
+    """Return an existing entry if this email belongs to a known contributor."""
+    if email in by_emails:
+        return None
+    if name in by_names:
+        return by_names[name]
+    if github_login and github_login in by_github:
+        return by_github[github_login]
+    return None
+
+
+def update_existing_entry(entry: dict, email: str, name: str) -> bool:
+    """Add alternate email and alias to an existing author entry. Returns True if changed."""
+    changed = False
+    if email != entry["email"]:
+        alt_emails = entry.setdefault("alternate_emails", [])
+        if email not in alt_emails:
+            alt_emails.append(email)
+            changed = True
+    if name != entry["name"]:
+        aliases = entry.setdefault("aliases", [])
+        if name not in aliases:
+            aliases.append(name)
+            changed = True
+    return changed
+
+
+def classify_commits(
+    commits: list,
+    known_emails: set,
+    by_emails: dict,
+    by_names: dict,
+    by_github: dict,
+    repo_full: str,
+    get_github_login_fn,
+) -> tuple[list, list]:
+    """Split unknown commit emails into updates for existing authors vs new authors."""
+    seen: set[str] = set()
+    alternate_email_updates: list[tuple[dict, dict]] = []
+    new_authors: list[dict] = []
+
+    for commit in commits:
+        email = commit["email"]
+        if email in known_emails or email in seen:
+            continue
+        seen.add(email)
+
+        github_login = None
+        if repo_full:
+            github_login = get_github_login_fn(repo_full, commit["hash"])
+
+        entry = find_existing_entry(
+            email, commit["name"], github_login, by_emails, by_names, by_github
+        )
+        if entry is not None:
+            alternate_email_updates.append((entry, commit))
+            known_emails.add(email)
+        else:
+            commit_with_github = dict(commit)
+            if github_login:
+                commit_with_github["github"] = github_login
+            new_authors.append(commit_with_github)
+
+    return alternate_email_updates, new_authors
+
+
+def get_latest_tag() -> str:
+    """Get latest tag sorted by version."""
+    return run(["git", "tag", "--sort=-version:refname"], check=False).split("\n")[0]
+
+
+def get_commits_since(since: str) -> list:
+    """Get commits since tag/ref. Returns list of commit dicts."""
+    if since == "all":
+        commits_range = "HEAD"
+    elif since == "tag":
+        tag = get_latest_tag()
+        if not tag:
+            print("❌ No tags found", file=sys.stderr)
+            sys.exit(1)
+        print(f"📍 Checking commits since tag: {tag}")
+        commits_range = f"{tag}..HEAD"
+    else:
+        commits_range = f"{since}..HEAD"
+
+    output = run(
+        ["git", "log", "--format=%H%n%ae%n%an%n%s%n---", commits_range], check=False
+    )
+    commits = []
+
+    if not output:
+        return commits
+
+    for chunk in output.split("---\n"):
+        lines = chunk.strip().split("\n")
+        if len(lines) >= 4:
+            commits.append({
+                "hash": lines[0],
+                "email": lines[1],
+                "name": lines[2],
+                "subject": lines[3],
+            })
+    return commits
+
+
+def get_github_login(repo: str, commit_hash: str) -> Optional[str]:
+    """Query gh cli for GitHub login via commit author."""
+    try:
+        data = run_json(
+            [
+                "gh",
+                "api",
+                f"repos/{repo}/commits/{commit_hash}",
+            ],
+            check=False,
+        )
+        if data.get("author"):
+            return data["author"].get("login")
+        return None
+    except Exception:
+        return None
+
+
+def get_repo_full(remote_alias: str) -> str:
+    """Extract owner/repo from git remote URL."""
+    url = run(["git", "remote", "get-url", remote_alias], check=False)
+    match = re.search(r"[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
+    if match:
+        return f"{match.group(1)}/{match.group(2)}"
+    return ""
+
+
+def check_and_update_authors(since: str, repo_alias: str, check_mode: bool) -> None:
+    """Check for missing authors and optionally update .authors.yml.
+
+    In check mode, exits with code 1 if missing authors found, 0 otherwise.
+    Otherwise, updates .authors.yml and exits with code 0 or 1.
+    """
+    try:
+        repo_root = run(["git", "rev-parse", "--show-toplevel"], check=True)
+    except subprocess.CalledProcessError:
+        print("❌ Not in a git repository", file=sys.stderr)
+        sys.exit(1)
+
+    os.chdir(repo_root)
+    print(f"📁 Repository: {repo_root}")
+    print()
+
+    print("🔍 Checking .authors.yml...")
+    metadata, yaml_engine, authors_file = load_metadata()
+    by_emails, by_names, by_github, last_github_index, known_emails = (
+        build_author_indexes(metadata)
+    )
+
+    print(f"📜 Scanning commits (--since={since})...")
+    commits = get_commits_since(since)
+    repo_full = get_repo_full(repo_alias)
+
+    alternate_email_updates, new_authors = classify_commits(
+        commits,
+        known_emails,
+        by_emails,
+        by_names,
+        by_github,
+        repo_full,
+        get_github_login,
+    )
+
+    if check_mode:
+        if alternate_email_updates or new_authors:
+            if alternate_email_updates:
+                print(
+                    f"❌ Found {len(alternate_email_updates)} existing contributor(s) "
+                    "needing alternate_emails updates:"
+                )
+                for entry, commit in alternate_email_updates:
+                    print(
+                        f"   • {entry['name']}: add {commit['email']!r} to alternate_emails"
+                    )
+            if new_authors:
+                print(f"❌ Found {len(new_authors)} new contributor(s):")
+                for commit in new_authors:
+                    print(f"   • {commit['name']} <{commit['email']}>")
+            sys.exit(1)
+        print("✅ All authors are present")
+        sys.exit(0)
+
+    missing_github_keys: list[tuple[str, str]] = []
+    if last_github_index is not None:
+        for i in range(last_github_index + 1, len(metadata)):
+            entry = metadata[i]
+            if "github" not in entry:
+                missing_github_keys.append((entry["email"], entry["name"]))
+
+    if not alternate_email_updates and not new_authors and not missing_github_keys:
+        print("✅ .authors.yml is already complete")
+        sys.exit(0)
+
+    if alternate_email_updates:
+        print(
+            f"👤 Found {len(alternate_email_updates)} existing contributor(s) "
+            "with new email(s)"
+        )
+        for entry, commit in alternate_email_updates:
+            print(f"   • {entry['name']}: adding {commit['email']}")
+    if new_authors:
+        print(f"👤 Found {len(new_authors)} new contributor(s)")
+        for commit in new_authors:
+            print(f"   • {commit['name']} <{commit['email']}>")
+    if missing_github_keys:
+        print(
+            f"🔑 {len(missing_github_keys)} author(s) after last github entry "
+            "missing github key:"
+        )
+        for _, name in missing_github_keys:
+            print(f"   • {name}")
+        print()
+
+    changed = False
+    for entry, commit in alternate_email_updates:
+        if update_existing_entry(entry, commit["email"], commit["name"]):
+            changed = True
+
+    for commit in new_authors:
+        new_entry = {"name": commit["name"], "email": commit["email"]}
+        if commit.get("github"):
+            new_entry["github"] = commit["github"]
+        metadata.append(new_entry)
+        changed = True
+
+    for email, _name in missing_github_keys:
+        github_login = None
+        for commit in commits:
+            if commit["email"] == email:
+                if repo_full:
+                    github_login = get_github_login(repo_full, commit["hash"])
+                break
+        if github_login:
+            for entry in metadata:
+                if entry["email"] == email:
+                    entry["github"] = github_login
+                    changed = True
+                    break
+
+    if changed:
+        save_metadata(metadata, yaml_engine, authors_file)
+        print("✅ Updated .authors.yml")
+        print()
+        print("📋 Changes:")
+        subprocess.run(["git", "diff", ".authors.yml"])
+    else:
+        print("❌ No suggestions to apply")
+        sys.exit(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Fix .authors.yml for rever using gh cli and git.",
+    )
+    parser.add_argument(
+        "--since",
+        choices=["all", "tag"],
+        default="tag",
+        help="all=all commits, tag=since latest version tag (default: tag)",
+    )
+    parser.add_argument(
+        "--repo",
+        default="origin",
+        help="git remote alias (default: origin)",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="check for missing authors and exit with nonzero if found (no updates)",
+    )
+
+    args = parser.parse_args()
+    check_and_update_authors(args.since, args.repo, args.check)
+
+
+if __name__ == "__main__":
+    main()
